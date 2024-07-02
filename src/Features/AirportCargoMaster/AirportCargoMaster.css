@@ -1,0 +1,179 @@
+/* Adjust the last-child row border */
+.styled-table-row:last-child td,
+.styled-table-row:last-child th {
+  border: 0;
+}
+
+/* Cell padding */
+/* AirportMaster.css */
+
+.styled-table-cell {
+  padding: 8px !important;
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif !important;
+  font-weight: 400 !important;
+  font-size: 0.875rem !important;
+  line-height: 1.43 !important;
+  letter-spacing: 0.01071em !important;
+  display: table-cell !important;
+  vertical-align: inherit !important;
+  border-bottom: 1px solid rgba(224, 224, 224, 1) !important;
+  text-align: left !important;
+  color: rgba(0, 0, 0, 0.87) !important;
+}
+/* Head cell styles */
+.styled-table-head-cell {
+  font-family: Arial, sans-serif !important;
+  font-weight: bold !important;
+  font-size: 0.875rem;
+  line-height: 1.5rem;
+  letter-spacing: 0.01071em;
+  display: table-cell !important;
+  vertical-align: middle !important;
+  text-align: left !important;
+  padding: 8px !important;
+  color: blue !important;
+}
+
+
+/* Action buttons container */
+.action-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+/* Action buttons in a row with a gap */
+.styled-table-cell-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Blue icon button styles */
+.blue-icon-button {
+  background-color: inherit;
+  color: blue;
+  border: none;
+  box-shadow: none;
+  min-width: 0;
+  padding: 0;
+}
+
+.blue-icon-button:hover {
+  background-color: inherit;
+  color: darkblue;
+}
+
+/* Add user button styles */
+.add-user-button {
+  background-color: var(--mui-palette-primary-main);
+  color: var(--mui-palette-common-white);
+  border: 1px solid var(--mui-palette-primary-main);
+}
+
+.add-user-button:hover {
+  background-color: var(--mui-palette-primary-dark);
+}
+
+/* Form container styles */
+.form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px; /* Add gap between form fields */
+  padding: 24px;
+  background-color: white;
+  box-shadow: var(--mui-shadows-5);
+  border-radius: 8px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  margin: auto;
+}
+
+/* Modal style */
+.modal-style {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Custom text field styles */
+.custom-text-field .MuiInputBase-root {
+  height: 50px;
+  font-size: 16px;
+  align-items: center;
+}
+
+.custom-text-field label.Mui-focused {
+  color: var(--mui-palette-primary-main);
+}
+
+.custom-text-field .MuiInput-underline:after {
+  border-bottom-color: var(--mui-palette-primary-main);
+}
+
+.custom-text-field .MuiOutlinedInput-root fieldset {
+  border-color: transparent;
+}
+
+.custom-text-field .MuiOutlinedInput-root:hover fieldset {
+  border-color: transparent;
+}
+
+.custom-text-field .MuiOutlinedInput-root.Mui-focused fieldset {
+  border-color: var(--mui-palette-primary-main);
+}
+
+.custom-text-field {
+  margin-bottom: 16px; /* Add gap between text fields */
+}
+
+/* Button container styles */
+.button-container {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+
+.MuiInputBase-input,
+.MuiInput-input {
+  border: none !important;
+}
+/* Ensure the custom styles take precedence */
+.custom-form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  background-color: white;
+  box-shadow: var(--MuiShadow-5);
+  border-radius: 8px;
+  max-width: 400px;
+  margin: auto;
+}
+
+.custom-text-field .MuiInputBase-root {
+  border-color: transparent !important;
+  margin: 14px 0 !important;
+  height: 30px !important; /* Increased height */
+}
+
+.custom-text-field label.Mui-focused {
+  color: var(--MuiPalette-primary-main) !important;
+}
+
+.custom-text-field .MuiInput-underline:after {
+  border-bottom-color: var(--MuiPalette-primary-main) !important;
+}
+
+.custom-text-field .MuiOutlinedInput-root fieldset {
+  border-color: transparent !important;
+}
+
+.custom-text-field .MuiOutlinedInput-root:hover fieldset {
+  border-color: transparent !important;
+}
+
+.custom-text-field .MuiOutlinedInput-root.Mui-focused fieldset {
+  border-color: transparent !important;
+}
