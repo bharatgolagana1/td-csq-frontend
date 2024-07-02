@@ -55,7 +55,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open }) => {
               </ListItemButton>
             </ListItem>
             <ListItem disablePadding>
-              <ListItemButton onClick={() => navigate('/airport')}>
+              <ListItemButton onClick={() => navigate('/airportMaster')}>
                 <ListItemIcon>
                   <AirportIcon />
                 </ListItemIcon>

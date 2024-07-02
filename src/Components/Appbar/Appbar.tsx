@@ -6,6 +6,7 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
+import { useNavigate } from 'react-router-dom';
 
 interface AppbarProps {
   handleDrawerOpen: () => void;
@@ -14,6 +15,11 @@ interface AppbarProps {
 }
 
 const Appbar: React.FC<AppbarProps> = ({ handleDrawerOpen, open, handleDrawerClose }) => {
+    const navigate = useNavigate();
+    const handleLogin = (e: { preventDefault: () => void; }) => {
+        e.preventDefault();
+        navigate('/login');
+    }
   return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar 
@@ -38,7 +44,7 @@ const Appbar: React.FC<AppbarProps> = ({ handleDrawerOpen, open, handleDrawerClo
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             CSQ
           </Typography>
-          <Button color="inherit">Login</Button>
+          <Button color="inherit" onClick={handleLogin}>Login</Button>
         </Toolbar>
       </AppBar>
     </Box>

@@ -1,0 +1,132 @@
+.MuiInputBase-input, .MuiInput-input {
+    border: none !important;
+  }
+  /* Container for the table and action buttons */
+.container {
+  padding: 16px;
+}
+
+/* Styles for the action buttons container */
+.action-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+/* Styles for the add parameter button */
+.add-user-button {
+  background-color: #3f51b5 !important;
+  color: white !important;
+  border: 1px solid #3f51b5 !important;
+}
+
+.add-user-button:hover {
+  background-color: #303f9f !important;
+}
+
+/* Styles for the table cells */
+.styled-table-row:last-child td,
+.styled-table-row:last-child th {
+  border: 0 !important;
+}
+
+.styled-table-cell,
+.styled-table-head-cell {
+  padding: 8px !important;
+}
+
+.styled-table-head-cell {
+  color: blue !important;
+  background-color: #f2f2f2 !important;
+  font-weight: bold !important;
+}
+
+/* Styles for the blue icon button */
+.blue-icon-button {
+  background-color: inherit !important;
+  color: blue !important;
+  border: none !important;
+  box-shadow: none !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+}
+
+.blue-icon-button:hover {
+  background-color: inherit !important;
+  color: darkblue !important;
+}
+
+/* Form container styles */
+.form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  background-color: white;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  max-width: 450px;
+  margin: 80px auto;
+}
+
+/* Text field styles */
+.custom-text-field .MuiInputBase-root {
+  margin: 14px 0 !important;
+  height: 30px !important;
+}
+
+.custom-text-field label.Mui-focused {
+  color: #3f51b5 !important;
+}
+
+.custom-text-field .MuiInput-underline:after {
+  border-bottom-color: #3f51b5 !important;
+}
+
+.custom-text-field .MuiOutlinedInput-root fieldset {
+  border-color:transparent !important;
+}
+
+.custom-text-field .MuiOutlinedInput-root:hover fieldset {
+  border-color: transparent !important;
+}
+
+.custom-text-field .MuiOutlinedInput-root.Mui-focused fieldset {
+  border-color: transparent !important;
+}
+
+/* Button container styles */
+.button-container {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+.sub-parameters-list {
+  margin-top: 20px;
+  border-top: 1px solid #ccc;
+  padding-top: 10px;
+}
+
+.sub-parameter-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 4px;
+}
+
+.custom-text-field {
+  margin-top: 8px !important;
+}
+
+.button-container {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.blue-icon-button {
+  color: blue;
+}

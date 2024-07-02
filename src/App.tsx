@@ -3,6 +3,12 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import MainAppBar from './Features/MainAppBar/MainAppBar';
 import { useState } from 'react';
 import AirportCargoMaster from './Features/AirportCargoMaster/AirportCargoMaster';
+import AirportMaster from './Features/AirportMasterData/AirportMasterData';
+import AssessmentQuestionsData from './Features/AssessmentQuestionsData/AssessmentQuestionData';
+import AssessmentFeedback from './Features/AssessmentFeedback/AssessmentFeedback';
+import CustomerSampling from './Features/CustomerSampling/CustomerSampling';
+import UserTypeMaster from './Features/UserTypeMaster/UserTypeMaster';
+import Login from './Features/Login/Login';
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -32,7 +38,13 @@ function App() {
           }}
         >
       <Routes>
-          <Route path='airportCargo' element={<AirportCargoMaster/>}/>
+          <Route path='/airportCargo' element={<AirportCargoMaster/>}/>
+          <Route path='/airportMaster' element={<AirportMaster/>}/>
+          <Route path='/assessment' element={<AssessmentQuestionsData/>}/>
+          <Route path='/feedback' element={<AssessmentFeedback/>}/>
+          <Route path='/sampling' element={<CustomerSampling/>}/>
+          <Route path='/userType' element={<UserTypeMaster/>}/>
+          <Route path='/login' element={<Login/>}/>
       </Routes>
       </main>
       </div>
