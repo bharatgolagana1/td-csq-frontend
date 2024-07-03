@@ -9,6 +9,8 @@ import AssessmentFeedback from './Features/AssessmentFeedback/AssessmentFeedback
 import CustomerSampling from './Features/CustomerSampling/CustomerSampling';
 import UserTypeMaster from './Features/UserTypeMaster/UserTypeMaster';
 import Login from './Features/Login/Login';
+import RegistrationForm from './Features/Register/RegistrationForm';
+import PageNotFound from './Pages/PageNotFound';
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -45,6 +47,8 @@ function App() {
           <Route path='/sampling' element={<CustomerSampling/>}/>
           <Route path='/userType' element={<UserTypeMaster/>}/>
           <Route path='/login' element={<Login/>}/>
+          <Route path='/register' element={<RegistrationForm/>}/>
+          <Route path='*' element={<PageNotFound/>}/>
       </Routes>
       </main>
       </div>
