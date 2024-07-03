@@ -1,1 +1,1 @@
-export const API_URL = 'http://localhost:5000/airport/data';
+export const API_URL = 'http://localhost:5000/cargo/aco';
