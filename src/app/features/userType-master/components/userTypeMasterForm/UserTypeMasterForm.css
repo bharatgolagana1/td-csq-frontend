@@ -1,0 +1,52 @@
+/* Form styling */
+.form-container-user {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px;
+    background-color: white;
+    box-shadow: var(--mui-shadows-5);
+    border-radius: 8px;
+    max-width: 500px !important;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    margin: 140px auto !important;
+}
+
+.small-form-container {
+    max-width: 300px;
+}
+
+/* Custom text field styling */
+.custom-text-field .MuiInputBase-root {
+    margin: 14px 0 !important;
+    height: 30px !important;
+}
+
+.custom-text-field .Mui-focused {
+    color: #3f51b5 !important;
+}
+
+.custom-text-field .MuiInput-underline:after {
+    border-bottom-color: #3f51b5 !important;
+}
+
+.button-container {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+}
+
+/* Delete dialog styling */
+.delete-dialog-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px;
+    background-color: white;
+    box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    max-width: 400px;
+    margin: 100px auto;
+}

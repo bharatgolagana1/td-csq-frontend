@@ -1,0 +1,17 @@
+.main-content {
+    flex-grow: 10;
+    padding: 16px;
+    transition: margin 0.3s;
+    margin-top: 50px; /* Adjusted to make space for the AppBar */
+    background-color: white;
+    border: 2px solid white;
+  }
+  
+  .main-content.sidebar-open {
+    margin-left: 240px; /* Adjusted margin */
+  }
+  
+  .main-content {
+    margin-left: 0px;
+  }
+  

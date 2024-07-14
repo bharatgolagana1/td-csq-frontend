@@ -1,0 +1,88 @@
+/* Form container styles */
+.form-container-cargo {
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  background-color: white;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  width: 600px !important; /* Set fixed width */
+  max-height: 80vh;
+  overflow-y: auto;
+  margin: 20px auto;
+}
+
+/* Modal style */
+.modalStyle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Custom text field styles */
+.custom-text-field .MuiInputBase-root {
+  height: 48px;
+  font-size: 16px;
+  align-items: center;
+}
+
+.custom-text-field label.Mui-focused {
+  color: var(--mui-palette-primary-main);
+}
+
+.custom-text-field .MuiInput-underline:after {
+  border-bottom-color: var(--mui-palette-primary-main);
+}
+
+.custom-text-field .MuiOutlinedInput-root fieldset {
+  border-color: transparent;
+}
+
+.custom-text-field .MuiOutlinedInput-root:hover fieldset {
+  border-color: var(--mui-palette-primary-main);
+}
+
+.custom-text-field .MuiOutlinedInput-root.Mui-focused fieldset {
+  border-color: var(--mui-palette-primary-main);
+}
+
+.custom-text-field {
+  margin-bottom: 16px;
+}
+
+/* Button container styles */
+.button-container {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.MuiInputBase-input,
+.MuiInput-input {
+  border: none !important;
+}
+
+/* Small modal style */
+.smallModalStyle {
+  display: flex;
+  justify-content: center !important;
+  align-items: center !important;
+  margin: 20px auto;
+  border-radius: 8px !important;
+  width: 400px !important;
+}
+
+/* General styles */
+.airportCargo {
+  margin-left: 20px;
+}
+
+.add-user-button {
+  background-color: var(--mui-palette-primary-main);
+  color: var(--mui-palette-common-white);
+  border: 1px solid var(--mui-palette-primary-main);
+}
+
+.add-user-button:hover {
+  background-color: var(--mui-palette-primary-dark);
+}

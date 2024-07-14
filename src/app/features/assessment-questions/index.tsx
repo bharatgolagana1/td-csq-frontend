@@ -1,0 +1,1 @@
+export {default as AssessementQuestion } from './components/AssessmentQuestions/AssessmentQuestions'
