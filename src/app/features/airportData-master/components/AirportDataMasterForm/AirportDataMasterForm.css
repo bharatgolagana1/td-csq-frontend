@@ -1,0 +1,101 @@
+/* Dialog Paper Styles */
+.css-1t1j96h-MuiPaper-root-MuiDialog-paper {
+    background-color: #fff;
+    color: rgba(0, 0, 0, 0.87);
+    transition: box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+    border-radius: 4px;
+    box-shadow: 0px 11px 15px -7px rgba(0, 0, 0, 0.2), 
+                0px 24px 38px 3px rgba(0, 0, 0, 0.14), 
+                0px 9px 46px 8px rgba(0, 0, 0, 0.12);
+    margin: 32px;
+    position: relative;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100% - 64px);
+    min-width: 600px;
+  }
+  
+  /* Form container styles */
+  .form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px; /* Add gap between form fields */
+    padding: 24px;
+    background-color: white;
+    box-shadow: var(--mui-shadows-5);
+    border-radius: 8px;
+    max-width: 600px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    margin: auto;
+  }
+  
+  /* Modal style */
+  .modal-style {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px; /* Added padding to ensure proper alignment */
+  }
+  
+  /* Custom text field styles */
+  .custom-text-field .MuiInputBase-root {
+    height: 50px;
+    font-size: 16px;
+    align-items: center;
+  }
+  
+  .custom-text-field label.Mui-focused {
+    color: var(--mui-palette-primary-main);
+  }
+  
+  .custom-text-field .MuiInput-underline:after {
+    border-bottom-color: var(--mui-palette-primary-main);
+  }
+  
+  .custom-text-field .MuiOutlinedInput-root fieldset {
+    border-color: transparent;
+  }
+  
+  .custom-text-field .MuiOutlinedInput-root:hover fieldset {
+    border-color: transparent;
+  }
+  
+  .custom-text-field .MuiOutlinedInput-root.Mui-focused fieldset {
+    border-color: var(--mui-palette-primary-main);
+  }
+  
+  .custom-text-field {
+    margin-bottom: 18px; /* Add gap between text fields */
+  }
+  
+  /* Button container styles */
+  .button-container {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+  }
+  
+  .MuiInputBase-input,
+  .MuiInput-input {
+    border: none !important;
+  }
+  
+  /* Ensure the custom styles take precedence */
+  .custom-form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 24px;
+    background-color: white;
+    box-shadow: var(--MuiShadow-5);
+    border-radius: 8px;
+    max-width: 600px; /* Increased max-width for better layout */
+    margin: auto;
+  }
+  .action-button{
+    margin-right : 100px;
+    margin-left : 200px;
+  }

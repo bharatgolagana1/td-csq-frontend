@@ -1,17 +1,19 @@
-import './App.css'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import MainAppBar from './Features/MainAppBar/MainAppBar';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import './App.css';
+import Layout from './app/pages/Layout';
 import { useState } from 'react';
-import AirportCargoMaster from './Features/AirportCargoMaster/AirportCargoMaster';
-import AirportMaster from './Features/AirportMasterData/AirportMasterData';
-import AssessmentQuestionsData from './Features/AssessmentQuestionsData/AssessmentQuestionData';
-import AssessmentFeedback from './Features/AssessmentFeedback/AssessmentFeedback';
-import CustomerSampling from './Features/CustomerSampling/CustomerSampling';
-import UserTypeMaster from './Features/UserTypeMaster/UserTypeMaster';
-import Login from './Features/Login/Login';
+import UserTypeMasterPage from './app/pages/UserTypeMasterPage';
+import AirportCargoMasterPage from './app/pages/AirportCargoMasterPage';
+import AirportDataMasterPage from './app/pages/AirportDataMasterPage';
+import AssessmentQuestionsPage from './app/pages/AssessmentQuestionsPage';
+import CustomerSamplingPage from './app/pages/CustomerSamplingPage';
+import SettingsPage from './app/pages/SettingPages/SettingsPage';
+import AssessmentCyclePage from './app/pages/SettingPages/AssessmentCyclePage';
+import AssessmentFeedbackPage from './app/pages/AssessmentFeedbackPage';
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
   const handleDrawerOpen = () => {
     setSidebarOpen(true);
   };
@@ -19,37 +21,30 @@ function App() {
   const handleDrawerClose = () => {
     setSidebarOpen(false);
   };
-  const drawerWidth = 240;
-  return(
-    <Router>
-      <div style={{ display: 'flex', height: '100vh' }}>
-      <MainAppBar  sidebarOpen={sidebarOpen}
+
+  return (
+    <>
+      <BrowserRouter>
+        <Layout
+          sidebarOpen={sidebarOpen}
           handleDrawerOpen={handleDrawerOpen}
-          handleDrawerClose={handleDrawerClose}/>
-            <main
-          style={{
-            flexGrow: 10,
-            padding: '16px',
-            marginLeft: sidebarOpen ? `${drawerWidth}px` : '0px',  // Adjusted margin
-            transition: 'margin 0.3s',
-            marginTop: '50px', // Adjusted to make space for the AppBar
-            backgroundColor: 'white',
-            border: '2px solid white',
-          }}
-        >
-      <Routes>
-          <Route path='/airportCargo' element={<AirportCargoMaster/>}/>
-          <Route path='/airportMaster' element={<AirportMaster/>}/>
-          <Route path='/assessment' element={<AssessmentQuestionsData/>}/>
-          <Route path='/feedback' element={<AssessmentFeedback/>}/>
-          <Route path='/sampling' element={<CustomerSampling/>}/>
-          <Route path='/userType' element={<UserTypeMaster/>}/>
-          <Route path='/login' element={<Login/>}/>
-      </Routes>
-      </main>
-      </div>
-    </Router>
-  )
+          handleDrawerClose={handleDrawerClose}
+        />
+        <main className={`main-content ${sidebarOpen ? 'sidebar-open' : ''}`}>
+          <Routes>
+            <Route path='userType' element={<UserTypeMasterPage />} />
+            <Route path='/airportCargo' element={<AirportCargoMasterPage/>}/>
+            <Route path='/airportMaster' element={<AirportDataMasterPage/>}/>
+            <Route path='/assessment' element={<AssessmentQuestionsPage/>}/>
+            <Route path='/sampling' element={<CustomerSamplingPage/>}/>
+            <Route path='/settings' element={<SettingsPage/>}/>
+            <Route path='/settings/cycle' element={<AssessmentCyclePage/>}/>
+            <Route path='/feedback' element={<AssessmentFeedbackPage/>}/>
+          </Routes>
+        </main>
+      </BrowserRouter>
+    </>
+  );
 }
 
-export default App
+export default App;
