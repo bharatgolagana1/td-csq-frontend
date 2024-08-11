@@ -1,73 +1,82 @@
-/* Adjust the last-child row border */
-.styled-table-row:last-child td,
-.styled-table-row:last-child th {
+.airport-cargo-table-container .airport-cargo-table {
+  width: 100%;
+}
+
+.airport-cargo-table-container .head-cell {
+  font-family: Arial, sans-serif;
+  font-weight: bold;
+  font-size: 0.875rem;
+  line-height: 1.5rem;
+  letter-spacing: 0.01071em;
+  text-align: left;
+  padding: 8px;
+  color: blue;
+}
+
+
+.airport-cargo-table-container .body-cell {
+  padding: 8px;
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  font-weight: 400;
+  font-size: 0.875rem;
+  line-height: 1.43;
+  letter-spacing: 0.01071em;
+  text-align: left;
+  color: rgba(0, 0, 0, 0.87);
+  border-bottom: 1px solid rgba(224, 224, 224, 1);
+}
+
+.airport-cargo-table-container .actions-cell {
+  display: flex;
+  gap: 8px;
+}
+
+.airport-cargo-table-container .body-row:hover {
+  background-color: #f1f1f1;
+}
+
+.airport-cargo-table-container .blue-icon-button {
+  background-color: inherit;
+  color: blue;
+  border: none;
+  box-shadow: none;
+  min-width: 0;
+  padding: 0;
+}
+
+.airport-cargo-table-container .blue-icon-button:hover {
+  background-color: inherit;
+  color: darkblue;
+}
+
+.airport-cargo-table-container .body-row:last-child td,
+.airport-cargo-table-container .body-row:last-child th {
   border: 0;
 }
-.styled-table-cell {
-    padding: 8px !important;
-    font-family: "Roboto", "Helvetica", "Arial", sans-serif !important;
-    font-weight: 400 !important;
-    font-size: 0.875rem !important;
-    line-height: 1.43 !important;
-    letter-spacing: 0.01071em !important;
-    display: table-cell !important;
-    vertical-align: inherit !important;
-    border-bottom: 1px solid rgba(224, 224, 224, 1) !important;
-    text-align: left !important;
-    color: rgba(0, 0, 0, 0.87) !important;
-  }
-  
-  /* Head cell styles */
-  .styled-table-head-cell {
-    font-family: Arial, sans-serif !important;
-    font-weight: bold !important;
-    font-size: 0.875rem;
-    line-height: 1.5rem;
-    letter-spacing: 0.01071em;
-    display: table-cell !important;
-    vertical-align: middle !important;
-    text-align: left !important;
-    padding: 8px !important;
-    color: blue !important;
-  }
-  
-  /* Action buttons container */
-  .action-buttons {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 16px;
-  }
-  
-  /* Action buttons in a row with a gap */
-  .styled-table-cell-actions {
-    display: flex;
-    gap: 8px;
-  }
-  .styled-table-row:hover {
-    background-color: #f1f1f1;
+
+
+.airport-cargo-table-container .add-user-button {
+  background-color: var(--mui-palette-primary-main);
+  color: var(--mui-palette-common-white);
+  border: 1px solid var(--mui-palette-primary-main);
 }
-  /* Blue icon button styles */
-  .blue-icon-button {
-    background-color: inherit;
-    color: blue;
-    border: none;
-    box-shadow: none;
-    min-width: 0;
-    padding: 0;
-  }
-  
-  .blue-icon-button:hover {
-    background-color: inherit;
-    color: darkblue;
-  }
-  
-  /* Add user button styles */
-  .add-user-button {
-    background-color: var(--mui-palette-primary-main);
-    color: var(--mui-palette-common-white);
-    border: 1px solid var(--mui-palette-primary-main);
-  }
-  
-  .add-user-button:hover {
-    background-color: var(--mui-palette-primary-dark);
-  }
+
+.airport-cargo-table-container .add-user-button:hover {
+  background-color: var(--mui-palette-primary-dark);
+}
+
+.airport-cargo-table-container .pagination-cell {
+  padding: 0;
+}
+
+.airport-cargo-table-container .pagination-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  width: 100%;
+}
+
+.airport-cargo-table-container .MuiTablePagination-root {
+  flex-shrink: 0;
+  margin-left: auto;
+}

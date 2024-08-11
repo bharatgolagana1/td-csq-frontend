@@ -1,36 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
-import AirportDataMasterForm from '../AirportDataMasterForm/AirportDataMasterForm';
+import { useNavigate } from 'react-router-dom';
 import AirportDataMasterTable from '../AirportDataMasterTable/AirportDataMasterTable';
-import AddIcon from '@mui/icons-material/Add';
 import {
   AirportMaster,
   fetchAirportMasters,
-  addAirportMaster,
-  updateAirportMaster,
   deleteAirportMaster,
 } from '../../api/AirportDataMasterAPI';
 import './AirportDataMaster.css';
 
 const AirportDataMaster: React.FC = () => {
   const [rows, setRows] = useState<AirportMaster[]>([]);
-  const [openForm, setOpenForm] = useState(false);
-  const [isEdit, setIsEdit] = useState(false);
-  const [formData, setFormData] = useState<AirportMaster>({
-    _id: '',
-    airportCode: '',
-    airportName: '',
-    cityCode: '',
-    cityName: '',
-    countryCode: '',
-    countryName: '',
-    regionCode: '',
-    regionName: '',
-    latitude: 0,
-    longitude: 0,
-  });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteAirportId, setDeleteAirportId] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -45,31 +28,12 @@ const AirportDataMaster: React.FC = () => {
   }, []);
 
   const handleAdd = () => {
-    setFormData({
-      _id: '',
-      airportCode: '',
-      airportName: '',
-      cityCode: '',
-      cityName: '',
-      countryCode: '',
-      countryName: '',
-      regionCode: '',
-      regionName: '',
-      latitude: 0,
-      longitude: 0,
-    });
-    setIsEdit(false);
-    setOpenForm(true);
+    navigate('/airportMaster/add-airport');
   };
 
   const handleEdit = (airport: AirportMaster) => {
-    console.log('Editing airport:', airport); // Debug log
-    setFormData(airport);
-    setIsEdit(true);
-    setOpenForm(true);
+    navigate(`/airportMaster/add-airport/${airport._id}`);
   };
-
-  const handleCloseForm = () => setOpenForm(false);
 
   const handleDeleteConfirmation = (id: string) => {
     setDeleteAirportId(id);
@@ -90,36 +54,9 @@ const AirportDataMaster: React.FC = () => {
     }
   };
 
-  const handleSubmitForm = async (data: AirportMaster) => {
-    console.log('Submitting form data:', data);
-    try {
-      if (isEdit) {
-        const updatedData = await updateAirportMaster(data);
-        setRows(rows.map(row => (row._id === data._id ? updatedData : row)));
-      } else {
-        const newData = await addAirportMaster(data);
-        setRows([...rows, newData]);
-      }
-      setOpenForm(false);
-    } catch (error) {
-      console.error('Error adding/updating airport master:', error);
-    }
-  };
-
   return (
     <div style={{ marginLeft: '20px' }}>
       <h2 className='airport-master'>Airport Master</h2>
-      <div className='action-buttons'>
-        <Button className="add-user-button" variant="contained" onClick={handleAdd} startIcon={<AddIcon />}> 
-          Add Airport
-        </Button>
-      </div>
-      <AirportDataMasterForm
-        open={openForm}
-        onClose={handleCloseForm}
-        onSubmit={handleSubmitForm}
-        formData={formData} // Pass the formData to the form component
-      />
       <Dialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
@@ -143,6 +80,7 @@ const AirportDataMaster: React.FC = () => {
         rows={rows}
         onEdit={handleEdit}
         onDelete={handleDeleteConfirmation}
+        onAdd={handleAdd}
       />
     </div>
   );

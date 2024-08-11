@@ -1,0 +1,49 @@
+.feedback-buttons {
+    color: white;
+    padding: 15px 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+    gap: 1rem;
+}
+
+.feedback-buttons .prev-button {
+    background-color: #007bff; /* Blue */
+    border: 2px solid #0056b3; /* Darker blue */
+    color: white;
+}
+
+.feedback-buttons .next-button {
+    background-color: #28a745; /* Green */
+    border: 2px solid #1e7e34; /* Darker green */
+    color: white;
+}
+
+.feedback-buttons .save-button {
+    background-color: #dc3545; /* Red */
+    border: 2px solid #c82333; /* Darker red */
+    color: white;
+}
+
+.feedback-buttons .prev-button:hover {
+    background-color: #0056b3; /* Darker blue */
+    border-color: #003d7a; /* Even darker blue */
+}
+
+.feedback-buttons .next-button:hover {
+    background-color: #1e7e34; /* Darker green */
+    border-color: #155724; /* Even darker green */
+}
+
+.feedback-buttons .save-button:hover {
+    background-color: #c82333; /* Darker red */
+    border-color: #a71d2a; /* Even darker red */
+}
+
+.feedback-buttons .prev-button:focus,
+.feedback-buttons .next-button:focus,
+.feedback-buttons .save-button:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.3);
+}

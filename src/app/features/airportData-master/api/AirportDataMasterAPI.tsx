@@ -3,7 +3,7 @@ import axios from 'axios';
 export const API_URL = 'http://localhost:5000/air/airports';
 
 export interface AirportMaster {
-  _id: string;
+  _id?: string;
   airportCode: string;
   airportName: string;
   cityCode: string;
@@ -51,6 +51,15 @@ export const deleteAirportMaster = async (id: string): Promise<void> => {
     await axios.delete(`${API_URL}/${id}`);
   } catch (error) {
     console.error('Error deleting airport master:', error);
+    throw error;
+  }
+};
+export const fetchAirportMasterById = async (id: string): Promise<AirportMaster> => {
+  try {
+    const response = await axios.get<AirportMaster>(`${API_URL}/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching airport master by ID:', error);
     throw error;
   }
 };

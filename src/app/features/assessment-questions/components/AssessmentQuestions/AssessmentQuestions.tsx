@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 import './AssessmentQuestions.css';
-import { AddEditParameterDialog, DeleteDialog } from '../Dialogs/Dialogs';
-import SubParameterDialog from '../Dialogs/subparamterDialog/SubParameterDialog'
+import { DeleteDialog } from '../Dialogs/Dialogs'; // Removed AddEditParameterDialog import
+import SubParameterDialog from '../Dialogs/subparamterDialog/SubParameterDialog';
 import { Parameter, SubParameter, ErrorState } from '../types/Types';
 import {
   fetchParameters,
@@ -16,6 +16,7 @@ import {
   deleteSubParameter
 } from '../../api/AssessmentQuestionsAPI';
 import AssessmentParameterTable from '../AssessmentParameterTable/AssessmentParameterTable';
+import ParameterForm from '../ParameterForm/ParameterForm'; // Importing custom form
 
 const AssessmentQuestionsData = () => {
   const [parameters, setParameters] = useState<Parameter[]>([]);
@@ -96,8 +97,9 @@ const AssessmentQuestionsData = () => {
     }
 
     try {
+      const subParameterPayload = { ...subParameterData };
       if (!subParameterData._id) {
-        const newSubParameter = await addSubParameter(selectedParameter?._id!, subParameterData);
+        const newSubParameter = await addSubParameter(selectedParameter?._id!, subParameterPayload);
         const updatedParameters = parameters.map(parameter =>
           parameter._id === selectedParameter?._id
             ? {
@@ -110,7 +112,7 @@ const AssessmentQuestionsData = () => {
         );
         setParameters(updatedParameters);
       } else {
-        const updatedSubParameter = await editSubParameter(selectedParameter?._id!, subParameterData);
+        const updatedSubParameter = await editSubParameter(selectedParameter?._id!, subParameterPayload);
         const updatedParameters = parameters.map(parameter =>
           parameter._id === selectedParameter?._id
             ? {
@@ -185,14 +187,16 @@ const AssessmentQuestionsData = () => {
 
     if (Object.keys(newErrors).length === 0) {
       try {
+        // Remove or set _id to null if it's an empty string when adding a new parameter
+        const parameterData = { ...formData };
         if (isEdit) {
-          await editParameter(formData);
+          await editParameter(parameterData);
+          setParameters(parameters.map(param => param._id === parameterData._id ? parameterData : param));
         } else {
-          const newParameter = await addParameter(formData);
+          const newParameter = await addParameter(parameterData);
           setParameters([...parameters, newParameter]);
         }
         setOpen(false);
-        fetchParameters();
       } catch (error) {
         console.error('Error saving parameter:', error);
       }
@@ -212,7 +216,8 @@ const AssessmentQuestionsData = () => {
         handleViewSubParameters={handleViewSubParameters}
         handleOpenDeleteDialog={handleOpenDeleteDialog}
       />
-      <AddEditParameterDialog
+      {/* Replacing AddEditParameterDialog with ParameterForm */}
+      <ParameterForm
         open={open}
         isEdit={isEdit}
         formData={formData}
@@ -233,7 +238,7 @@ const AssessmentQuestionsData = () => {
         errors={errors}
         handleClose={handleSubParameterClose}
         handleSubmit={handleSubParameterSubmit}
-        handleChange={handleSubParameterChange}
+        handleChange={handleSubParameterChange} // Use handleSubParameterChange
         handleEditSubParameter={handleEditSubParameter}
         handleDeleteSubParameter={handleDeleteSubParameter}
       />

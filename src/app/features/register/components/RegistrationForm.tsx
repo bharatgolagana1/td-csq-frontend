@@ -5,7 +5,6 @@ import AssessDetails from './assessDetails/AssessDetails';
 import OfficeDetails from './officeDetails/OfficeDetails';
 import { z } from 'zod';
 import { API_URL } from '../api/RegistrationAPI';
-import '../styles/RegistrationForm.css';
 
 interface FormData {
   userType: string;

@@ -50,3 +50,12 @@ export interface AirportCargo {
       throw error;
     }
   };
+  export const fetchAirportCargoById = async (id: string): Promise<AirportCargo> => {
+    try {
+      const response = await axios.get<AirportCargo>(`${API_URL}/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching airport master by ID:', error);
+      throw error;
+    }
+  };

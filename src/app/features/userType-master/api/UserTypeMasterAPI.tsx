@@ -1,10 +1,10 @@
 import axios from 'axios';
 
-export const API_URL = 'http://localhost:5000/user/data';
+export const API_URL = 'http://localhost:5000/userType/data';
 
 export interface UserType {
-  _id?: string; // Make _id optional
-  id?: number;  // Make id optional
+  _id?: string; 
+  id?: number; 
   userType: string;
   accFlag: string;
 }

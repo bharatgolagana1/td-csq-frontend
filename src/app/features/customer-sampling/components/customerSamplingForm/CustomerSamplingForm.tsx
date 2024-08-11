@@ -27,7 +27,7 @@ const CustomerSamplingForm: React.FC<CustomerSamplingFormProps> = ({
   handleClose,
   formErrors,
 }) => (
-  <Box className="form-container" component="form" onSubmit={handleSubmit}>
+  <Box className="form-container-sampling" component="form" onSubmit={handleSubmit}>
     <FormControl fullWidth margin="normal" error={!!formErrors.customerType}>
       <InputLabel>Customer Type</InputLabel>
       <Select

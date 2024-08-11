@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Button, TextField, Typography } from '@mui/material';
 import { UserType } from '../../api/UserTypeMasterAPI';
-import './UserTypeMasterForm.css'
+import './UserTypeMasterForm.css';
 
 interface UserTypeMasterFormProps {
   formData: UserType;
@@ -13,9 +13,9 @@ interface UserTypeMasterFormProps {
 
 const UserTypeMasterForm: React.FC<UserTypeMasterFormProps> = ({ formData, isEdit, onChange, onSubmit, onClose }) => {
   return (
-    <Box className='form-container-user small-form-container'>
+    <Box className='user-type-master-form'>
       <Typography variant="h6" id="form-modal-title">{isEdit ? 'Edit User' : 'Add User'}</Typography>
-      <Box component="form" noValidate autoComplete="off" onSubmit={onSubmit}>
+      <Box component="form" autoComplete="off" onSubmit={onSubmit}>
         {isEdit && (
           <TextField
             id="id-basic"
@@ -28,7 +28,7 @@ const UserTypeMasterForm: React.FC<UserTypeMasterFormProps> = ({ formData, isEdi
             fullWidth
             margin="normal"
             disabled
-            className='custom-text-field'
+            className='user-type-input'
           />
         )}
         <TextField
@@ -41,7 +41,7 @@ const UserTypeMasterForm: React.FC<UserTypeMasterFormProps> = ({ formData, isEdi
           required
           fullWidth
           margin="normal"
-          className='custom-text-field'
+          className='user-type-input'
         />
         <TextField
           id="accFlag-basic"
@@ -53,7 +53,7 @@ const UserTypeMasterForm: React.FC<UserTypeMasterFormProps> = ({ formData, isEdi
           required
           fullWidth
           margin="normal"
-          className='custom-text-field'
+          className='user-type-input'
         />
         <div className='button-container'>
           <Button type="submit" variant="contained" color="primary">

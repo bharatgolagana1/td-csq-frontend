@@ -1,20 +1,23 @@
-/* UserTypeMaster.css */
-
-.user {
-    font-size: 24px;
-    margin-bottom: 16px;
-}
-
 .userType {
-    margin-left: 20px !important;
-}
-
-.action-buttons {
-    margin-bottom: 16px !important; /* Adjust this value as needed */
-}
-
-.add-user-button {
-    background-color: #3f51b5 !important;
-    border : 1px solid #3f51b5 !important;
-    margin-right: 10px !important;
-}
+    padding: 20px;
+  }
+  
+  .user {
+    margin-bottom: 20px;
+  }
+  
+  .action-buttons {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 10px;
+  }
+  
+  .add-user-button {
+    background-color: #007bff;
+    color: #fff;
+  }
+  
+  .add-user-button:hover {
+    background-color: #0056b3;
+  }
+  

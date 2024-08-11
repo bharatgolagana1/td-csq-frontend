@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Checkbox, IconButton } from '@mui/material';
 import { Customer } from '../types/Types';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import './CustomerTable.css'
+import './CustomerTable.css';
+
 interface CustomerTableProps {
   rows: Customer[];
   handleEdit: (customer: Customer) => void;
@@ -12,16 +13,30 @@ interface CustomerTableProps {
 }
 
 const CustomerTable: React.FC<CustomerTableProps> = ({ rows, handleEdit, handleDelete, handleSelect }) => {
+  const [selectAll, setSelectAll] = useState(false);
+
+  const handleSelectAll = () => {
+    setSelectAll(!selectAll);
+    rows.forEach((row) => handleSelect(row._id));
+  };
+
   return (
-    <TableContainer>
+    <TableContainer className="customer-sampling">
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell className='style-table-head-cell' >Select</TableCell>
-            <TableCell className='style-table-head-cell' >Customer Type</TableCell>
-            <TableCell className='style-table-head-cell' >Customer Name</TableCell>
-            <TableCell className='style-table-head-cell' >Email</TableCell>
-            <TableCell className='style-table-head-cell' >Actions</TableCell>
+            <TableCell className="sampling-style-table-head-cell">
+              <div className="select-all-container">
+                <Checkbox
+                  checked={selectAll}
+                  onChange={handleSelectAll}
+                />
+              </div>
+            </TableCell>
+            <TableCell className="sampling-style-table-head-cell">Customer Type</TableCell>
+            <TableCell className="sampling-style-table-head-cell">Customer Name</TableCell>
+            <TableCell className="sampling-style-table-head-cell">Email</TableCell>
+            <TableCell className="sampling-style-table-head-cell">Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -38,10 +53,22 @@ const CustomerTable: React.FC<CustomerTableProps> = ({ rows, handleEdit, handleD
               <TableCell>{row.customerName}</TableCell>
               <TableCell>{row.email}</TableCell>
               <TableCell>
-                <IconButton onClick={(e) => { e.stopPropagation(); handleEdit(row); }} className='icon-button'>
+                <IconButton
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEdit(row);
+                  }}
+                  className="icon-button-sampling"
+                >
                   <EditIcon />
                 </IconButton>
-                <IconButton onClick={(e) => { e.stopPropagation(); handleDelete(row._id); }} className='icon-button'>
+                <IconButton
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(row._id);
+                  }}
+                  className="icon-button-sampling"
+                >
                   <DeleteIcon />
                 </IconButton>
               </TableCell>

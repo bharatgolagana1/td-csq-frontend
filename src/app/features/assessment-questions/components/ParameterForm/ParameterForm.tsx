@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Typography, TextField, Button, Modal } from '@mui/material';
 import { Parameter, ErrorState } from '../types/Types';
-import '../AssessmentQuestions/AssessmentQuestions.css';
+import './ParameterForm.css';
 
 interface ParameterFormProps {
   open: boolean;
@@ -16,71 +16,71 @@ interface ParameterFormProps {
 const ParameterForm: React.FC<ParameterFormProps> = ({ open, isEdit, formData, errors, handleClose, handleSubmit, handleChange }) => {
   return (
     <Modal open={open} onClose={handleClose}>
-      <Box className="form-container" component="form" onSubmit={handleSubmit}>
+      <Box className="parameter-form-container" component="form" onSubmit={handleSubmit}>
         <Typography variant="h6" gutterBottom>
           {isEdit ? 'Edit Parameter' : 'Add Parameter'}
         </Typography>
         <TextField
-          className="custom-text-field"
           label="Category"
+          margin="dense"
           name="category"
           value={formData.category}
           onChange={handleChange}
           error={Boolean(errors.category)}
           helperText={errors.category}
-          variant="standard"
           fullWidth
+          className="custom-textfield"
         />
         <TextField
-          className="custom-text-field"
           label="Sub-Category"
+          margin="dense"
           name="subCategory"
           value={formData.subCategory}
           onChange={handleChange}
           error={Boolean(errors.subCategory)}
           helperText={errors.subCategory}
-          variant="standard"
           fullWidth
+          className="custom-textfield"
         />
         <TextField
-          className="custom-text-field"
           label="Parameter"
+          margin="dense"
           name="parameter"
           value={formData.parameter}
           onChange={handleChange}
           error={Boolean(errors.parameter)}
           helperText={errors.parameter}
-          variant="standard"
           fullWidth
+          className="custom-textfield"
         />
         <TextField
-          className="custom-text-field"
           label="Frequency"
           name="frequency"
+          margin="dense"
           value={formData.frequency}
           onChange={handleChange}
           error={Boolean(errors.frequency)}
           helperText={errors.frequency}
-          variant="standard"
           fullWidth
+          className="custom-textfield"
         />
         <TextField
-          className="custom-text-field"
           label="Weightage"
+          margin="dense"
           name="weightage"
           type="number"
           value={formData.weightage}
           onChange={handleChange}
           error={Boolean(errors.weightage)}
           helperText={errors.weightage}
-          variant="standard"
           fullWidth
+          className="custom-textfield"
         />
-        <Box className="button-container">
-          <Button type="submit" variant="contained" color="primary">
+        <Box className="button-container-parameter">
+          <Button type="submit" variant="contained" color="primary" className="submit-button">
             {isEdit ? 'Update' : 'Submit'}
           </Button>
-          <Button onClick={handleClose} variant="contained">
+          <Button onClick={handleClose} variant="contained" className="cancel-button">
             Cancel
           </Button>
         </Box>
