@@ -1,4 +1,4 @@
-import RoleMapping from "../../features/settings/role-mapping/RoleMapping";
+import RoleMapping from "../features/role-mapping/RoleMapping";
 
 const RoleMappingPage = () => {
   return (

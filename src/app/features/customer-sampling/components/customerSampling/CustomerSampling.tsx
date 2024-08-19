@@ -1,14 +1,14 @@
 import React, { useState, useEffect, ChangeEvent } from 'react';
-import { Button, Typography, TableContainer, Paper, Modal, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
+import { Button, TableContainer, Paper, Modal, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import { fetchCustomers, fetchAssessmentCycle, addCustomer, updateCustomer, deleteCustomer } from '../../api/CustomerSamplingAPI';
+import { addCustomer, updateCustomer, deleteCustomer, fetchCustomers } from '../../api/CustomerSamplingAPI';
 import CustomerTable from '../customerTable/CustomerTable';
 import CustomerSamplingForm from '../customerSamplingForm/CustomerSamplingForm';
 import PaginationComponent from '../CustomerSamplingControls/PaginationComponent';
 import SearchBarComponent from '../CustomerSamplingControls/SearchBarComponent';
 import './CustomerSampling.css';
 import axios from 'axios';
-import { Customer, AssessmentCycle } from '../types/Types';
+import { Customer } from '../types/Types';
 
 const ModalStyle = {
   display: 'flex',
@@ -19,32 +19,16 @@ const ModalStyle = {
 const CustomerSampling: React.FC = () => {
   const [rows, setRows] = useState<Customer[]>([]);
   const [filteredRows, setFilteredRows] = useState<Customer[]>([]);
-  const [assessmentCycle, setAssessmentCycle] = useState<AssessmentCycle | null>(null);
   const [open, setOpen] = useState(false);
-  const [formData, setFormData] = useState<Customer>({ _id: '', customerType: '', customerName: '', email: '' });
+  const [formData, setFormData] = useState<Customer>({ _id: '', customerType: '', customerName: '', email: '', sampledDate: '' });
   const [isEdit, setIsEdit] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
+  const [openGroupDelete, setOpenGroupDelete] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [selectedCustomersCount, setSelectedCustomersCount] = useState(0);
+  const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-
-  useEffect(() => {
-    const loadCustomers = async () => {
-      const customers = await fetchCustomers();
-      setRows(customers);
-      setFilteredRows(customers);
-    };
-
-    const loadAssessmentCycle = async () => {
-      const cycle = await fetchAssessmentCycle();
-      setAssessmentCycle(cycle.length > 0 ? cycle[0] : null);
-    };
-
-    loadCustomers();
-    loadAssessmentCycle();
-  }, []);
 
   useEffect(() => {
     const filtered = rows.filter(row =>
@@ -53,20 +37,25 @@ const CustomerSampling: React.FC = () => {
       row.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredRows(filtered);
-    setPage(0); // Reset page to 0 when search term changes
+    setPage(0);
   }, [searchTerm, rows]);
 
-  const formatDate = (date: string | Date): string => {
-    try {
-      const options: Intl.DateTimeFormatOptions = { day: '2-digit', month: '2-digit', year: 'numeric' };
-      return new Date(date).toLocaleDateString('en-GB', options);
-    } catch (error) {
-      console.error('Invalid date:', date);
-      return 'Invalid date';
+  useEffect(() => {
+    const fetchData = async () => {
+      const customers = await fetchCustomers();
+      setRows(customers);
+    };
+    fetchData();
+  }, []);
+  
+  useEffect(() => {
+    if (selectedCustomers.length === 0) {
+      setRows(rows.map(row => ({ ...row, selectBox: false })));
     }
-  };
+  }, [selectedCustomers, rows]);
+
   const handleAdd = () => {
-    setFormData({ _id: '', customerType: '', customerName: '', email: '' });
+    setFormData({ _id: '', customerType: '', customerName: '', email: '', sampledDate: '' });
     setIsEdit(false);
     setOpen(true);
   };
@@ -98,6 +87,22 @@ const CustomerSampling: React.FC = () => {
     setDeleteId(null);
   };
 
+  const confirmGroupDelete = async () => {
+    try {
+      await Promise.all(selectedCustomers.map(id => deleteCustomer(id)));
+      setRows(rows.filter(row => !selectedCustomers.includes(row._id)));
+      setOpenGroupDelete(false);
+      setSelectedCustomers([]);
+    } catch (error) {
+      console.error('Error deleting customers:', error);
+    }
+  };
+
+  const handleCloseGroupDelete = () => {
+    setOpenGroupDelete(false);
+    setSelectedCustomers([]);
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
@@ -113,7 +118,7 @@ const CustomerSampling: React.FC = () => {
         await updateCustomer(_id, formData);
         setRows(rows.map(row => (row._id === _id ? formData : row)));
       } else {
-        const { _id, ...newCustomerData } = formData; // Create a new object without _id
+        const { _id, ...newCustomerData } = formData;
         const response = await addCustomer(newCustomerData);
         setRows([...rows, response]);
       }
@@ -138,9 +143,11 @@ const CustomerSampling: React.FC = () => {
         if (row._id === id) {
           const updatedRow = { ...row, selectBox: !row.selectBox };
           if (updatedRow.selectBox) {
-            setSelectedCustomersCount(prevCount => prevCount + 1);
+            // Add to selectedCustomers if selected
+            setSelectedCustomers(prev => [...new Set([...prev, id])]);
           } else {
-            setSelectedCustomersCount(prevCount => prevCount - 1);
+            // Remove from selectedCustomers if deselected
+            setSelectedCustomers(prev => prev.filter(customerId => customerId !== id));
           }
           return updatedRow;
         }
@@ -148,11 +155,6 @@ const CustomerSampling: React.FC = () => {
       });
       return updatedRows;
     });
-  };
-
-  const handleSendForSampling = () => {
-    const selected = rows.filter(row => row.selectBox);
-    console.log('Selected Customers:', selected);
   };
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -168,27 +170,27 @@ const CustomerSampling: React.FC = () => {
     setPage(0);
   };
 
+  const isAnyCustomerSelected = selectedCustomers.length > 0;
+
   return (
     <div className='customer'>
-      <h2 className='customer-sampling'>Customer Sampling for Assessments</h2>
-      {assessmentCycle && (
-        <div className='assessment-details'>
-          <Typography variant="body1">Minimum Sampling Size: {assessmentCycle.minSamplingSize}</Typography>
-          <Typography variant="body1">Sampling Start Date: {formatDate(assessmentCycle.samplingStartDate)}</Typography>
-          <Typography variant="body1">Sampling End Date: {formatDate(assessmentCycle.samplingEndDate)}</Typography>
-        </div>
-      )}
-      <div>
-        Users Selected : {selectedCustomersCount}
+      <div className='button-row'>
+        <h2 className='customer-sampling'>Customer Sampling</h2>
+        <Button className='add-button-customer-sampling' onClick={handleAdd} startIcon={<AddIcon />}>
+          Add Customer
+        </Button>
       </div>
       <SearchBarComponent searchTerm={searchTerm} handleSearch={handleSearch} />
       <div className='action-buttons'>
-        <Button className='add-user-button' variant="contained" onClick={handleAdd} startIcon={<AddIcon/>}>
-          Add Customer
-        </Button>
-        {assessmentCycle && selectedCustomersCount >= assessmentCycle.minSamplingSize && (
-          <Button className='send-sampling-button' variant="contained" color="primary" onClick={handleSendForSampling}>
-            Send for Sampling
+        {isAnyCustomerSelected && (
+          <Button className='delete-button' variant="contained" color="secondary" onClick={() => {
+            if (selectedCustomers.length === 1) {
+              handleDelete(selectedCustomers[0]);
+            } else {
+              setOpenGroupDelete(true);
+            }
+          }}>
+            {selectedCustomers.length === 1 ? 'Delete Selected User' : 'Delete Selected Users'}
           </Button>
         )}
       </div>
@@ -223,8 +225,42 @@ const CustomerSampling: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      <Dialog
+        open={openGroupDelete}
+        onClose={handleCloseGroupDelete}
+        aria-labelledby="group-delete-dialog-title"
+        aria-describedby="group-delete-dialog-description"
+      >
+        <DialogTitle id="group-delete-dialog-title">{"Delete Selected Customers"}</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="group-delete-dialog-description">
+            Are you sure you want to delete the selected customers?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseGroupDelete} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={confirmGroupDelete} color="primary" autoFocus>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
       <TableContainer component={Paper}>
-        <CustomerTable rows={filteredRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)} handleEdit={handleEdit} handleDelete={handleDelete} handleSelect={handleSelect} />
+        <CustomerTable
+          rows={filteredRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)}
+          handleEdit={handleEdit}
+          handleSelect={handleSelect}
+          handleDelete={function (_id: string): void {
+            throw new Error('Function not implemented.');
+          }}
+          handleSelectAll={function (): void {
+            throw new Error('Function not implemented.');
+          }}
+          handleGroupDelete={function (): void {
+            throw new Error('Function not implemented.');
+          }}
+        />
         <PaginationComponent
           count={filteredRows.length}
           page={page}

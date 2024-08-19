@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import { Visibility as VisibilityIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { Parameter } from '../types/Types';
-import './AssessmentParameterTable.css'; // Adjusted CSS import for the updated name
+import './AssessmentParameterTable.css';
 
 interface ParameterTableProps {
   parameters: Parameter[];

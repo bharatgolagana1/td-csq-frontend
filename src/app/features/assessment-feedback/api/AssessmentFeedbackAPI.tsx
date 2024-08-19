@@ -52,7 +52,7 @@ export const finalSubmit = async (allQuestions: any) => {
         })),
         comments: question.comments,
       }));
-    const response = await axios.post('http://localhost:5000/user/submit', { feedbackResponses: payload });
+    const response = await axios.post('http://localhost:5000/assessment/submit', { feedbackResponses: payload });
     return response.data;
   } catch (error) {
     console.error('Error submitting feedback:', error);

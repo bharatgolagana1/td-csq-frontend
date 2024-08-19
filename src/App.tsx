@@ -2,18 +2,19 @@ import { useState } from 'react';
 import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 import './App.css';
 import ErrorBoundary from './ErrorBoundary';
-import KeycloakProvider from './app/features/keyCloak/KeyCloakProvider';
 import createRoutes from './app/routes';
+import { UserInfoProvider } from './app/context/UserInfoContext';
+import KeycloakProvider from './app/features/keyCloak/KeyCloakProvider';
 
 function App() {
-  const [sidebarOpen, setSidebarOpen] = useState(true); // Initially open
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const handleDrawerOpen = () => {
-    setSidebarOpen(true); // Open the sidebar
+    setSidebarOpen(true);
   };
 
   const handleDrawerClose = () => {
-    setSidebarOpen(false); // Close the sidebar
+    setSidebarOpen(false);
   };
 
   const routes = createRoutes(sidebarOpen, handleDrawerOpen, handleDrawerClose);
@@ -21,10 +22,12 @@ function App() {
 
   return (
     <ErrorBoundary>
+    <UserInfoProvider>
       <KeycloakProvider>
         <RouterProvider router={router} />
       </KeycloakProvider>
-    </ErrorBoundary>
+    </UserInfoProvider>
+  </ErrorBoundary>
   );
 }
 

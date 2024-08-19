@@ -1,7 +1,7 @@
 import React from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, TablePagination } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
+import DeleteIconSvg from '../../../../../asserts/svgs/deleteIconSvg.svg';
+import EditIconSvg from '../../../../../asserts/svgs/editIconSvg.svg';
 import { AirportCargo } from '../../api/AirportCargoMasterAPI';
 import './AirportCargoMasterTable.css';
 
@@ -52,31 +52,32 @@ const AirportCargoMasterTable: React.FC<AirportCargoMasterTableProps> = ({
               <TableCell className='body-cell'>{row.emailId}</TableCell>
               <TableCell className='body-cell'>{row.mobileNumber}</TableCell>
               <TableCell className='actions-cell'>
-                <Button className="blue-icon-button" onClick={() => onEdit(row)}>
-                  <EditIcon />
-                </Button>
-                <Button className="blue-icon-button" onClick={() => onDelete(row._id as string)}>
-                  <DeleteIcon />
-                </Button>
+                <div className="icons-style">
+                  <Button className="blue-icon-button" onClick={() => onEdit(row)}>
+                    <img src={EditIconSvg} alt="edit" />
+                  </Button>
+                  <Button className="blue-icon-button" onClick={() => onDelete(row._id as string)}>
+                    <img src={DeleteIconSvg} alt="delete" />
+                  </Button>
+                </div>
               </TableCell>
             </TableRow>
           ))}
-         <TableRow>
-  <TableCell colSpan={8} align="right" className="pagination-cell">
-    <div className="pagination-wrapper">
-      <TablePagination
-        component="div"
-        count={count}
-        page={page}
-        onPageChange={onPageChange}
-        rowsPerPage={rowsPerPage}
-        onRowsPerPageChange={onRowsPerPageChange}
-        rowsPerPageOptions={[5, 10, 50, 100]}
-      />
-    </div>
-  </TableCell>
-</TableRow>
-
+          <TableRow>
+            <TableCell colSpan={8} align="right" className="pagination-cell">
+              <div className="pagination-wrapper">
+                <TablePagination
+                  component="div"
+                  count={count}
+                  page={page}
+                  onPageChange={onPageChange}
+                  rowsPerPage={rowsPerPage}
+                  onRowsPerPageChange={onRowsPerPageChange}
+                  rowsPerPageOptions={[5, 10, 50, 100]}
+                />
+              </div>
+            </TableCell>
+          </TableRow>
         </TableBody>
       </Table>
     </TableContainer>

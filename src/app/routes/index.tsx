@@ -12,6 +12,7 @@ import UnAuthorizedRoute from './UnAuthorizedRoute';
 import SettingsRoutes from './SettingsRoutes';
 import PageNotFoundRoutes from './PageNotFoundRoutes';
 import { DashboardRoutes } from './DashboardRoutes';
+import RoleMappingRoute from './RoleMappingRoute';
 
 const createRoutes = (sidebarOpen: boolean, handleDrawerOpen: () => void, handleDrawerClose: () => void): RouteObject[] => [
   {
@@ -30,6 +31,7 @@ const createRoutes = (sidebarOpen: boolean, handleDrawerOpen: () => void, handle
       ...SettingsRoutes,
       ...PageNotFoundRoutes,
       ...DashboardRoutes,
+      ...RoleMappingRoute
     ],
   },
 ];

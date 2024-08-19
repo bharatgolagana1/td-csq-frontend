@@ -1,44 +1,44 @@
-.customer-sampling {
-    text-align: center;
-    margin-bottom: 20px;
-  }
+.button-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
 
-  .customer{
+.customer .button-row .customer-sampling .add-button-customer-sampling {
+  margin-left: 0;
+  color : blue;
+}
+
+.button-row .customer-sampling-button {
+  margin-right: 0;
+}
+
+.customer{
     margin-left : 20px;
-  }
-
-  .action-buttons {
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: 10px;
-  }
+}
   
-  .button-container {
+.button-container {
     display: flex;
     justify-content: space-between;
-  }
-  
-  .add-user-button {
-    margin-right: 1rem;
-  }
+}
 
-  .send-sampling-button{
+.send-sampling-button{
     margin-left: 2rem ;
     margin-right: 2rem;
-  }
+}
 
-  .styled-table-head-cell{
-    color: blue;
+.styled-table-head-cell{
+  color: blue;
   background-color: #f2f2f2;
   font-weight: bold;
   }
 
-  .icon-button{
+.icon-button{
     color : blue;
     background-color: blue;
-  }
-  .assessment-details {
+}
+.assessment-details {
     display: flex;
     justify-content: space-between;
     margin-bottom: 10px;
-  }
+}

@@ -10,8 +10,8 @@ import {
   Button,
   TablePagination,
 } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
+import DeleteIconSvg from '../../../../../asserts/svgs/deleteIconSvg.svg';
+import EditIconSvg from '../../../../../asserts/svgs/editIconSvg.svg';
 import AirportDataControls from '../AirportDataControls/AirportDataControls';
 import AddIcon from '@mui/icons-material/Add';
 import './AirportDataMasterTable.css';
@@ -102,13 +102,13 @@ const AirportDataMasterTable: React.FC<AirportDataMasterTableProps> = ({ rows, o
                 <TableCell className="styled-table-cell-airport">{row.regionName}</TableCell>
                 <TableCell className="styled-table-cell-airport">{row.latitude}</TableCell>
                 <TableCell className="styled-table-cell-airport">{row.longitude}</TableCell>
-                <TableCell className="styled-table-cell-airport styled-table-cell-actions">
-                  <Button className="blue-icon-button" onClick={() => onEdit(row)}>
-                    <EditIcon />
-                  </Button>
+                <TableCell className="styled-table-cell-actions-airport">
+                <Button onClick={() => onEdit(row)}>
+                 <img src={EditIconSvg} alt="Edit"  />
+                 </Button>
                   {row._id && (
-                    <Button className="red-icon-button" onClick={() => onDelete(row._id!)}>
-                      <DeleteIcon />
+                    <Button onClick={() => onDelete(row._id!)}>
+                       <img src={DeleteIconSvg} alt="Delete"  />
                     </Button>
                   )}
                 </TableCell>
