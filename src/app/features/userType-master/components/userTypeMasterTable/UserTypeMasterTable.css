@@ -20,14 +20,16 @@
 
 /* Override default Material-UI TableCell styles */
 .MuiTableCell-root {
-    font-family: "Roboto", "Helvetica", "Arial", sans-serif !important;
-    font-weight: 500 !important;
-    font-size: 0.875rem !important;
-    line-height: 1.5rem !important;
-    letter-spacing: 0.01071em !important;
-    display: table-cell !important;
-    vertical-align: inherit !important;
-    border-bottom: 1px solid rgba(224, 224, 224, 1) !important;
-    text-align: left !important;
-    padding: 8px !important; /* Reduced padding */
+    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+    font-weight: 500 ;
+    font-size: 0.875rem;
+    line-height: 1.5rem ;
+    letter-spacing: 0.01071em;
+    display: table-cell;
+    vertical-align: inherit;
+    border-bottom: 1px solid rgba(224, 224, 224, 1);
+    text-align: left;
+    padding: 8px ; /* Reduced padding */
+    border-left: none; /* Remove left border */
+    border-right: none; /* Remove right border */
 }

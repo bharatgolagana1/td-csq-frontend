@@ -1,11 +1,11 @@
 import {RouteObject } from 'react-router-dom';
 import { AssessementQuestion } from '../features/assessment-questions';
 
-const AirportDataMasterRoutes: RouteObject[] = [
+const AirportQuestionsRoutes: RouteObject[] = [
   {
     path: "/assessment",
     element: <AssessementQuestion/>,
-  },
+  }
 ];
 
-export default AirportDataMasterRoutes;
+export default AirportQuestionsRoutes;

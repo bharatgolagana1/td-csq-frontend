@@ -19,6 +19,7 @@ import UserTypeIcon from '@mui/icons-material/Person';
 import SettingsIcon from '@mui/icons-material/Settings';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
+import AssignmentIndIcon from '@mui/icons-material/AssignmentInd'; // Import icon for Role Mapping
 import { Link } from 'react-router-dom';
 import { Typography } from '@mui/material';
 
@@ -121,6 +122,15 @@ const Sidebar: React.FC<SidebarProps> = ({ open }) => {
                 <PeopleIcon />
               </ListItemIcon>
               <ListItemText primary="Customer Sampling" />
+            </ListItemButton>
+          </ListItem>
+          {/* New Role Mapping List Item */}
+          <ListItem disablePadding>
+            <ListItemButton component={Link} to="/role-mapping">
+              <ListItemIcon>
+                <AssignmentIndIcon />
+              </ListItemIcon>
+              <ListItemText primary="Roles" />
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>

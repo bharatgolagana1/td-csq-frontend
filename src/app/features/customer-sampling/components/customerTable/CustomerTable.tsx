@@ -1,27 +1,36 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Checkbox, IconButton } from '@mui/material';
-import { Customer } from '../types/Types';
 import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import './CustomerTable.css'
+import { Customer } from '../types/Types';
+import './CustomerTable.css';
+
 interface CustomerTableProps {
   rows: Customer[];
   handleEdit: (customer: Customer) => void;
   handleDelete: (id: string) => void;
   handleSelect: (id: string) => void;
+  handleSelectAll: () => void;
+  handleGroupDelete: () => void;
 }
 
-const CustomerTable: React.FC<CustomerTableProps> = ({ rows, handleEdit, handleDelete, handleSelect }) => {
+const CustomerTable: React.FC<CustomerTableProps> = ({ rows, handleSelect, handleSelectAll }) => {
+  const [selectAll, setSelectAll] = useState(false);
+
+  const handleToggleSelectAll = () => {
+    setSelectAll(!selectAll);
+    handleSelectAll();
+  };
+
   return (
-    <TableContainer>
+    <TableContainer className="customer-sampling">
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell className='style-table-head-cell' >Select</TableCell>
-            <TableCell className='style-table-head-cell' >Customer Type</TableCell>
-            <TableCell className='style-table-head-cell' >Customer Name</TableCell>
-            <TableCell className='style-table-head-cell' >Email</TableCell>
-            <TableCell className='style-table-head-cell' >Actions</TableCell>
+            <TableCell className="sampling-style-table-head-cell">Select </TableCell>
+            <TableCell className="sampling-style-table-head-cell">Customer Type</TableCell>
+            <TableCell className="sampling-style-table-head-cell">Customer Name</TableCell>
+            <TableCell className="sampling-style-table-head-cell">Email</TableCell>
+            <TableCell className="sampling-style-table-head-cell">Sampled Date</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -34,17 +43,10 @@ const CustomerTable: React.FC<CustomerTableProps> = ({ rows, handleEdit, handleD
                   onClick={(e) => e.stopPropagation()} // Prevents triggering row click when checkbox is clicked
                 />
               </TableCell>
-              <TableCell>{row.customerType}</TableCell>
-              <TableCell>{row.customerName}</TableCell>
-              <TableCell>{row.email}</TableCell>
-              <TableCell>
-                <IconButton onClick={(e) => { e.stopPropagation(); handleEdit(row); }} className='icon-button'>
-                  <EditIcon />
-                </IconButton>
-                <IconButton onClick={(e) => { e.stopPropagation(); handleDelete(row._id); }} className='icon-button'>
-                  <DeleteIcon />
-                </IconButton>
-              </TableCell>
+              <TableCell className='sampling-style-table-body-cell'>{row.customerType}</TableCell>
+              <TableCell className='sampling-style-table-body-cell'>{row.customerName}</TableCell>
+              <TableCell className='sampling-style-table-body-cell'>{row.email}</TableCell>
+              <TableCell className='sampling-style-table-body-cell'>{row.sampledDate ? new Date(row.sampledDate).toLocaleDateString() : 'N/A'}</TableCell>
             </TableRow>
           ))}
         </TableBody>

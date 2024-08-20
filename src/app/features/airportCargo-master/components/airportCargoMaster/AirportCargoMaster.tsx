@@ -1,72 +1,42 @@
-import React, { useState, useEffect } from 'react';
-import Button from '@mui/material/Button';
-import AddIcon from '@mui/icons-material/Add';
-import Box from '@mui/material/Box';
-import Modal from '@mui/material/Modal';
-import Typography from '@mui/material/Typography';
+import React, { useState, useEffect, ChangeEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button, DialogTitle, DialogContent, DialogContentText, DialogActions, Dialog } from '@mui/material';
+import { Add as AddIcon } from '@mui/icons-material';
 import {
   AirportCargo,
   fetchAirportCargos,
   deleteAirportCargo,
-  addAirportCargo,
-  updateAirportCargo,
 } from '../../api/AirportCargoMasterAPI';
 import AirportCargoMasterTable from '../airportCargoMasterTable/AirportCargoMasterTable';
-import AirportCargoForm from '../airportCargoMasterForm/AirportCargoMasterForm';
+import AirportCargoControls from '../airportCargoControls/AirportCargoControls';
 import './AirportCargoMaster.css';
 
 const AirportCargoMaster: React.FC = () => {
+  const navigate = useNavigate();
   const [rows, setRows] = useState<AirportCargo[]>([]);
-  const [open, setOpen] = useState(false);
-  const [isEdit, setIsEdit] = useState(false);
-  const [formData, setFormData] = useState<AirportCargo>({
-    acoCode: '',
-    acoName: '',
-    acoAddress: '',
-    airportCode: '',
-    pincode: '',
-    emailId: '',
-    mobileNumber: '',
-  });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   useEffect(() => {
+    const fetchCargos = async () => {
+      try {
+        const data = await fetchAirportCargos();
+        setRows(data);
+      } catch (error) {
+        console.error('Error fetching airport cargos:', error);
+      }
+    };
     fetchCargos();
   }, []);
 
-  const fetchCargos = async () => {
-    try {
-      const data = await fetchAirportCargos();
-      setRows(data);
-    } catch (error) {
-      console.error('Error fetching airport cargos:', error);
-    }
-  };
-
-  const handleAdd = () => {
-    setFormData({
-      acoCode: '',
-      acoName: '',
-      acoAddress: '',
-      airportCode: '',
-      pincode: '',
-      emailId: '',
-      mobileNumber: '',
-    });
-    setIsEdit(false);
-    setOpen(true);
-  };
-
-  const handleEdit = (cargo: AirportCargo) => {
-    setFormData(cargo);
-    setIsEdit(true);
-    setOpen(true);
-  };
-
-  const handleClose = () => setOpen(false);
-
   const handleDeleteDialogClose = () => setDeleteDialogOpen(false);
+
+  const handleEdit = (airport: AirportCargo) => {
+    navigate(`/airportCargo/add-cargo/${airport._id}`);
+  };
 
   const handleDeleteDialogOpen = (id: string) => {
     setDeleteId(id);
@@ -85,88 +55,75 @@ const AirportCargoMaster: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    try {
-      if (isEdit) {
-        await updateAirportCargo(formData._id!, formData);
-        setRows(rows.map((row) => (row._id === formData._id ? formData : row)));
-      } else {
-        const newCargo = await addAirportCargo(formData);
-        setRows([...rows, newCargo]);
-      }
-      setOpen(false);
-    } catch (error) {
-      console.error('Error adding/updating airport cargo:', error);
-    }
+  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
+  const handlePageChange = (_event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => {
+    setPage(newPage);
   };
+
+  const handleRowsPerPageChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const filteredRows = rows.filter(
+    (row) =>
+      row.acoCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      row.acoName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      row.acoAddress.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      row.airportCode.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const paginatedRows = filteredRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
-    <div className='airportCargo'>
-      <h2 className='airport-cargo'>Airport Cargo Master</h2>
+    <div className='airport-cargo-container'>
+      <h2 className='airport-cargo-title'>Airport Cargo Master</h2>
+      <AirportCargoControls
+        searchTerm={searchTerm}
+        onSearchChange={handleSearchChange}
+      />
       <div className='action-buttons'>
         <Button
-          className='add-user-button'
+          className='custom-add-button'
           variant='contained'
           startIcon={<AddIcon />}
-          onClick={handleAdd}
+          onClick={() => navigate('/airportCargo/add-cargo')}
         >
           Add Cargo
         </Button>
       </div>
-      <Modal
-        open={open}
-        onClose={handleClose}
-        aria-labelledby='form-modal-title'
-        aria-describedby='form-modal-description'
-        className='modalStyle'
-      >
-        <Box className='form-container-cargo'>
-          <Typography variant='h6' id='form-modal-title'>
-            {isEdit ? 'Edit Cargo' : 'Add Cargo'}
-          </Typography>
-          <AirportCargoForm
-            formData={formData}
-            isEdit={isEdit}
-            onChange={handleChange}
-            onSubmit={handleSubmit}
-            onClose={handleClose}
-          />
-        </Box>
-      </Modal>
-      <Modal
+      <Dialog
         open={deleteDialogOpen}
         onClose={handleDeleteDialogClose}
-        aria-labelledby='delete-modal-title'
-        aria-describedby='delete-modal-description'
-        className='smallModalStyle'
       >
-        <Box className='form-container'>
-          <Typography variant='h6' id='delete-modal-title'>
-            Confirm Delete
-          </Typography>
-          <Typography variant='body1' id='delete-modal-description'>
-            Are you sure you want to delete this cargo?
-          </Typography>
-          <div className='button-container'>
-            <Button variant='contained' color='primary' onClick={handleDelete}>
-              Yes
-            </Button>
-            <Button color='secondary' onClick={handleDeleteDialogClose}>
-              No
-            </Button>
-          </div>
-        </Box>
-      </Modal>
-      <AirportCargoMasterTable rows={rows} onEdit={handleEdit} onDelete={handleDeleteDialogOpen} />
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete this airport?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteDialogClose}>
+            Cancel
+          </Button>
+          <Button onClick={handleDelete} variant="contained" className='delete-button'>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <AirportCargoMasterTable
+        rows={paginatedRows}
+        onEdit={handleEdit}
+        onDelete={handleDeleteDialogOpen}
+        page={page}
+        rowsPerPage={rowsPerPage}
+        count={filteredRows.length}
+        onPageChange={handlePageChange}
+        onRowsPerPageChange={handleRowsPerPageChange}
+      />
     </div>
   );
 };

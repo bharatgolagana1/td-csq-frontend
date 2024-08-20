@@ -1,8 +1,48 @@
-  .icon-button {
-    color: blue !important;
-  }
-  .style-table-head-cell{
-    color: blue !important;
-  background-color: #f2f2f2 !important;
-  font-weight: bold !important;
-  }
+.customer-sampling .icon-button-sampling {
+  color: blue;
+}
+
+.customer-sampling .sampling-style-table-head-cell {
+  color: blue;
+  background-color: #f2f2f2;
+  font-weight: bold;
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  font-weight: 400;
+  font-size: 0.875rem;
+  line-height: 1.43;
+  letter-spacing: 0.01071em;
+  text-align: left;
+}
+.customer-sampling .sampling-style-table-head-cell .select-all-container {
+  display: flex;
+  align-items: start;
+}
+
+.customer-sampling .sampling-style-table-head-cell .select-all-container span {
+ margin-left: 0;
+}
+.select-all-container {
+  display: flex;
+  align-items: center;
+}
+
+.customer-sampling .icon-button-sampling {
+  color: blue;
+}
+
+.customer-sampling .sampling-style-table-head-cell {
+  color: blue;
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+.customer-sampling .sampling-style-table-body-cell {
+  padding: 8px;
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  font-weight: 400;
+  font-size: 0.875rem;
+  line-height: 1.43;
+  letter-spacing: 0.01071em;
+  text-align: left;
+  color: rgba(0, 0, 0, 0.87);
+  border-bottom: 1px solid rgba(224, 224, 224, 1);
+}

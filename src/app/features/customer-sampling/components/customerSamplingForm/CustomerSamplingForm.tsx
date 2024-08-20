@@ -7,6 +7,7 @@ interface Customer {
   customerType: string;
   customerName: string;
   email: string;
+  sampledDate?: string; // Added sampledDate field
   selectBox?: boolean;
 }
 
@@ -27,7 +28,7 @@ const CustomerSamplingForm: React.FC<CustomerSamplingFormProps> = ({
   handleClose,
   formErrors,
 }) => (
-  <Box className="form-container" component="form" onSubmit={handleSubmit}>
+  <Box className="form-container-sampling" component="form" onSubmit={handleSubmit}>
     <FormControl fullWidth margin="normal" error={!!formErrors.customerType}>
       <InputLabel>Customer Type</InputLabel>
       <Select
@@ -60,6 +61,20 @@ const CustomerSamplingForm: React.FC<CustomerSamplingFormProps> = ({
       helperText={formErrors.email}
       fullWidth
       margin="normal"
+    />
+    <TextField
+      label="Sampled Date"
+      name="sampledDate"
+      type="date"
+      value={formData.sampledDate || ''}
+      onChange={handleChange}
+      error={!!formErrors.sampledDate}
+      helperText={formErrors.sampledDate}
+      fullWidth
+      margin="normal"
+      InputLabelProps={{
+        shrink: true,
+      }}
     />
     <Box className="button-container">
       <Button type="submit" variant="contained" color="primary">

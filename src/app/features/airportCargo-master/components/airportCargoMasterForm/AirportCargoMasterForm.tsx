@@ -1,119 +1,152 @@
-import React from 'react';
-import { Box, Button, TextField } from '@mui/material';
-import { AirportCargo } from '../../api/AirportCargoMasterAPI';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { TextField, Button } from '@mui/material';
+import { fetchAirportCargoById, addAirportCargo, updateAirportCargo, AirportCargo } from '../../api/AirportCargoMasterAPI';
 import './AirportCargoMasterForm.css';
 
-interface AirportCargoFormProps {
-  formData: AirportCargo;
-  isEdit: boolean;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onSubmit: (event: React.FormEvent, formData: AirportCargo, isEdit: boolean) => void;
-  onClose: () => void;
-}
+const AirportCargoMasterForm: React.FC = () => {
+  const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const [data, setData] = useState<AirportCargo>({
+    _id: '',
+    acoCode: '',
+    acoName: '',
+    acoAddress: '',
+    airportCode: '',
+    pincode: '',
+    emailId: '',
+    mobileNumber: ''
+  });
 
-const AirportCargoForm: React.FC<AirportCargoFormProps> = ({ formData, isEdit, onChange, onSubmit, onClose }) => {
+  useEffect(() => {
+    const fetchData = async () => {
+      if (id) {
+        try {
+          const result = await fetchAirportCargoById(id);
+          setData(result);
+        } catch (error) {
+          console.error('Error fetching airport cargo data:', error);
+        }
+      }
+    };
+    fetchData();
+  }, [id]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setData({ ...data, [name]: value });
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const dataToSubmit = { ...data };
+
+      if (!id) {
+        delete dataToSubmit._id;
+        await addAirportCargo(dataToSubmit);
+      } else {
+        await updateAirportCargo(id, dataToSubmit);
+      }
+      navigate('/airportCargo');
+    } catch (error) {
+      console.error('Error submitting form:', error);
+    }
+  };
+
+  const handleCancel = () => {
+    navigate('/airportCargo');
+  };
+
   return (
-    <Box
-      component="form"
-      noValidate
-      autoComplete="off"
-      onSubmit={(e) => onSubmit(e, formData, isEdit)}
-      className="form-container-cargo"
-    >
-      <TextField
-        className='custom-text-field-cargo'
-        id="acoCode-basic"
-        label="ACO Code"
-        variant="standard"
-        name="acoCode"
-        value={formData.acoCode}
-        onChange={onChange}
-        required
-        fullWidth
-        margin="normal"
-      />
-      <TextField
-        className='custom-text-field-cargo'
-        id="acoName-basic"
-        label="ACO Name"
-        variant="standard"
-        name="acoName"
-        value={formData.acoName}
-        onChange={onChange}
-        required
-        fullWidth
-        margin="normal"
-      />
-      <TextField
-        className='custom-text-field-cargo'
-        id="acoAddress-basic"
-        label="ACO Address"
-        variant="standard"
-        name="acoAddress"
-        value={formData.acoAddress}
-        onChange={onChange}
-        required
-        fullWidth
-        margin="normal"
-      />
-      <TextField
-        className='custom-text-field-cargo'
-        id="airportCode-basic"
-        label="Airport Code"
-        variant="standard"
-        name="airportCode"
-        value={formData.airportCode}
-        onChange={onChange}
-        required
-        fullWidth
-        margin="normal"
-      />
-      <TextField
-        className='custom-text-field-cargo'
-        id="pincode-basic"
-        label="Pincode"
-        variant="standard"
-        name="pincode"
-        value={formData.pincode}
-        onChange={onChange}
-        required
-        fullWidth
-        margin="normal"
-      />
-      <TextField
-        className='custom-text-field-cargo'
-        id="emailId-basic"
-        label="Email Id"
-        variant="standard"
-        name="emailId"
-        value={formData.emailId}
-        onChange={onChange}
-        required
-        fullWidth
-        margin="normal"
-      />
-      <TextField
-        className='custom-text-field-cargo'
-        id="mobileNumber-basic"
-        label="Mobile Number"
-        variant="standard"
-        name="mobileNumber"
-        value={formData.mobileNumber}
-        onChange={onChange}
-        required
-        fullWidth
-        margin="normal"
-      />
-      <div className='button-container'>
-        <Button type="submit" variant="contained" color="primary">
-          {isEdit ? 'Update' : 'Submit'}
-        </Button>
-        <Button color="secondary" onClick={onClose}>
-          Cancel
-        </Button>
-      </div>
-    </Box>
+    <div className="form-container">
+      <h2>{id ? 'Edit Airport Cargo' : 'Add Airport Cargo'}</h2>
+      <form className="airport-form" onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} >
+        <div className="form-row">
+          <TextField
+            margin="dense"
+            label="ACO Code"
+            name="acoCode"
+            value={data.acoCode}
+            onChange={handleChange}
+            fullWidth
+            required
+          />
+          <TextField
+            margin="dense"
+            label="ACO Name"
+            name="acoName"
+            value={data.acoName}
+            onChange={handleChange}
+            fullWidth
+            required
+          />
+        </div>
+        <div className="form-row">
+          <TextField
+            margin="dense"
+            label="ACO Address"
+            name="acoAddress"
+            value={data.acoAddress}
+            onChange={handleChange}
+            fullWidth
+            required
+          />
+          <TextField
+            margin="dense"
+            label="Airport Code"
+            name="airportCode"
+            value={data.airportCode}
+            onChange={handleChange}
+            fullWidth
+            required
+          />
+        </div>
+        <div className="form-row">
+          <TextField
+            margin="dense"
+            label="Pincode"
+            name="pincode"
+            value={data.pincode}
+            onChange={handleChange}
+            fullWidth
+            required
+          />
+          <TextField
+            margin="dense"
+            label="Email Id"
+            name="emailId"
+            value={data.emailId}
+            onChange={handleChange}
+            fullWidth
+            required
+          />
+        </div>
+        <div className="form-row">
+          <TextField
+            margin="dense"
+            label="Mobile Number"
+            name="mobileNumber"
+            value={data.mobileNumber}
+            onChange={handleChange}
+            fullWidth
+            required
+          />
+        </div>
+        <div className='add-cancel-btns'>
+          <div className='add-button'>
+            <Button type="submit" variant="contained" color="primary" className='add-btn'>
+              {id ? 'Update' : 'Add'}
+            </Button>
+          </div>
+          <div className='cancel-button'>
+            <Button onClick={handleCancel} variant="outlined" color="secondary">
+              Cancel
+            </Button>
+          </div>
+        </div>
+      </form>
+    </div>
   );
 };
 
-export default AirportCargoForm;
+export default AirportCargoMasterForm;

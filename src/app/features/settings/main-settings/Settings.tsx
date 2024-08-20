@@ -5,15 +5,18 @@ const Settings = () => {
   const navigate = useNavigate();
 
   const handleCardClick = () => {
-    navigate('/settings/cycle'); // Update this with your actual route
+    navigate('/settings/cycle');
   };
+  const handleRoleClick = () =>{
+    navigate('/settings/role-mapping'); 
+  }
   const handleSecondClick = () => {
     alert('Second click');
   };
 
   const cards = [
     { title: 'Assessment Cycle', description: 'click this to start a new assessment', onClick: handleCardClick },
-    { title: 'Second Card', description: 'need to update later', onClick: handleSecondClick },
+    { title: 'Roles-Mapping', description: 'click here to map roles ', onClick: handleRoleClick },
     { title: 'Third Card', description: 'Another card description', onClick: handleSecondClick },
     { title: 'Fourth Card', description: 'Another card description', onClick: handleSecondClick },
     { title: 'Fifth Card', description: 'Another card description', onClick: handleSecondClick },

@@ -6,7 +6,7 @@
   }
   
   .custom-text-field {
-    width: 100%; /* Ensure the text field takes the full width of its container */
+    width: 100%;
   }
   
   .button-container {
@@ -39,7 +39,7 @@
   }
   
   .blue-icon-button {
-    color: #1976d2; /* MUI primary color */
+    color: #1976d2;
   }
   
   .blue-icon-button:hover {

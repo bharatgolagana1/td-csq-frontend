@@ -1,8 +1,17 @@
-.form-container{
-    max-width: 900px !important;
-    margin: 15px auto !important;
-    padding: 20px;
-    background-color: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+.assessment-cycle-form {
+    max-width: 900px; /* Adjusted max-width */
+    margin: 15px auto; /* Centered with auto margins */
+    padding: 20px; /* Added padding */
+    background-color: #ffffff; /* White background */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Light shadow */
+}
+
+.form-title {
+    margin-bottom: 20px; /* Space below the heading */
+    text-align: center; /* Centered heading */
+}
+
+.form-field {
+    margin-bottom: 16px; /* Space between text fields */
 }
