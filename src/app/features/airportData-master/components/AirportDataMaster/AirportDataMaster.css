@@ -1,0 +1,10 @@
+
+.add-user-button {
+  background-color: var(--mui-palette-primary-main);
+  color: var(--mui-palette-common-white);
+  border: 1px solid var(--mui-palette-primary-main);
+}
+
+.add-user-button:hover {
+  background-color: var(--mui-palette-primary-dark);
+}

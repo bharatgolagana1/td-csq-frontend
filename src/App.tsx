@@ -1,17 +1,14 @@
-import './App.css'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import MainAppBar from './Features/MainAppBar/MainAppBar';
 import { useState } from 'react';
-import AirportCargoMaster from './Features/AirportCargoMaster/AirportCargoMaster';
-import AirportMaster from './Features/AirportMasterData/AirportMasterData';
-import AssessmentQuestionsData from './Features/AssessmentQuestionsData/AssessmentQuestionData';
-import AssessmentFeedback from './Features/AssessmentFeedback/AssessmentFeedback';
-import CustomerSampling from './Features/CustomerSampling/CustomerSampling';
-import UserTypeMaster from './Features/UserTypeMaster/UserTypeMaster';
-import Login from './Features/Login/Login';
+import { RouterProvider, createBrowserRouter } from 'react-router-dom';
+import './App.css';
+import ErrorBoundary from './ErrorBoundary';
+import createRoutes from './app/routes';
+import { UserInfoProvider } from './app/context/UserInfoContext';
+import KeycloakProvider from './app/features/keyCloak/KeyCloakProvider';
 
 function App() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
   const handleDrawerOpen = () => {
     setSidebarOpen(true);
   };
@@ -19,37 +16,19 @@ function App() {
   const handleDrawerClose = () => {
     setSidebarOpen(false);
   };
-  const drawerWidth = 240;
-  return(
-    <Router>
-      <div style={{ display: 'flex', height: '100vh' }}>
-      <MainAppBar  sidebarOpen={sidebarOpen}
-          handleDrawerOpen={handleDrawerOpen}
-          handleDrawerClose={handleDrawerClose}/>
-            <main
-          style={{
-            flexGrow: 10,
-            padding: '16px',
-            marginLeft: sidebarOpen ? `${drawerWidth}px` : '0px',  // Adjusted margin
-            transition: 'margin 0.3s',
-            marginTop: '50px', // Adjusted to make space for the AppBar
-            backgroundColor: 'white',
-            border: '2px solid white',
-          }}
-        >
-      <Routes>
-          <Route path='/airportCargo' element={<AirportCargoMaster/>}/>
-          <Route path='/airportMaster' element={<AirportMaster/>}/>
-          <Route path='/assessment' element={<AssessmentQuestionsData/>}/>
-          <Route path='/feedback' element={<AssessmentFeedback/>}/>
-          <Route path='/sampling' element={<CustomerSampling/>}/>
-          <Route path='/userType' element={<UserTypeMaster/>}/>
-          <Route path='/login' element={<Login/>}/>
-      </Routes>
-      </main>
-      </div>
-    </Router>
-  )
+
+  const routes = createRoutes(sidebarOpen, handleDrawerOpen, handleDrawerClose);
+  const router = createBrowserRouter(routes);
+
+  return (
+    <ErrorBoundary>
+    <UserInfoProvider>
+      <KeycloakProvider>
+        <RouterProvider router={router} />
+      </KeycloakProvider>
+    </UserInfoProvider>
+  </ErrorBoundary>
+  );
 }
 
-export default App
+export default App;

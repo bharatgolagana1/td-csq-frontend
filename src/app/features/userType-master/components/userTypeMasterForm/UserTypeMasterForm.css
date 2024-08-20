@@ -1,0 +1,45 @@
+.user-type-master-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px;
+    background-color: white;
+    box-shadow: var(--mui-shadows-5);
+    border-radius: 8px;
+    max-width: 500px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    margin: 140px auto;
+}
+
+.user-type-input {
+    margin: 14px 0; 
+    height: 30px; 
+}
+
+.user-type-input.Mui-focused {
+    color: #3f51b5; 
+}
+
+.user-type-input.MuiInput-underline:after {
+    border-bottom-color: #3f51b5;
+}
+
+.button-container {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+}
+
+.delete-dialog-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px;
+    background-color: white;
+    box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    max-width: 400px;
+    margin: 100px auto;
+}
