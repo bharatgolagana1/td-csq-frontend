@@ -14,14 +14,12 @@ export interface Role {
   
   export interface Task {
     _id: string;
-    id: string;
     name: string;
-    value: string;
+    task_value: string;
     moduleId: string;
   }
   
   export interface Permission {
-    id: string;
     roleId: string;
     taskId: string;
     enable: boolean;

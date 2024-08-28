@@ -28,7 +28,7 @@
   vertical-align: middle ;
   text-align: left ;
   padding: 8px ;
-  color: blue;
+  color: black;
 }
 
 
@@ -41,4 +41,74 @@
 .airport-table .styled-table-cell-actions-airport {
   display: flex;
   gap: 8px;
+}
+/* AirportDataMasterTable.css */
+
+.selected-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
+  background-color: #000;
+  color: #fff;
+}
+
+.selected-actions .delete-icon {
+  background: none;
+  border: none;
+  color: white;
+  margin-right: 16px;
+  cursor: pointer;
+}
+
+.selected-actions .close-icon {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+}
+
+.airport-table .styled-table-row:last-child td,
+.styled-table-row:last-child th {
+  border: 0;
+}
+
+.airport-table .styled-table-cell-airport {
+  padding: 8px;
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  font-weight: 400;
+  font-size: 0.875rem;
+  line-height: 1.43;
+  letter-spacing: 0.01071em;
+  display: table-cell;
+  vertical-align: inherit;
+  border-bottom: 1px solid rgba(224, 224, 224, 1);
+  text-align: left;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.airport-table .styled-table-head-cell-airport {
+  font-family: Arial, sans-serif;
+  font-weight: bold;
+  font-size: 0.875rem;
+  line-height: 1.5rem;
+  letter-spacing: 0.01071em;
+  display: table-cell;
+  vertical-align: middle;
+  text-align: left;
+  padding: 8px;
+  color: black;
+}
+
+.airport-table .styled-table-cell-actions-airport {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.airport-table .styled-table-cell-actions-airport button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: blue;
 }

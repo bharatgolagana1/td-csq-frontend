@@ -1,0 +1,40 @@
+.modal-box {
+    padding: 20px;
+    background-color: white;
+    border-radius: 8px;
+    width: 400px;
+    margin: 0 auto;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    position: absolute;
+  }
+  
+  .modal-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .edit-button {
+    margin-left: 16px;
+  }
+  
+  .modal-content {
+    margin-top: 20px;
+  }
+  
+  .input-field {
+    margin-bottom: 16px;
+  }
+  
+  .save-button {
+    display: block;
+    margin-top: 20px;
+    margin-left: auto;
+  }
+  
+  .detail-text {
+    margin-bottom: 16px;
+  }
+  

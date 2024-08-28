@@ -1,23 +1,31 @@
 .assessment-parameter-table-container .assessment-styled-table-head-cell {
   font-weight: bold;
   background-color: #f5f5f5;
-  color: #1976d2;
+  color: black;
   padding: 12px;
   text-align: start;
 }
-
+.assessment-toolbar{
+  background-color: black;
+  color : white;
+}
 .assessment-parameter-table-container .assessment-styled-table-cell {
   padding: 10px 12px;
   border-bottom: 1px solid #ddd;
   text-align: start;
 }
-
+.assessment-parameter-table-container .assessment-styled-table-head-cell-checkbox{
+  font-weight: bold;
+  background-color: #f5f5f5;
+  color: black;
+  text-align: start;
+}
 .assessment-styled-table-row:hover {
   background-color: #e3f2fd;
 }
 
-.assessment-styled-table-row .assessment-blue-icon-button {
-  color: #1976d2;
+.assessment-styled-table-row .assessment-delete-icon-button {
+  color: white;
   transition: color 0.3s ease;
 }
 
@@ -34,4 +42,23 @@
 .assessment-parameter-table {
   min-width: 650px;
   background-color: #fff;
+}
+.assessment-parameter-table-container .assessment-view-text-button {
+  color: blue;
+  font-weight: bold;
+  font-family: sans-serif;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.assessment-parameter-table-container .assessment-view-text-button:hover {
+  color: #9400d3; 
+}
+.assessment-toolbar .assessment-delete-button{
+  color : white;
+  margin : 0 3rem;
+}
+.assessment-toolbar .assessment-close-icon-button {
+  color: white;
+  margin-left: auto;
 }

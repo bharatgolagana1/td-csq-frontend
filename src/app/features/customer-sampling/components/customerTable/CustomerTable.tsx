@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Checkbox, IconButton } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
+import React from 'react';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Checkbox } from '@mui/material';
 import { Customer } from '../types/Types';
 import './CustomerTable.css';
 
@@ -13,13 +12,7 @@ interface CustomerTableProps {
   handleGroupDelete: () => void;
 }
 
-const CustomerTable: React.FC<CustomerTableProps> = ({ rows, handleSelect, handleSelectAll }) => {
-  const [selectAll, setSelectAll] = useState(false);
-
-  const handleToggleSelectAll = () => {
-    setSelectAll(!selectAll);
-    handleSelectAll();
-  };
+const CustomerTable: React.FC<CustomerTableProps> = ({ rows, handleSelect }) => {
 
   return (
     <TableContainer className="customer-sampling">

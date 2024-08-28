@@ -41,15 +41,10 @@
   background-color: #ffffff;
 }
 
-/* Container for Save Changes button */
-.save-button-container {
+.save-button {
   display: flex;
   justify-content: flex-start; /* Align button to the left */
-  margin-top: 20px; /* Add margin above the container */
-}
-
-/* Styling for Save Changes button */
-.save-button {
+  margin-top: 20px;
   padding: 10px 20px; /* Add padding inside the button */
   background-color: #4caf50;
   color: white;

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Button } from '@mui/material';
-import './RoleActions.css'; // Import the CSS file
-import { createModule, createRole } from '../../API/RolesApi';
+import { Button, Alert, Snackbar } from '@mui/material';
+import './RoleActions.css';
+import { createModule, createRole, getTasks } from '../../API/RolesApi';
 import { Role, Module, Permission, Task } from '../../RoleTypes';
 import AddTaskDialog from '../add-task-dialog/AddTaskDialog';
 
@@ -25,14 +25,17 @@ const RoleActions: React.FC<RoleActionsProps> = ({
   modules,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
+  const [alertSeverity, setAlertSeverity] = useState<'success' | 'error'>('success');
+  const [openSnackbar, setOpenSnackbar] = useState(false);
 
   const handleNewRole = async (): Promise<void> => {
     const name = prompt('Please enter new role name:');
-    if (name !== null && name.trim()) {
+    if (name?.trim()) {
       try {
         const response = await createRole({ name });
         const newRole: Role = {
-          id: response.data.id,
+          id: response.data._id,
           name: response.data.name,
           _id: response.data._id,
         };
@@ -40,27 +43,29 @@ const RoleActions: React.FC<RoleActionsProps> = ({
         setRoles((prevRoles) => [...prevRoles, newRole]);
 
         const newPermissions: Permission[] = tasks.map((task) => ({
-          id: `${newRole.id}_${task.id}`,
-          roleId: newRole.id,
-          taskId: task.id,
+          id: `${newRole._id}_${task._id}`,
+          roleId: newRole._id,
+          taskId: task._id,
           enable: false,
         }));
 
-        setPermissions((prevPermissions) => [
-          ...prevPermissions,
-          ...newPermissions,
-        ]);
+        setPermissions((prevPermissions) => [...prevPermissions, ...newPermissions]);
 
-        console.log('Role created successfully');
+        setAlertMessage('Role created successfully');
+        setAlertSeverity('success');
       } catch (error) {
         console.error('Failed to create role', error);
+        setAlertMessage('Failed to create role');
+        setAlertSeverity('error');
+      } finally {
+        setOpenSnackbar(true);
       }
     }
   };
 
   const handleNewModule = async (): Promise<void> => {
     const name = prompt('Please enter new module name:');
-    if (name !== null && name.trim()) {
+    if (name?.trim()) {
       try {
         const response = await createModule({
           name,
@@ -76,15 +81,36 @@ const RoleActions: React.FC<RoleActionsProps> = ({
 
         setModules((prevModules) => [...prevModules, newModule]);
 
-        console.log('Module created successfully');
+        setAlertMessage('Module created successfully');
+        setAlertSeverity('success');
       } catch (error) {
         console.error('Failed to create module', error);
+        setAlertMessage('Failed to create module');
+        setAlertSeverity('error');
+      } finally {
+        setOpenSnackbar(true);
       }
     }
   };
 
   const handleNewTask = (): void => {
     setIsModalOpen(true);
+  };
+
+  const handleCloseSnackbar = () => {
+    setOpenSnackbar(false);
+  };
+
+  const refetchTasks = async () => {
+    try {
+      const response = await getTasks();
+      setTasks(response.data);
+      setAlertMessage('Task created successfully');
+      setAlertSeverity('success');
+      setOpenSnackbar(true);
+    } catch (error) {
+      console.error('Failed to fetch tasks', error);
+    }
   };
 
   return (
@@ -111,21 +137,21 @@ const RoleActions: React.FC<RoleActionsProps> = ({
         Add New Task
       </Button>
 
+      <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar}>
+        <Alert onClose={handleCloseSnackbar} severity={alertSeverity}>
+          {alertMessage}
+        </Alert>
+      </Snackbar>
+
       {isModalOpen && (
         <AddTaskDialog
           isModalOpen={isModalOpen}
           setIsModalOpen={setIsModalOpen}
           modules={modules}
           roles={roles}
-          setTasks={(newTasks) =>
-            setTasks((prevTasks) => [...prevTasks, ...(newTasks as Task[])])
-          }
-          setPermissions={(newPermissions) =>
-            setPermissions((prevPermissions) => [
-              ...prevPermissions,
-              ...(newPermissions as Permission[]),
-            ])
-          }
+          setTasks={setTasks}
+          setPermissions={setPermissions}
+          onTaskCreated={refetchTasks} // Pass the refetch function
         />
       )}
     </div>

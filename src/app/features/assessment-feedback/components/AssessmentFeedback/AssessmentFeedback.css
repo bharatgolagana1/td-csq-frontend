@@ -61,4 +61,73 @@
     background-color: #0056b3;
     color: white;
   }
-  
+  .feedback-buttons {
+    color: white;
+    padding: 15px 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    gap: 1rem;
+    margin-top: 20px;
+}
+
+.feedback-buttons .prev-button, 
+.feedback-buttons .next-button, 
+.feedback-buttons .save-button, 
+.feedback-buttons .final-submit-button {
+    background-color: #007bff; /* Blue */
+    border: 2px solid #0056b3; /* Darker blue */
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+.feedback-buttons .next-button {
+    background-color: #28a745; /* Green */
+    border-color: #1e7e34; /* Darker green */
+}
+
+.feedback-buttons .save-button {
+    background-color: #dc3545; /* Red */
+    border-color: #c82333; /* Darker red */
+}
+
+.feedback-buttons .final-submit-button {
+    background-color: #ffc107; /* Yellow */
+    border-color: #e0a800; /* Darker yellow */
+    color: black;
+}
+
+.feedback-buttons .prev-button:hover,
+.feedback-buttons .next-button:hover,
+.feedback-buttons .save-button:hover,
+.feedback-buttons .final-submit-button:hover {
+    background-color: darken(#007bff, 10%);
+    border-color: darken(#0056b3, 10%);
+}
+
+.feedback-buttons .next-button:hover {
+    background-color: darken(#28a745, 10%);
+    border-color: darken(#1e7e34, 10%);
+}
+
+.feedback-buttons .save-button:hover {
+    background-color: darken(#dc3545, 10%);
+    border-color: darken(#c82333, 10%);
+}
+
+.feedback-buttons .final-submit-button:hover {
+    background-color: darken(#ffc107, 10%);
+    border-color: darken(#e0a800, 10%);
+}
+
+.feedback-buttons .prev-button:disabled,
+.feedback-buttons .next-button:disabled,
+.feedback-buttons .save-button:disabled,
+.feedback-buttons .final-submit-button:disabled {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    cursor: not-allowed;
+}

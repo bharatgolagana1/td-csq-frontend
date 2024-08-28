@@ -1,9 +1,12 @@
+import HasAccess from "../context/HasAccess"
 import AirportCargoMasterForm from "../features/airportCargo-master/components/airportCargoMasterForm/AirportCargoMasterForm"
 
 const AddCargoDataPage = () => {
   return (
     <div>
-      <AirportCargoMasterForm/>
+      <HasAccess requiredPermission="ADD_CARGO_DATA">
+         <AirportCargoMasterForm/>
+      </HasAccess>
     </div>
   )
 }

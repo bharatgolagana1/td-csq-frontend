@@ -1,14 +1,16 @@
-import React, { createContext, useContext, useState } from 'react';
 import axios from 'axios';
+import React, { createContext, useContext, useState } from 'react';
 
 export type UserPermissions = {
   roleId: string;
   taskId: string;
+  taskName: string;
   taskValue: string;
   enable: boolean;
 };
 
 export type UserInfo = {
+  role: string;  // Store the role directly as a string
   id: string | undefined;
   selectedOrganization?: string;
   organizations: string[] | undefined;
@@ -19,7 +21,7 @@ export type UserInfo = {
   lastName?: string;
   email?: string;
   userName?: string;
-  userPermissions?: UserPermissions[]; // Integrated userPermissions
+  userPermissions?: UserPermissions[];
 };
 
 export const initialState: UserInfo = {
@@ -29,7 +31,8 @@ export const initialState: UserInfo = {
   isInternalUser: undefined,
   organizations: [],
   isActive: false,
-  userPermissions: [], // Initialize with an empty array
+  role: '',
+  userPermissions: [],
 };
 
 interface UserInfoContextType {

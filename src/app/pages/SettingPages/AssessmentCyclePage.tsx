@@ -1,4 +1,4 @@
-import AssessmentCycle from "../../features/settings/AssessmentCycle/AssessmentCycle"
+import AssessmentCycle from "../../features/settings/AssessmentCycle/components/assessmentCycle/AssessmentCycle"
 
 const AssessmentCyclePage = () => {
   return (

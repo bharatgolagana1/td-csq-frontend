@@ -19,16 +19,19 @@ import UserTypeIcon from '@mui/icons-material/Person';
 import SettingsIcon from '@mui/icons-material/Settings';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
-import AssignmentIndIcon from '@mui/icons-material/AssignmentInd'; // Import icon for Role Mapping
+import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
 import { Link } from 'react-router-dom';
 import { Typography } from '@mui/material';
+import { useHasPermission } from '../../context/useHasPermission';
 
 interface SidebarProps {
   open: boolean;
+  role: string; // Add roleName as a prop
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ open }) => {
+const Sidebar: React.FC<SidebarProps> = ({ open, role }) => {
   const [masterDataOpen, setMasterDataOpen] = useState(false);
+  const hasPermission = useHasPermission(role); // Pass the roleName to the hook
 
   const handleMasterDataClick = () => {
     setMasterDataOpen(!masterDataOpen);
@@ -47,14 +50,17 @@ const Sidebar: React.FC<SidebarProps> = ({ open }) => {
         </Box>
         <Divider />
         <List>
-          <ListItem disablePadding>
-            <ListItemButton component={Link} to="/dashboard">
-              <ListItemIcon>
-                <DashboardIcon />
-              </ListItemIcon>
-              <ListItemText primary="Dashboard" />
-            </ListItemButton>
-          </ListItem>
+          {hasPermission('VIEW_DASHBOARD') && (
+            <ListItem disablePadding>
+              <ListItemButton component={Link} to="/dashboard">
+                <ListItemIcon>
+                  <DashboardIcon />
+                </ListItemIcon>
+                <ListItemText primary="Dashboard" />
+              </ListItemButton>
+            </ListItem>
+          )}
+          {hasPermission('SHOW_MASTERDATA_TOGGLE') &&(
           <ListItem disablePadding>
             <ListItemButton onClick={handleMasterDataClick}>
               <ListItemIcon>
@@ -64,83 +70,106 @@ const Sidebar: React.FC<SidebarProps> = ({ open }) => {
               {masterDataOpen ? <ExpandLess /> : <ExpandMore />}
             </ListItemButton>
           </ListItem>
+          )}
           <Collapse in={masterDataOpen} timeout="auto" unmountOnExit>
             <List component="div" disablePadding>
-              <ListItem disablePadding>
-                <ListItemButton component={Link} to="/userType">
-                  <ListItemIcon>
-                    <SupervisorAccountIcon />
-                  </ListItemIcon>
-                  <ListItemText primary="User Type Master" />
-                </ListItemButton>
-              </ListItem>
-              <ListItem disablePadding>
-                <ListItemButton component={Link} to="/airportMaster">
-                  <ListItemIcon>
-                    <AirportIcon />
-                  </ListItemIcon>
-                  <ListItemText primary="Airport Master Data" />
-                </ListItemButton>
-              </ListItem>
-              <ListItem disablePadding>
-                <ListItemButton component={Link} to="/airportCargo">
-                  <ListItemIcon>
-                    <CargoIcon />
-                  </ListItemIcon>
-                  <ListItemText primary="Airport Cargo Data" />
-                </ListItemButton>
-              </ListItem>
-              <ListItem disablePadding>
-                <ListItemButton component={Link} to="/assessment">
-                  <ListItemIcon>
-                    <AssessmentIcon />
-                  </ListItemIcon>
-                  <ListItemText primary="Assessment Questions" />
-                </ListItemButton>
-              </ListItem>
+              {hasPermission('MANAGE_USER_TYPE') && (
+                <ListItem disablePadding>
+                  <ListItemButton component={Link} to="/userType">
+                    <ListItemIcon>
+                      <SupervisorAccountIcon />
+                    </ListItemIcon>
+                    <ListItemText primary="User Type Master" />
+                  </ListItemButton>
+                </ListItem>
+              )}
+              {hasPermission('VIEW_AIRPORT_MASTER') && (
+                <ListItem disablePadding>
+                  <ListItemButton component={Link} to="/airportMaster">
+                    <ListItemIcon>
+                      <AirportIcon />
+                    </ListItemIcon>
+                    <ListItemText primary="Airport Master Data" />
+                  </ListItemButton>
+                </ListItem>
+              )}
+              {hasPermission('VIEW_AIRPORT_CARGO') && (
+                <ListItem disablePadding>
+                  <ListItemButton component={Link} to="/airportCargo">
+                    <ListItemIcon>
+                      <CargoIcon />
+                    </ListItemIcon>
+                    <ListItemText primary="Airport Cargo Data" />
+                  </ListItemButton>
+                </ListItem>
+              )}
+              {hasPermission('VIEW_ASSESSMENT_QUESTIONS') && (
+                <ListItem disablePadding>
+                  <ListItemButton component={Link} to="/assessment">
+                    <ListItemIcon>
+                      <AssessmentIcon />
+                    </ListItemIcon>
+                    <ListItemText primary="Assessment Questions" />
+                  </ListItemButton>
+                </ListItem>
+              )}
             </List>
           </Collapse>
-          <ListItem disablePadding>
-            <ListItemButton component={Link} to="/users">
-              <ListItemIcon>
-                <PeopleIcon />
-              </ListItemIcon>
-              <ListItemText primary="Selected Users" />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton component={Link} to="/feedback">
-              <ListItemIcon>
-                <AssessmentIcon />
-              </ListItemIcon>
-              <ListItemText primary="Assessment Feedbacks" />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton component={Link} to="/sampling">
-              <ListItemIcon>
-                <PeopleIcon />
-              </ListItemIcon>
-              <ListItemText primary="Customer Sampling" />
-            </ListItemButton>
-          </ListItem>
-          {/* New Role Mapping List Item */}
-          <ListItem disablePadding>
-            <ListItemButton component={Link} to="/role-mapping">
-              <ListItemIcon>
-                <AssignmentIndIcon />
-              </ListItemIcon>
-              <ListItemText primary="Roles" />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton component={Link} to="/settings">
-              <ListItemIcon>
-                <SettingsIcon />
-              </ListItemIcon>
-              <ListItemText primary="Settings" />
-            </ListItemButton>
-          </ListItem>
+
+          {hasPermission('VIEW_SELECTED_USERS') && (
+            <ListItem disablePadding>
+              <ListItemButton component={Link} to="/users">
+                <ListItemIcon>
+                  <PeopleIcon />
+                </ListItemIcon>
+                <ListItemText primary="Selected Users" />
+              </ListItemButton>
+            </ListItem>
+          )}
+
+          {hasPermission('VIEW_ASSESSMENT_FEEDBACKS') && (
+            <ListItem disablePadding>
+              <ListItemButton component={Link} to="/feedback">
+                <ListItemIcon>
+                  <AssessmentIcon />
+                </ListItemIcon>
+                <ListItemText primary="Assessment Feedbacks" />
+              </ListItemButton>
+            </ListItem>
+          )}
+
+          {hasPermission('VIEW_CUSTOMER_SAMPLING') && (
+            <ListItem disablePadding>
+              <ListItemButton component={Link} to="/sampling">
+                <ListItemIcon>
+                  <PeopleIcon />
+                </ListItemIcon>
+                <ListItemText primary="Customer Sampling" />
+              </ListItemButton>
+            </ListItem>
+          )}
+
+          {hasPermission('MANAGE_ROLES') && (
+            <ListItem disablePadding>
+              <ListItemButton component={Link} to="/role-mapping">
+                <ListItemIcon>
+                  <AssignmentIndIcon />
+                </ListItemIcon>
+                <ListItemText primary="Roles" />
+              </ListItemButton>
+            </ListItem>
+          )}
+
+          {hasPermission('VIEW_SETTINGS') && (
+            <ListItem disablePadding>
+              <ListItemButton component={Link} to="/settings">
+                <ListItemIcon>
+                  <SettingsIcon />
+                </ListItemIcon>
+                <ListItemText primary="Settings" />
+              </ListItemButton>
+            </ListItem>
+          )}
         </List>
       </Drawer>
     </Box>

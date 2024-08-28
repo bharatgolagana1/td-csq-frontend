@@ -1,0 +1,30 @@
+.form-container-cycle {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  .grid-container {
+    margin-top: 20px;
+  }
+  
+  .grid-item {
+    margin-bottom: 20px;
+  }
+  
+  .form-field {
+    width: 100%;
+  }
+  
+  .submit-grid-item {
+    text-align: left;
+    margin-top: 20px;
+  }
+  
+  .submit-button {
+    width: auto;
+  }
+  h3{
+    font-family: sans-serif;
+    margin-bottom : 30px;
+  }

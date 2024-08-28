@@ -1,11 +1,12 @@
-import { AssessmentFeedback } from "../features/assessment-feedback"
+import HasAccess from "../context/HasAccess";
+import { AssessmentFeedback } from "../features/assessment-feedback";
 
 const AssessmentFeedbackPage = () => {
   return (
-    <div>
-      <AssessmentFeedback/>
-    </div>
-  )
+    <HasAccess requiredPermission="VIEW_ASSESSMENT_FEEDBACKS">
+      <AssessmentFeedback />
+    </HasAccess>
+  );
 }
 
-export default AssessmentFeedbackPage
+export default AssessmentFeedbackPage;

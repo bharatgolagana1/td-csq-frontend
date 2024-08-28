@@ -19,7 +19,7 @@ const RoleMapping: React.FC = () => {
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [alertOpen, setAlertOpen] = useState<boolean>(false); // State for the alert
+  const [alertOpen, setAlertOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -54,11 +54,10 @@ const RoleMapping: React.FC = () => {
         // Toggle the enable state
         updatedPermissions[permissionIndex].enable = !updatedPermissions[permissionIndex].enable;
       } else {
-        // Add a new permission entry if it doesn't exist
         updatedPermissions.push({
           roleId,
           taskId,
-          enable: true, // Default to true if not found
+          enable: true,
         } as Permission);
       }
 
@@ -76,7 +75,7 @@ const RoleMapping: React.FC = () => {
 
       await updatePermissions(permissionsToSave);
       console.log('Permissions updated successfully');
-      setAlertOpen(true); // Show the alert
+      setAlertOpen(true);
     } catch (error) {
       console.error('Failed to update permissions', error);
     }
@@ -84,6 +83,18 @@ const RoleMapping: React.FC = () => {
 
   const handleAlertClose = () => {
     setAlertOpen(false);
+  };
+
+  const handleTaskCreated = () => {
+    const fetchTasks = async () => {
+      try {
+        const tasksData = await getTasks();
+        setTasks(tasksData.data);
+      } catch (error) {
+        console.error('Failed to fetch tasks', error);
+      }
+    };
+    fetchTasks();
   };
 
   if (loading) {
@@ -119,6 +130,7 @@ const RoleMapping: React.FC = () => {
         roles={roles}
         setTasks={setTasks}
         setPermissions={setPermissions}
+        onTaskCreated={handleTaskCreated} 
       />
 
       <Snackbar open={alertOpen} autoHideDuration={6000} onClose={handleAlertClose}>

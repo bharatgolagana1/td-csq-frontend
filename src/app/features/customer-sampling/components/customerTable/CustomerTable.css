@@ -3,15 +3,16 @@
 }
 
 .customer-sampling .sampling-style-table-head-cell {
-  color: blue;
+  color: black;
   background-color: #f2f2f2;
   font-weight: bold;
   font-family: "Roboto", "Helvetica", "Arial", sans-serif;
-  font-weight: 400;
+  font-weight: 600;
   font-size: 0.875rem;
-  line-height: 1.43;
+  line-height: 1.6rem;
   letter-spacing: 0.01071em;
   text-align: left;
+  height: 3rem;
 }
 .customer-sampling .sampling-style-table-head-cell .select-all-container {
   display: flex;
@@ -30,19 +31,15 @@
   color: blue;
 }
 
-.customer-sampling .sampling-style-table-head-cell {
-  color: blue;
-  background-color: #f2f2f2;
-  font-weight: bold;
-}
 .customer-sampling .sampling-style-table-body-cell {
   padding: 8px;
   font-family: "Roboto", "Helvetica", "Arial", sans-serif;
-  font-weight: 400;
+  font-weight: 450;
   font-size: 0.875rem;
-  line-height: 1.43;
+  line-height: 2.2;
   letter-spacing: 0.01071em;
   text-align: left;
   color: rgba(0, 0, 0, 0.87);
   border-bottom: 1px solid rgba(224, 224, 224, 1);
+  height: 3rem;
 }

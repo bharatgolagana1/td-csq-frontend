@@ -72,6 +72,15 @@ const RoleTable: React.FC<RoleTableProps> = ({
     handleCheckBox(roleId, taskId);
   };
 
+  // Group tasks by module
+  const tasksByModule = tasks.reduce((acc, task) => {
+    if (!acc[task.moduleId]) {
+      acc[task.moduleId] = [];
+    }
+    acc[task.moduleId].push(task);
+    return acc;
+  }, {} as { [key: string]: Task[] });
+
   return (
     <Box className="role-table-container">
       <TableContainer component={Paper}>
@@ -88,26 +97,33 @@ const RoleTable: React.FC<RoleTableProps> = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {tasks.map((task) => (
-              <TableRow key={task._id} className="table-row">
-                <TableCell className="module-cell">{getModuleName(task.moduleId)}</TableCell>
-                <TableCell className="task-cell">{task.name}</TableCell>
-                {roles.map((role) => {
-                  const key = `${role._id}_${task._id}`;
-                  const isChecked = localPermissions.get(key) || false;
-
-                  return (
-                    <TableCell key={role._id} align="center">
-                      <Checkbox
-                        checked={isChecked}
-                        onChange={() => handleLocalCheckBox(role._id, task._id)}
-                        color="primary"
-                      />
+            {Object.keys(tasksByModule).map((moduleId) => {
+              const moduleTasks = tasksByModule[moduleId];
+              return moduleTasks.map((task, index) => (
+                <TableRow key={task._id} className="table-row">
+                  {index === 0 && (
+                    <TableCell className="module-cell" rowSpan={moduleTasks.length}>
+                      {getModuleName(task.moduleId)}
                     </TableCell>
-                  );
-                })}
-              </TableRow>
-            ))}
+                  )}
+                  <TableCell className="task-cell">{task.name}</TableCell>
+                  {roles.map((role) => {
+                    const key = `${role._id}_${task._id}`;
+                    const isChecked = localPermissions.get(key) || false;
+
+                    return (
+                      <TableCell key={role._id} align="center">
+                        <Checkbox
+                          checked={isChecked}
+                          onChange={() => handleLocalCheckBox(role._id, task._id)}
+                          color="primary"
+                        />
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
+              ));
+            })}
           </TableBody>
         </Table>
       </TableContainer>

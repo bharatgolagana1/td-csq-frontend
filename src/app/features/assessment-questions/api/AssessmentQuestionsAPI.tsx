@@ -37,7 +37,7 @@ export const addParameter = async (parameter: Parameter): Promise<Parameter> => 
   return response.data;
 };
 
-export const editParameter = async (parameter: Parameter): Promise<void> => {
+export const editParameter = async (_p0: string, parameter: Parameter): Promise<void> => {
   await axios.put(`${API_URL}/${parameter._id}`, parameter);
 };
 

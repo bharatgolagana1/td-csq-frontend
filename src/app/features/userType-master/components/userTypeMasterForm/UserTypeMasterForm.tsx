@@ -1,10 +1,10 @@
 import React from 'react';
 import { Box, Button, TextField, Typography } from '@mui/material';
-import { UserType } from '../../api/UserTypeMasterAPI';
 import './UserTypeMasterForm.css';
+import { UserMaster } from '../../api/UserTypeMasterAPI';
 
 interface UserTypeMasterFormProps {
-  formData: UserType;
+  formData: UserMaster;
   isEdit: boolean;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSubmit: (e: React.FormEvent) => void;
@@ -48,7 +48,7 @@ const UserTypeMasterForm: React.FC<UserTypeMasterFormProps> = ({ formData, isEdi
           label="Acc Flag"
           variant="standard"
           name="accFlag"
-          value={formData.accFlag}
+          value={formData.city}
           onChange={onChange}
           required
           fullWidth

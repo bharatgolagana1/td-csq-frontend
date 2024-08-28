@@ -3,7 +3,7 @@ export interface Customer {
   customerType: string;
   customerName: string;
   email: string;
-  sampledDate: string;
+  sampledDate?: string;
   selectBox?: boolean;
 }
 

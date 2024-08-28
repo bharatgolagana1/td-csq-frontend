@@ -1,4 +1,3 @@
-// UserTypeMaster.tsx
 import React, { useState, useEffect, ChangeEvent } from 'react';
 import { Button } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
@@ -7,14 +6,14 @@ import UserTypeMasterForm from '../userTypeMasterForm/UserTypeMasterForm';
 import DeleteDialog from '../../../../shared/components/DeleteDialog/DeleteDialog';
 import ModalContainer from '../../../../shared/components/ModalContainer';
 import SearchBar from '../userTableControls/SearchBarComponent';
-import { UserType, fetchUserTypes, addUserType, updateUserType, deleteUserType } from '../../api/UserTypeMasterAPI';
+import { UserMaster, fetchUserMasters, addUserMaster, updateUserMaster, deleteUserMaster } from '../../api/UserTypeMasterAPI';
 import './UserTypeMaster.css';
 
 const UserTypeMaster: React.FC = () => {
-  const [rows, setRows] = useState<UserType[]>([]);
+  const [rows, setRows] = useState<UserMaster[]>([]);
   const [open, setOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
-  const [formData, setFormData] = useState<UserType>({ _id: '', id: 0, userType: '', accFlag: '' });
+  const [formData, setFormData] = useState<UserMaster>({ _id: '', id: 0, userType: '', accFlag: '' });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [page, setPage] = useState(0);
@@ -27,7 +26,7 @@ const UserTypeMaster: React.FC = () => {
 
   const loadUserTypes = async () => {
     try {
-      const data = await fetchUserTypes();
+      const data = await fetchUserMasters();
       setRows(data);
     } catch (error) {
       console.error('Error fetching user types:', error);
@@ -35,12 +34,12 @@ const UserTypeMaster: React.FC = () => {
   };
 
   const handleAdd = () => {
-    setFormData({ _id: '', id: 0, userType: '', accFlag: '' });
+    setFormData({ _id: '', userType: '', accFlag: '' });
     setIsEdit(false);
     setOpen(true);
   };
 
-  const handleEdit = (userType: UserType) => {
+  const handleEdit = (userType: UserMaster) => {
     setFormData(userType);
     setIsEdit(true);
     setOpen(true);
@@ -58,7 +57,7 @@ const UserTypeMaster: React.FC = () => {
   const handleDelete = async () => {
     if (deleteId !== null) {
       try {
-        await deleteUserType(deleteId);
+        await deleteUserMaster(deleteId);
         setRows(rows.filter(row => row._id !== deleteId));
         setDeleteDialogOpen(false);
       } catch (error) {
@@ -75,10 +74,10 @@ const UserTypeMaster: React.FC = () => {
     }
     try {
       if (isEdit) {
-        await updateUserType(formData);
+        await updateUserMaster(formData);
         setRows(rows.map(row => (row._id === formData._id ? formData : row)));
       } else {
-        const newUserType = await addUserType({
+        const newUserType = await addUserMaster({
           userType: formData.userType,
           accFlag: formData.accFlag
         });
@@ -120,12 +119,14 @@ const UserTypeMaster: React.FC = () => {
 
   return (
     <div className='userType'>
-      <h2 className='user'>User Type Master</h2>
-      <SearchBar searchQuery={searchQuery} handleSearch={handleSearch} />
-      <div className='action-buttons'>
+      <div className='header'>
+        <h2 className='user'>User Type Master</h2>
         <Button variant="contained" className='add-user-button' startIcon={<AddIcon />} onClick={handleAdd}>
           Add User
         </Button>
+      </div>
+      <div className="search-bar">
+         <SearchBar searchQuery={searchQuery} handleSearch={handleSearch}/>
       </div>
       <UserTypeMasterTable
         rows={paginatedRows}

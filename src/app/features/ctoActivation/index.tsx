@@ -1,0 +1,1 @@
+export {default as CtoActivation } from './components/ctoActivation/CtoActivation';

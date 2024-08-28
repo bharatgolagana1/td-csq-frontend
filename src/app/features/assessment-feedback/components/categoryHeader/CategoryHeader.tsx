@@ -4,9 +4,11 @@ interface CategoryHeaderProps {
   categories: string[];
   currentCategory: string;
   onCategoryChange: (newCategory: string) => void;
+  totalQuestions: number;
+  answeredQuestions: number;
 }
 
-const CategoryHeader: React.FC<CategoryHeaderProps> = ({ categories, currentCategory, onCategoryChange }) => {
+const CategoryHeader: React.FC<CategoryHeaderProps> = ({ categories, currentCategory, onCategoryChange, totalQuestions, answeredQuestions }) => {
   return (
     <div className="category-header">
       {categories.map((cat) => (
@@ -18,6 +20,9 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({ categories, currentCate
           {cat}
         </button>
       ))}
+      <div className="progress">
+        <span>{answeredQuestions} / {totalQuestions} questions answered</span>
+      </div>
     </div>
   );
 };

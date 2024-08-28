@@ -29,8 +29,6 @@ const FeedbackForm: React.FC = () => {
   const [category, setCategory] = useState<string>(new URLSearchParams(location.search).get('category') || 'Process');
   const [questions, setQuestions] = useState<Question[]>([]);
   const [autoSaveMessage, setAutoSaveMessage] = useState<string>('');
-  const [isSubmitEnabled, setIsSubmitEnabled] = useState<boolean>(false);
-  const [isFinalSubmitEnabled, setIsFinalSubmitEnabled] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -42,7 +40,6 @@ const FeedbackForm: React.FC = () => {
         console.error('Error fetching questions:', error);
       }
     };
-
     if (allQuestions[category]) {
       setQuestions(allQuestions[category]);
     } else {
@@ -104,24 +101,12 @@ const FeedbackForm: React.FC = () => {
         console.error('Error auto-saving subparameters:', error);
       }
     };
-
     const timer = setTimeout(() => {
       autoSave();
       localStorage.setItem('autoSaveData', JSON.stringify({ questions, timestamp: Date.now() }));
     }, 60000);
     return () => clearTimeout(timer);
   }, [questions]);
-
-  useEffect(() => {
-    const allQuestionsAttempted = questions.every(question => question.options.some(option => option.selected));
-    setIsSubmitEnabled(allQuestionsAttempted);
-
-    const allCategoriesAttempted = categories.every(category => {
-      const categoryQuestions = allQuestions[category];
-      return categoryQuestions ? categoryQuestions.every(question => question.options.some(option => option.selected)) : true;
-    });
-    setIsFinalSubmitEnabled(allCategoriesAttempted);
-  }, [questions, allQuestions]);
 
   useEffect(() => {
     const autoSaveData = localStorage.getItem('autoSaveData');
@@ -161,18 +146,46 @@ const FeedbackForm: React.FC = () => {
     }
   };
 
+  const handleRatingChange = (questionId: string, newRating: string) => {
+    setQuestions((prevQuestions) =>
+      prevQuestions.map((question) =>
+        question.id === questionId ? { ...question, currentRating: newRating } : question
+      )
+    );
+  };
+
+  // Calculate the total number of questions across all parameters
+  const totalQuestions = Object.values(allQuestions).flat().length;
+
+  // Calculate the number of answered questions
+  const answeredQuestions = questions.filter(question => 
+    question.comments.trim() !== '' || question.options.some(option => option.selected)
+  ).length;
+
   return (
     <div>
-      <CategoryHeader categories={categories} currentCategory={category} onCategoryChange={handleCategoryChange} />
+      <CategoryHeader 
+        categories={categories} 
+        currentCategory={category} 
+        onCategoryChange={handleCategoryChange} 
+        totalQuestions={totalQuestions} // Pass total number of questions
+        answeredQuestions={answeredQuestions} // Pass the number of answered questions
+      />
       {questions.map((question) => (
-        <QuestionSection key={question.id} question={question} onOptionChange={handleOptionChange} onCommentChange={handleCommentChange} />
+        <QuestionSection
+          key={question.id}
+          question={question}
+          onOptionChange={handleOptionChange}
+          onCommentChange={handleCommentChange}
+          onRatingChange={handleRatingChange}  // Ensure this prop is passed correctly
+          allowRowClick // Add this prop to enable row click selection
+        />
       ))}
       {autoSaveMessage && <div className="auto-save-message">{autoSaveMessage}</div>}
       <div className='feedback-buttons'>
         <button onClick={handlePreviousCategory} className='prev-button' disabled={category === categories[0]}>Previous</button>
         <button onClick={handleNextCategory} className='next-button' disabled={category === categories[categories.length - 1]}>Next</button>
-        <button onClick={handleFinalSubmit} className='final-submit-button' disabled={!isFinalSubmitEnabled}>Submit as Final</button>
-        <button onClick={handleNextCategory} className='save-button' disabled={!isSubmitEnabled}>Submit Feedback</button>
+        <button onClick={handleFinalSubmit} className='final-submit-button'>Submit as Final</button>
       </div>
     </div>
   );

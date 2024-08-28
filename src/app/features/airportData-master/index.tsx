@@ -1,1 +1,1 @@
-export {default as AirportDataService} from './components/AirportDataMaster/AirportDataMaster';
+export {default as AirportDataMaster} from './components/AirportDataMaster/AirportDataMaster';

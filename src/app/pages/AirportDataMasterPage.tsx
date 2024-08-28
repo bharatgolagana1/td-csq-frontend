@@ -1,10 +1,12 @@
-import AirportDataMaster from '../features/airportData-master/components/AirportDataMaster/AirportDataMaster';
+import HasAccess from "../context/HasAccess";
+import { AirportDataMaster } from "../features/airportData-master";
+
 
 const AirportDataMasterPage = () => {
   return (
-    <div>
-      <AirportDataMaster/>
-    </div>
+    <HasAccess requiredPermission="VIEW_AIRPORT_MASTER">
+      <AirportDataMaster />
+    </HasAccess>
   );
 };
 

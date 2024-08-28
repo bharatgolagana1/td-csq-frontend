@@ -1,13 +1,13 @@
 /* Table styling */
-.table-head-cell {
-    color: blue !important;
-    padding: 8px !important;
-    font-weight: bold !important;
-    background-color: #f5f5f5 !important;
+.user-master-table .table-head-cell {
+    font-weight: bold;
+    color: black;
+    background-color: white;
+    text-align: start;
 }
 
-.table-cell {
-    padding: 8px !important;
+.user-type-table .table-cell {
+    padding: 8px;
 }
 
 .styled-table-row:hover {
@@ -17,19 +17,19 @@
 .blue-icon-button {
     color: blue;
 }
-
-/* Override default Material-UI TableCell styles */
-.MuiTableCell-root {
-    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
-    font-weight: 500 ;
-    font-size: 0.875rem;
-    line-height: 1.5rem ;
-    letter-spacing: 0.01071em;
-    display: table-cell;
-    vertical-align: inherit;
-    border-bottom: 1px solid rgba(224, 224, 224, 1);
-    text-align: left;
-    padding: 8px ; /* Reduced padding */
-    border-left: none; /* Remove left border */
-    border-right: none; /* Remove right border */
+.table-toolbar {
+    background-color: black;
+    color : white;
+    padding : 10px;
+}
+.table-toolbar .selected-count {
+    margin-right: 3rem;
+}
+.table-toolbar .delete-icon{
+    color : white;
+}
+.table-toolbar .close-icon {
+    color : white;
+    padding : 5px;
+    margin-left : 50rem;
 }

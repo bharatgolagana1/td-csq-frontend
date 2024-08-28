@@ -1,0 +1,43 @@
+.assessment-cycle-container {
+    padding: 20px;
+    background-color: #f9f9f9;
+  }
+  
+  .assessment-cycle-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .assessment-cycle-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+  }
+  
+  .add-cycle-button {
+    display: flex;
+    align-items: center;
+    background: none; /* Remove the background */
+    border: none; /* Remove the border */
+    color: #1976d2; /* Primary blue color */
+    font-size: 16px;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    padding: 0; /* Remove any padding */
+  }
+  
+  .add-cycle-button:hover {
+    color: #115293; /* Darker blue on hover */
+  }
+  
+  .add-icon {
+    margin-right: 8px; /* Space between icon and text */
+    font-size: 20px; /* Adjust the icon size */
+  }
+  
+  .add-cycle-text {
+    font-weight: 500; /* Slightly bold for emphasis */
+  }
+  

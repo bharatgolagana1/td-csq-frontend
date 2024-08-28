@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import AirportDataMasterTable from '../AirportDataMasterTable/AirportDataMasterTable';
+import AddIcon from '@mui/icons-material/Add';
+
 import {
   AirportMaster,
   fetchAirportMasters,
@@ -55,35 +57,45 @@ const AirportDataMaster: React.FC = () => {
   };
 
   return (
-    <div style={{ marginLeft: '20px' }}>
+  <div className="airport-container">
+    <div className="header-container">
       <h2 className='airport-master'>Airport Master</h2>
-      <Dialog
-        open={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
+      <Button
+        className="add-airport-button"
+        variant="contained"
+        onClick={handleAdd}
+        startIcon={<AddIcon />}
       >
-        <DialogTitle>Confirm Delete</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to delete this airport?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleDelete} variant="contained" color="primary">
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <AirportDataMasterTable
-        rows={rows}
-        onEdit={handleEdit}
-        onDelete={handleDeleteConfirmation}
-        onAdd={handleAdd}
-      />
+        Add Airport
+      </Button>
     </div>
-  );
+    <Dialog
+      open={deleteDialogOpen}
+      onClose={() => setDeleteDialogOpen(false)}
+    >
+      <DialogTitle>Confirm Delete</DialogTitle>
+      <DialogContent>
+        <DialogContentText>
+          Are you sure you want to delete this airport?
+        </DialogContentText>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => setDeleteDialogOpen(false)}>
+          Cancel
+        </Button>
+        <Button onClick={handleDelete} variant="contained" color="primary">
+          Delete
+        </Button>
+      </DialogActions>
+    </Dialog>
+    <AirportDataMasterTable
+      rows={rows}
+      onEdit={handleEdit}
+      onDelete={handleDeleteConfirmation}
+      onAdd={handleAdd}
+    />
+  </div>
+);
 };
 
 export default AirportDataMaster;

@@ -25,6 +25,7 @@ const AddAirportDataMasterForm: React.FC = () => {
     latitude: 0,
     longitude: 0,
   });
+  const [isSubmitDisabled, setIsSubmitDisabled] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -40,6 +41,39 @@ const AddAirportDataMasterForm: React.FC = () => {
     fetchData();
   }, [id]);
 
+  useEffect(() => {
+    // Validate if all required fields are filled
+    const validateFields = () => {
+      const {
+        airportCode,
+        airportName,
+        cityCode,
+        cityName,
+        countryCode,
+        countryName,
+        regionCode,
+        regionName,
+        latitude,
+        longitude,
+      } = data;
+
+      return (
+        airportCode &&
+        airportName &&
+        cityCode &&
+        cityName &&
+        countryCode &&
+        countryName &&
+        regionCode &&
+        regionName &&
+        latitude &&
+        longitude
+      );
+    };
+
+    setIsSubmitDisabled(!validateFields());
+  }, [data]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setData({ ...data, [name]: value });
@@ -49,8 +83,8 @@ const AddAirportDataMasterForm: React.FC = () => {
     try {
       const dataToSubmit = {
         ...data,
-        latitude: Number(data.latitude), // Ensure latitude is a number
-        longitude: Number(data.longitude) // Ensure longitude is a number
+        latitude: Number(data.latitude),
+        longitude: Number(data.longitude),
       };
 
       if (!id) {
@@ -70,7 +104,7 @@ const AddAirportDataMasterForm: React.FC = () => {
   };
 
   return (
-    <div className="form-container">
+    <div className="form-container-airport">
       <h2>{id ? 'Edit Airport' : 'Add Airport'}</h2>
       <form className="airport-form">
         <div className="form-row">
@@ -82,6 +116,7 @@ const AddAirportDataMasterForm: React.FC = () => {
             onChange={handleChange}
             fullWidth
             required
+            className="custom-textfield"
           />
           <TextField
             margin="dense"
@@ -91,6 +126,7 @@ const AddAirportDataMasterForm: React.FC = () => {
             onChange={handleChange}
             fullWidth
             required
+            className="custom-textfield"
           />
           <TextField
             margin="dense"
@@ -100,6 +136,7 @@ const AddAirportDataMasterForm: React.FC = () => {
             onChange={handleChange}
             fullWidth
             required
+            className="custom-textfield"
           />
         </div>
         <div className="form-row">
@@ -111,6 +148,7 @@ const AddAirportDataMasterForm: React.FC = () => {
             onChange={handleChange}
             fullWidth
             required
+            className="custom-textfield"
           />
           <TextField
             margin="dense"
@@ -120,6 +158,7 @@ const AddAirportDataMasterForm: React.FC = () => {
             onChange={handleChange}
             fullWidth
             required
+            className="custom-textfield"
           />
           <TextField
             margin="dense"
@@ -129,6 +168,7 @@ const AddAirportDataMasterForm: React.FC = () => {
             onChange={handleChange}
             fullWidth
             required
+            className="custom-textfield"
           />
         </div>
         <div className="form-row">
@@ -140,6 +180,7 @@ const AddAirportDataMasterForm: React.FC = () => {
             onChange={handleChange}
             fullWidth
             required
+            className="custom-textfield"
           />
           <TextField
             margin="dense"
@@ -149,6 +190,7 @@ const AddAirportDataMasterForm: React.FC = () => {
             onChange={handleChange}
             fullWidth
             required
+            className="custom-textfield"
           />
           <TextField
             margin="dense"
@@ -158,6 +200,7 @@ const AddAirportDataMasterForm: React.FC = () => {
             onChange={handleChange}
             fullWidth
             required
+            className="custom-textfield"
           />
         </div>
         <div className="form-row">
@@ -169,16 +212,22 @@ const AddAirportDataMasterForm: React.FC = () => {
             onChange={handleChange}
             fullWidth
             required
+            className="custom-textfield"
           />
-        </div>
-        <div className='add-cancel-btns'>
-          <div className='add-button'>
-            <Button onClick={handleSubmit} variant="contained" color="primary" className='add-btn'>
-              {id ? 'Update' : 'Add'}
+          <div className="form-buttons">
+            <Button
+              onClick={handleSubmit}
+              variant="contained"
+              className="add-btn"
+              disabled={isSubmitDisabled}
+            >
+              {id ? 'Update Airport' : 'Add Airport'}
             </Button>
-          </div>
-          <div className='cancel-button'>
-            <Button onClick={handleCancel} variant="outlined" color="secondary">
+            <Button
+              onClick={handleCancel}
+              variant="outlined"
+              className="cancel-btn"
+            >
               Cancel
             </Button>
           </div>

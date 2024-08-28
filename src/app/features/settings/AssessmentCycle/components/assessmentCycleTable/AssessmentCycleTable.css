@@ -1,0 +1,95 @@
+/* General Table Styling */
+.table-container {
+    margin: 20px;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  
+  .assessment-cycle .table-header {
+    background-color: white;
+    color: black;
+    font-weight: bold;
+    
+  }
+  
+  .assessment-cycle .table-header-cell {
+    font-weight: bold;
+    color: black;
+    background-color: white;
+    text-align: start;
+  }
+  
+  .table-row:hover {
+    background-color: #f1f1f1;
+  }
+  
+  .checkbox-cell {
+    padding: 8px;
+  }
+  
+  .table-cell {
+    padding: 16px;
+    text-align: center;
+  }
+  
+  /* Selected Row Actions */
+  .selected-actions {
+    background-color: #000;
+    color: #fff;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .selected-text {
+    margin-left: 16px;
+    font-weight: bold;
+  }
+  
+  .selected-actions .delete-button-cycle {
+    color: #fff;
+    border-color: #fff;
+    text-transform: capitalize;
+  }
+  .selected-actions .close-operation-button{
+    color : white;
+    margin:auto;
+  }
+  /* Modal and Alert Styling */
+  .modal-box {
+    position: absolute;
+    margin: 0px auto;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px;
+    background-color: white;
+    padding: 16px;
+    box-shadow: 24px;
+  }
+  
+  .dialog-content {
+    padding: 20px;
+    text-align: center;
+  }
+  
+  .alert-box {
+    margin: 20px;
+  }
+  
+  .view-text {
+    color: blue;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  
+  .view-text:hover {
+    text-decoration: underline;
+  }
+  
+  .close-alert {
+    cursor: pointer;
+    font-weight: bold;
+    margin-left: 10px;
+  }
+  

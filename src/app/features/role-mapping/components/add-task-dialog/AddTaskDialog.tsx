@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import './AddTaskDialog.css'; // Import the CSS file
+import './AddTaskDialog.css';
 import { createTask } from '../../API/RolesApi';
 import { Module, Role, Task, Permission } from '../../RoleTypes';
 
@@ -10,6 +10,7 @@ interface AddTaskDialogProps {
   roles: Role[];
   setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
   setPermissions: React.Dispatch<React.SetStateAction<Permission[]>>;
+  onTaskCreated: () => void; // New prop to trigger refetch after task creation
 }
 
 const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
@@ -19,6 +20,7 @@ const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   roles,
   setTasks,
   setPermissions,
+  onTaskCreated, // Destructure the new prop
 }) => {
   const [selModule, setSelModule] = useState<string>(modules[0]?._id || '');
   const taskNameRef = useRef<HTMLInputElement>(null);
@@ -30,21 +32,30 @@ const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
 
   const handleTaskSave = async (): Promise<void> => {
     if (taskNameRef.current && taskValueRef.current && selModule) {
+      const taskName = taskNameRef.current.value.trim();
+      const taskValue = taskValueRef.current.value.trim();
+
+      if (!taskName || !taskValue) {
+        console.error('Task Name and Task Value are required.');
+        return;
+      }
+
+      const newTask = {
+        name: taskName,
+        task_value: taskValue,
+        moduleId: selModule,
+      };
+
       try {
-        const newTask: Omit<Task, '_id'> = {
-          name: taskNameRef.current.value,
-          value: taskValueRef.current.value,
-          moduleId: selModule,
-          id: taskNameRef.current.id
-        };
         const response = await createTask(newTask);
 
         const createdTask: Task = {
           _id: response.data._id,
           ...newTask,
+          task_value: response.data.value,
         };
 
-        setTasks((prevTasks: Task[]) => [...prevTasks, createdTask]);
+        setTasks((prevTasks) => [...prevTasks, createdTask]);
 
         const newPermissions: Permission[] = roles.map((role) => ({
           id: `${role._id}_${createdTask._id}`,
@@ -53,12 +64,13 @@ const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
           enable: false,
         }));
 
-        setPermissions((prevPermissions: Permission[]) => [
+        setPermissions((prevPermissions) => [
           ...prevPermissions,
           ...newPermissions,
         ]);
 
         console.log('Task created successfully');
+        onTaskCreated(); // Trigger refetch or UI update
       } catch (error) {
         console.error('Failed to create task', error);
       } finally {

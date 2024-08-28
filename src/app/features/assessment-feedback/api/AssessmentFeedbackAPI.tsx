@@ -1,5 +1,4 @@
 import axios from 'axios';
-
 export const fetchQuestionsByCategory = async (category: string) => {
   try {
     const response = await axios.get(`http://localhost:5000/feedback/feedbacks/category/${category}`);
@@ -19,7 +18,6 @@ export const fetchQuestionsByCategory = async (category: string) => {
     throw error;
   }
 };
-
 export const saveSubparameters = async (questions: any) => {
   try {
     const payload = questions.map((question: any) => ({
@@ -31,14 +29,13 @@ export const saveSubparameters = async (questions: any) => {
       })),
       comments: question.comments,
     }));
-    await axios.post('http://localhost:5000/user/submit', { feedbackResponses: payload });
+    await axios.post('http://localhost:5000/userfeedback/submit', { feedbackResponses: payload });
     return 'Your current assessment is auto-saved.';
   } catch (error) {
     console.error('Error auto-saving subparameters:', error);
     throw error;
   }
 };
-
 export const finalSubmit = async (allQuestions: any) => {
   try {
     const payload = Object.values(allQuestions)
@@ -52,10 +49,11 @@ export const finalSubmit = async (allQuestions: any) => {
         })),
         comments: question.comments,
       }));
-    const response = await axios.post('http://localhost:5000/assessment/submit', { feedbackResponses: payload });
+    const response = await axios.post('http://localhost:5000/userfeedback/submit', { feedbackResponses: payload });
     return response.data;
   } catch (error) {
     console.error('Error submitting feedback:', error);
     throw error;
   }
 };
+

@@ -16,20 +16,19 @@ interface Customer {
   customerType: string;
   customerName: string;
   email: string;
+  sampledDate?: string; // Added sampledDate field
   selectBox?: boolean;
 }
 
 interface ModalContainerProps {
-  isEdit: boolean;
   formData: Customer;
-  formErrors: { [key: string]: string }; // Add formErrors prop for validation messages
+  formErrors: { [key: string]: string };
   handleChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>) => void;
   handleSubmit: (event: React.FormEvent) => void;
   handleClose: () => void;
 }
 
 const ModalContainer: React.FC<ModalContainerProps> = ({
-  isEdit,
   formData,
   formErrors,
   handleChange,
@@ -39,7 +38,7 @@ const ModalContainer: React.FC<ModalContainerProps> = ({
   return (
     <Box sx={{ padding: 2 }}>
       <Typography variant="h6" gutterBottom>
-        {isEdit ? 'Edit Customer' : 'Add Customer'}
+        Edit Customer
       </Typography>
       <Box component="form" noValidate autoComplete="off" onSubmit={handleSubmit}>
         <FormControl variant="outlined" fullWidth margin="normal">
@@ -60,7 +59,7 @@ const ModalContainer: React.FC<ModalContainerProps> = ({
         
         <TextField
           label="Customer Name"
-          variant="outlined" // Changed to 'outlined' for consistency
+          variant="outlined"
           name="customerName"
           value={formData.customerName}
           onChange={handleChange}
@@ -68,13 +67,13 @@ const ModalContainer: React.FC<ModalContainerProps> = ({
           required
           fullWidth
           margin="normal"
-          disabled={isEdit}
+          disabled
           helperText={formErrors.customerName}
         />
         
         <TextField
           label="Email"
-          variant="outlined" // Changed to 'outlined' for consistency
+          variant="outlined"
           name="email"
           value={formData.email}
           onChange={handleChange}
@@ -85,9 +84,25 @@ const ModalContainer: React.FC<ModalContainerProps> = ({
           helperText={formErrors.email}
         />
         
+        <TextField
+          label="Sampled Date"
+          variant="outlined"
+          name="sampledDate"
+          type="date"
+          value={formData.sampledDate || ''}
+          onChange={handleChange}
+          error={!!formErrors.sampledDate}
+          fullWidth
+          margin="normal"
+          InputLabelProps={{
+            shrink: true,
+          }}
+          helperText={formErrors.sampledDate}
+        />
+
         <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
           <Button type="submit" variant="contained" color="primary">
-            Submit
+            Update
           </Button>
           <Button variant="outlined" color="secondary" onClick={handleClose}>
             Cancel

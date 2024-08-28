@@ -7,8 +7,8 @@ const Settings = () => {
   const handleCardClick = () => {
     navigate('/settings/cycle');
   };
-  const handleRoleClick = () =>{
-    navigate('/settings/role-mapping'); 
+  const handleCtoClick = () => {
+    navigate('/ctoActivation'); 
   }
   const handleSecondClick = () => {
     alert('Second click');
@@ -16,7 +16,7 @@ const Settings = () => {
 
   const cards = [
     { title: 'Assessment Cycle', description: 'click this to start a new assessment', onClick: handleCardClick },
-    { title: 'Roles-Mapping', description: 'click here to map roles ', onClick: handleRoleClick },
+    { title: 'CTO', description: 'click here to activate CTOs ', onClick: handleCtoClick },
     { title: 'Third Card', description: 'Another card description', onClick: handleSecondClick },
     { title: 'Fourth Card', description: 'Another card description', onClick: handleSecondClick },
     { title: 'Fifth Card', description: 'Another card description', onClick: handleSecondClick },

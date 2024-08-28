@@ -1,43 +1,30 @@
-import { useEffect, useState } from 'react';
-import { useUserInfo } from '../../context/UserInfoContext';
-import { useHasPermission } from '../../context/useHasPermission';
-import './HomePageComponent.css';
+import { useUserPermissions } from '../../context/useUserPermissions';
 
 const HomePageComponent = () => {
-  const { userInfo } = useUserInfo(); 
-  const hasPermission = useHasPermission();
-  const [userPermissions, setUserPermissions] = useState<string[]>([]);
+  const { userPermissions, loading } = useUserPermissions();
 
-  useEffect(() => {
-    const permissions = userInfo.userPermissions?.filter(permission => permission.enable).map(permission => permission.taskValue);
-    setUserPermissions(permissions || []);
-  }, [userInfo]);
+  if (loading) {
+    return <div>Loading permissions...</div>;
+  }
 
   return (
     <div className='home-page'>
-      <h1>
-        Welcome home! User, click on the menu icon to navigate.
-      </h1>
-      <div className='permissions'>
+      <h1>Welcome home! User, click on the menu icon to navigate.</h1>
+
+      <div>
         <h2>Your Permissions:</h2>
         {userPermissions.length > 0 ? (
           <ul>
-            {userPermissions.map((permission, index) => (
-              <li key={index}>{permission}</li>
+            {userPermissions.map(permission => (
+              <li key={permission.taskId}>
+                {permission.taskName}: {permission.enable ? 'Enabled' : 'Disabled'}
+              </li>
             ))}
           </ul>
         ) : (
-          <p>You have no permissions assigned.</p>
+          <p>No permissions found.</p>
         )}
       </div>
-
-      
-      {hasPermission('manage user') && (
-        <div>
-          <p>You have permission to perform a specific action!</p>
-          
-        </div>
-      )}
     </div>
   );
 };

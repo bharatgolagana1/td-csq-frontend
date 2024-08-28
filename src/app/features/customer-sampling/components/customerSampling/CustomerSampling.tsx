@@ -1,27 +1,19 @@
-import React, { useState, useEffect, ChangeEvent } from 'react';
-import { Button, TableContainer, Paper, Modal, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Button, TableContainer, Paper, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import { addCustomer, updateCustomer, deleteCustomer, fetchCustomers } from '../../api/CustomerSamplingAPI';
+import DeleteIcon from '@mui/icons-material/Delete';
+import CloseIcon from '@mui/icons-material/Close';
+import { deleteCustomer, fetchCustomers } from '../../api/CustomerSamplingAPI';
 import CustomerTable from '../customerTable/CustomerTable';
-import CustomerSamplingForm from '../customerSamplingForm/CustomerSamplingForm';
 import PaginationComponent from '../CustomerSamplingControls/PaginationComponent';
 import SearchBarComponent from '../CustomerSamplingControls/SearchBarComponent';
 import './CustomerSampling.css';
-import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import { Customer } from '../types/Types';
-
-const ModalStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-};
 
 const CustomerSampling: React.FC = () => {
   const [rows, setRows] = useState<Customer[]>([]);
   const [filteredRows, setFilteredRows] = useState<Customer[]>([]);
-  const [open, setOpen] = useState(false);
-  const [formData, setFormData] = useState<Customer>({ _id: '', customerType: '', customerName: '', email: '', sampledDate: '' });
-  const [isEdit, setIsEdit] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   const [openGroupDelete, setOpenGroupDelete] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -29,6 +21,7 @@ const CustomerSampling: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const filtered = rows.filter(row =>
@@ -47,7 +40,7 @@ const CustomerSampling: React.FC = () => {
     };
     fetchData();
   }, []);
-  
+
   useEffect(() => {
     if (selectedCustomers.length === 0) {
       setRows(rows.map(row => ({ ...row, selectBox: false })));
@@ -55,17 +48,11 @@ const CustomerSampling: React.FC = () => {
   }, [selectedCustomers, rows]);
 
   const handleAdd = () => {
-    setFormData({ _id: '', customerType: '', customerName: '', email: '', sampledDate: '' });
-    setIsEdit(false);
-    setOpen(true);
+    navigate('add-customer');
   };
 
-  const handleClose = () => setOpen(false);
-
   const handleEdit = (customer: Customer) => {
-    setFormData(customer);
-    setIsEdit(true);
-    setOpen(true);
+    navigate(`/edit-customer/${customer._id}`);
   };
 
   const handleDelete = (id: string) => {
@@ -103,60 +90,6 @@ const CustomerSampling: React.FC = () => {
     setSelectedCustomers([]);
   };
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-
-    const { _id, customerType, customerName, email } = formData;
-
-    if (!customerType || !customerName || !email) {
-      console.error('All fields are required.');
-      return;
-    }
-
-    try {
-      if (isEdit && _id) {
-        await updateCustomer(_id, formData);
-        setRows(rows.map(row => (row._id === _id ? formData : row)));
-      } else {
-        const { _id, ...newCustomerData } = formData;
-        const response = await addCustomer(newCustomerData);
-        setRows([...rows, response]);
-      }
-      setOpen(false);
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.error('Axios error:', error.response?.data);
-      } else {
-        console.error('Unexpected error:', error);
-      }
-    }
-  };
-
-  const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | { target: { name?: string; value: unknown } }) => {
-    const { name, value } = event.target;
-    setFormData((prevState) => ({ ...prevState, [name as string]: value }));
-  };
-
-  const handleSelect = (id: string) => {
-    setRows(prevRows => {
-      const updatedRows = prevRows.map(row => {
-        if (row._id === id) {
-          const updatedRow = { ...row, selectBox: !row.selectBox };
-          if (updatedRow.selectBox) {
-            // Add to selectedCustomers if selected
-            setSelectedCustomers(prev => [...new Set([...prev, id])]);
-          } else {
-            // Remove from selectedCustomers if deselected
-            setSelectedCustomers(prev => prev.filter(customerId => customerId !== id));
-          }
-          return updatedRow;
-        }
-        return row;
-      });
-      return updatedRows;
-    });
-  };
-
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
   };
@@ -170,6 +103,24 @@ const CustomerSampling: React.FC = () => {
     setPage(0);
   };
 
+  const handleSelect = (id: string) => {
+    setRows(prevRows => {
+      const updatedRows = prevRows.map(row => {
+        if (row._id === id) {
+          const updatedRow = { ...row, selectBox: !row.selectBox };
+          if (updatedRow.selectBox) {
+            setSelectedCustomers(prev => [...new Set([...prev, id])]);
+          } else {
+            setSelectedCustomers(prev => prev.filter(customerId => customerId !== id));
+          }
+          return updatedRow;
+        }
+        return row;
+      });
+      return updatedRows;
+    });
+  };
+
   const isAnyCustomerSelected = selectedCustomers.length > 0;
 
   return (
@@ -180,30 +131,27 @@ const CustomerSampling: React.FC = () => {
           Add Customer
         </Button>
       </div>
-      <SearchBarComponent searchTerm={searchTerm} handleSearch={handleSearch} />
-      <div className='action-buttons'>
-        {isAnyCustomerSelected && (
-          <Button className='delete-button' variant="contained" color="secondary" onClick={() => {
+      <div className='action-buttons-sampling'>
+        <SearchBarComponent searchTerm={searchTerm} handleSearch={handleSearch} />
+      </div>
+      {isAnyCustomerSelected && (
+        <div className='selected-actions'>
+          <span>{selectedCustomers.length} selected</span>
+          <Button className='send-sampling-button'>Send for Sampling</Button>
+          <IconButton className='delete-button' onClick={() => {
             if (selectedCustomers.length === 1) {
               handleDelete(selectedCustomers[0]);
             } else {
               setOpenGroupDelete(true);
             }
           }}>
-            {selectedCustomers.length === 1 ? 'Delete Selected User' : 'Delete Selected Users'}
-          </Button>
-        )}
-      </div>
-      <Modal open={open} onClose={handleClose} aria-labelledby="form-modal-title" aria-describedby="form-modal-description" style={ModalStyle}>
-        <CustomerSamplingForm
-          isEdit={isEdit}
-          formData={formData}
-          handleChange={handleChange}
-          handleSubmit={handleSubmit}
-          handleClose={handleClose}
-          formErrors={{}}
-        />
-      </Modal>
+            <DeleteIcon />
+          </IconButton>
+          <IconButton className='close-button' onClick={() => setSelectedCustomers([])}>
+            <CloseIcon />
+          </IconButton>
+        </div>
+      )}
       <Dialog
         open={openDelete}
         onClose={handleCloseDelete}
@@ -250,25 +198,20 @@ const CustomerSampling: React.FC = () => {
         <CustomerTable
           rows={filteredRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)}
           handleEdit={handleEdit}
-          handleSelect={handleSelect}
-          handleDelete={function (_id: string): void {
+          handleDelete={handleDelete}
+          handleSelect={handleSelect} handleSelectAll={function (): void {
             throw new Error('Function not implemented.');
-          }}
-          handleSelectAll={function (): void {
+          } } handleGroupDelete={function (): void {
             throw new Error('Function not implemented.');
-          }}
-          handleGroupDelete={function (): void {
-            throw new Error('Function not implemented.');
-          }}
-        />
-        <PaginationComponent
-          count={filteredRows.length}
-          page={page}
-          rowsPerPage={rowsPerPage}
-          handleChangePage={handleChangePage}
-          handleChangeRowsPerPage={handleChangeRowsPerPage}
-        />
+          } }        />
       </TableContainer>
+      <PaginationComponent
+        rowsPerPage={rowsPerPage}
+        page={page}
+        count={filteredRows.length}
+        handleChangePage={handleChangePage}
+        handleChangeRowsPerPage={handleChangeRowsPerPage}
+      />
     </div>
   );
 };

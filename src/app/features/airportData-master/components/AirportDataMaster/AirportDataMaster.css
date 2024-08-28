@@ -1,4 +1,9 @@
-
+.airport-container{
+  margin-left : 20px;
+}
+.header-container{
+ margin:20px;
+}
 .add-user-button {
   background-color: var(--mui-palette-primary-main);
   color: var(--mui-palette-common-white);
@@ -7,4 +12,41 @@
 
 .add-user-button:hover {
   background-color: var(--mui-palette-primary-dark);
+}
+/* AirportDataMasterTable.css */
+.action-buttons {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+
+.search-bar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.search-bar-container input {
+  width: 60%;
+}
+
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.airport-master {
+  margin: 0;
+}
+
+.airport-container .header-container .add-airport-button{
+  color : blue;
+  background-color: white;
+  box-shadow: none;
+}
+.airport-container .header-container .add-airport-button:hover {
+  color: darkblue;
 }

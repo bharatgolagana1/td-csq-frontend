@@ -1,44 +1,65 @@
-.button-row {
+.customer .button-row {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 10px;
+  align-items: center;
 }
 
-.customer .button-row .customer-sampling .add-button-customer-sampling {
-  margin-left: 0;
-  color : blue;
+.customer .action-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.button-row .customer-sampling-button {
-  margin-right: 0;
+.customer .delete-send-row {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 1rem;
+  gap: 10px; /* Space between buttons */
 }
 
-.customer{
-    margin-left : 20px;
-}
-  
-.button-container {
-    display: flex;
-    justify-content: space-between;
+
+.customer .send-button {
+  padding: 6px 16px;
 }
 
-.send-sampling-button{
-    margin-left: 2rem ;
-    margin-right: 2rem;
+.customer .add-button-customer-sampling {
+  padding: 6px 16px;
+}
+.selected-actions {
+  display: flex;
+  align-items: center;
+  background-color: black;
+  padding: 10px;
+  color: white;
+  height : 4rem;
 }
 
-.styled-table-head-cell{
+.selected-actions span {
+  margin-right: 20px; 
+}
+
+.selected-actions .send-sampling-button {
   color: blue;
-  background-color: #f2f2f2;
-  font-weight: bold;
-  }
-
-.icon-button{
-    color : blue;
-    background-color: blue;
+  background-color: #070606;
+  margin-right: 20px; /* Space after the button */
 }
-.assessment-details {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 10px;
+
+.selected-actions .delete-button {
+  color: grey;
+  font-size: 1.4rem;
+}
+
+.selected-actions .close-button {
+  margin-left: auto; /* Pushes the X icon to the far right */
+  color: white;
+}
+
+
+.selected-actions > .left-group {
+  display: flex;
+  align-items: center;
+}
+.customer {
+  margin-left: 20px;
 }

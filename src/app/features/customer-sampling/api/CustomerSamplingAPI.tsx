@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Customer } from '../components/types/Types';
 
-const API_URL = 'http://localhost:5000/customer/customer'; // Adjust based on your actual API URL
+const API_URL = 'http://localhost:5000/customer/customer';
 
 
 // Function to fetch customers

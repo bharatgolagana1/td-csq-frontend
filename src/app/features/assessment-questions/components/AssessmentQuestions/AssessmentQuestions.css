@@ -55,4 +55,45 @@
   .blue-icon-button {
     color: #1976d2; /* MUI primary color */
   }
+  .container {
+    padding: 20px;
+    background-color: #f5f5f5;
+  }
+  
+  .header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .parameter-text {
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: #333;
+  }
+  
+  .action-buttons {
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+  .add-user-button {
+    background-color: #1976d2;
+    color: white;
+  }
+  
+  .add-user-button:hover {
+    background-color: #155a9c;
+  }
+  
+  .custom-text-field {
+    margin-bottom: 16px;
+  }
+  
+  .button-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 16px;
+  }
   
