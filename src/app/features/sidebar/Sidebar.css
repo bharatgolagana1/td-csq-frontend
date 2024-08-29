@@ -1,0 +1,59 @@
+/* Sidebar.css */
+
+/* Sidebar container */
+.sidebar_main .drawer {
+    width: 220px;
+    flex-shrink: 0;
+    background-color: #ffffff;
+    border-right: 1px solid rgba(0, 0, 0, 0.12);
+    margin-top: 64px; /* Ensure the sidebar is below the toolbar */
+    z-index: 1200;
+}
+
+/* Drawer paper */
+.sidebar_main .drawer-paper {
+    width: 220px;
+    box-sizing: border-box;
+    margin-top: 56px;
+    gap: 36px;
+    margin-bottom: 36px;
+}
+
+/* Sidebar box and list items */
+.sidebar_main .sidebar_box .list-items {
+    display: flex; /* Enable flexbox */
+    flex-direction: column; /* Stack items vertically */
+    padding: 20px 12px; /* Adjusted padding */
+    color: #424242;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+    gap: 36px; /* Adjusted gap for vertical spacing */
+}
+
+/* List item styling */
+.sidebar_main .list-item {
+    display: flex;
+    align-items: center;
+    width: 185px; /* Width of list items */
+}
+
+/* List item icon */
+.sidebar_main .list-item-icon {
+    min-width: 36px;
+    transition: color 0.3s;
+}
+
+/* List item text */
+.sidebar_main .list-item-text {
+    width: 137px; /* Width of text */
+}
+
+/* Active state styling */
+.sidebar_main .list-item.active {
+    background-color: rgba(123, 63, 228, 0.12);
+    color: #7B3FE4;
+}
+
+.sidebar_main .list-item.active .list-item-icon {
+    color: #7B3FE4;
+}

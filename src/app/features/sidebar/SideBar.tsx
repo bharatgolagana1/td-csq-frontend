@@ -1,149 +1,98 @@
 import React, { useState } from 'react';
-import Box from '@mui/material/Box';
-import Drawer from '@mui/material/Drawer';
-import CssBaseline from '@mui/material/CssBaseline';
-import Divider from '@mui/material/Divider';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
-import Collapse from '@mui/material/Collapse';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import PeopleIcon from '@mui/icons-material/People';
-import AssessmentIcon from '@mui/icons-material/Assessment';
-import AirportIcon from '@mui/icons-material/FlightTakeoff';
-import CargoIcon from '@mui/icons-material/LocalShipping';
-import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
-import UserTypeIcon from '@mui/icons-material/Person';
-import SettingsIcon from '@mui/icons-material/Settings';
-import ExpandLess from '@mui/icons-material/ExpandLess';
-import ExpandMore from '@mui/icons-material/ExpandMore';
-import AssignmentIndIcon from '@mui/icons-material/AssignmentInd'; // Import icon for Role Mapping
+import { Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Box, Collapse } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { Link } from 'react-router-dom';
-import { Typography } from '@mui/material';
+import './Sidebar.css';
 
-interface SidebarProps {
-  open: boolean;
-}
+import dashboard from '../../../assert/dashboard.png'
+import customerSampling from '../../../assert/customerSampling.png'
+import assessment from '../../../assert/assessment.png'
+import history from '../../../assert/history.png'
+import assessmentHistory from '../../../assert/assessmentHistory.png'
 
-const Sidebar: React.FC<SidebarProps> = ({ open }) => {
-  const [masterDataOpen, setMasterDataOpen] = useState(false);
+const Sidebar: React.FC = () => {
+  const [activeItem, setActiveItem] = useState<string>('Assessment');
+  const [historyExpanded, setHistoryExpanded] = useState<boolean>(false);
 
-  const handleMasterDataClick = () => {
-    setMasterDataOpen(!masterDataOpen);
+  const handleListItemClick = (item: string) => {
+    setActiveItem(item);
+    if (item === 'History') {
+      setHistoryExpanded(!historyExpanded); // Toggle expanded state
+    }
   };
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      <CssBaseline />
+    <div className="sidebar_main">
       <Drawer
-        variant="persistent"
-        anchor="left"
-        open={open}
+        variant="permanent"
+        className="drawer"
+        classes={{ paper: 'drawer-paper' }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', padding: '16px', justifyContent: 'center' }}>
-          <Typography variant="h6">CSQ</Typography>
-        </Box>
-        <Divider />
-        <List>
-          <ListItem disablePadding>
-            <ListItemButton component={Link} to="/dashboard">
-              <ListItemIcon>
-                <DashboardIcon />
+        <Box className="sidebar_box">
+          <List className="list-items">
+            <ListItem
+              className={`list-item ${activeItem === 'Dashboard' ? 'active' : ''}`}
+              component={Link} // Use Link to enable navigation
+              to="/dashboard" // Set the route path here
+              onClick={() => handleListItemClick('Dashboard')}
+            >
+              <ListItemIcon className="list-item-icon">
+                <img src={dashboard} alt="Dashboard" style={{ width: 24, height: 24 }} />
               </ListItemIcon>
               <ListItemText primary="Dashboard" />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton onClick={handleMasterDataClick}>
-              <ListItemIcon>
-                <UserTypeIcon />
+            </ListItem>
+            <ListItem
+              className={`list-item ${activeItem === 'Assessment' ? 'active' : ''}`}
+              component={Link} // Use Link to enable navigation
+              to="/assessment" // Set the route path here
+              onClick={() => handleListItemClick('Assessment')}
+            >
+              <ListItemIcon className="list-item-icon">
+                <img src={assessment} alt="Assessment" style={{ width: 24, height: 24 }} />
               </ListItemIcon>
-              <ListItemText primary="Master Data" />
-              {masterDataOpen ? <ExpandLess /> : <ExpandMore />}
+              <ListItemText primary="Assessment" />
+            </ListItem>
+            <ListItem
+              className={`list-item ${activeItem === 'Customer Sampling' ? 'active' : ''}`}
+              component={Link} // Use Link to enable navigation
+              to="/customer-sampling" // Set the route path here
+              onClick={() => handleListItemClick('Customer Sampling')}
+            >
+              <ListItemIcon className="list-item-icon">
+                <img src={customerSampling} alt="Customer Sampling" style={{ width: 24, height: 24 }} />
+              </ListItemIcon>
+              <ListItemText primary="Customer Sampling" style={{width:'137px'}}/>
+            </ListItem>
+            <ListItemButton
+              className={`list-item ${activeItem === 'History' ? 'active' : ''}`}
+              onClick={() => handleListItemClick('History')}
+            >
+              <ListItemIcon className="list-item-icon">
+                <img src={history} alt="History" style={{ width: 24, height: 24 }} />
+              </ListItemIcon>
+              <ListItemText primary="History" />
+              {historyExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
             </ListItemButton>
-          </ListItem>
-          <Collapse in={masterDataOpen} timeout="auto" unmountOnExit>
-            <List component="div" disablePadding>
-              <ListItem disablePadding>
-                <ListItemButton component={Link} to="/userType">
-                  <ListItemIcon>
-                    <SupervisorAccountIcon />
+            <Collapse in={historyExpanded}>
+              <List component="div" disablePadding>
+                <ListItemButton
+                  className={`list-item ${activeItem === 'Assessment History' ? 'active' : ''}`}
+                  component={Link} // Use Link to enable navigation
+                  to="/assessment-history" // Set the route path here
+                  onClick={() => handleListItemClick('Assessment History')}
+                >
+                  <ListItemIcon className="list-item-icon">
+                    <img src={assessmentHistory} alt="Assessment History" style={{ width: 24, height: 24 }} />
                   </ListItemIcon>
-                  <ListItemText primary="User Type Master" />
+                  <ListItemText primary="Assessment" />
                 </ListItemButton>
-              </ListItem>
-              <ListItem disablePadding>
-                <ListItemButton component={Link} to="/airportMaster">
-                  <ListItemIcon>
-                    <AirportIcon />
-                  </ListItemIcon>
-                  <ListItemText primary="Airport Master Data" />
-                </ListItemButton>
-              </ListItem>
-              <ListItem disablePadding>
-                <ListItemButton component={Link} to="/airportCargo">
-                  <ListItemIcon>
-                    <CargoIcon />
-                  </ListItemIcon>
-                  <ListItemText primary="Airport Cargo Data" />
-                </ListItemButton>
-              </ListItem>
-              <ListItem disablePadding>
-                <ListItemButton component={Link} to="/assessment">
-                  <ListItemIcon>
-                    <AssessmentIcon />
-                  </ListItemIcon>
-                  <ListItemText primary="Assessment Questions" />
-                </ListItemButton>
-              </ListItem>
-            </List>
-          </Collapse>
-          <ListItem disablePadding>
-            <ListItemButton component={Link} to="/users">
-              <ListItemIcon>
-                <PeopleIcon />
-              </ListItemIcon>
-              <ListItemText primary="Selected Users" />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton component={Link} to="/feedback">
-              <ListItemIcon>
-                <AssessmentIcon />
-              </ListItemIcon>
-              <ListItemText primary="Assessment Feedbacks" />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton component={Link} to="/sampling">
-              <ListItemIcon>
-                <PeopleIcon />
-              </ListItemIcon>
-              <ListItemText primary="Customer Sampling" />
-            </ListItemButton>
-          </ListItem>
-          {/* New Role Mapping List Item */}
-          <ListItem disablePadding>
-            <ListItemButton component={Link} to="/role-mapping">
-              <ListItemIcon>
-                <AssignmentIndIcon />
-              </ListItemIcon>
-              <ListItemText primary="Roles" />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton component={Link} to="/settings">
-              <ListItemIcon>
-                <SettingsIcon />
-              </ListItemIcon>
-              <ListItemText primary="Settings" />
-            </ListItemButton>
-          </ListItem>
-        </List>
+              </List>
+            </Collapse>
+          </List>
+        </Box>
       </Drawer>
-    </Box>
+    </div>
   );
 };
 
