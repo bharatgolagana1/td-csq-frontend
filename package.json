@@ -10,10 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@emotion/react": "^11.11.4",
-    "@emotion/styled": "^11.11.5",
+    "@emotion/react": "^11.13.3",
+    "@emotion/styled": "^11.13.0",
+    "@fontsource/lato": "^5.0.22",
     "@mui/icons-material": "^5.16.1",
-    "@mui/material": "^5.16.1",
+    "@mui/material": "^5.16.7",
     "@react-keycloak/web": "^3.4.0",
     "axios": "^1.7.2",
     "echarts": "^5.5.1",
