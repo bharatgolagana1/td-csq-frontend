@@ -2,19 +2,18 @@ import { createTheme, ThemeOptions } from '@mui/material/styles';
 
 const theme: ThemeOptions = createTheme({
   typography: {
-    fontFamily: 'Lato, Arial, sans-serif',
+    fontFamily: 'Lato',
     h1: {
-      fontFamily: 'Lato, Arial, sans-serif',
-      fontWeight: 700, // Bold weight for h1
-      fontSize: '24px', // Size for h1
-      lineHeight: '28.8px', // Line height for h1
-      letterSpacing: '0.1em', // Letter spacing for h1
-      
+      fontFamily: 'Lato',
+      fontWeight: 700,
+      fontSize: '24px',
+      lineHeight: '28.8px',
+      letterSpacing: '0.1em',
+      margin: 0,
     },
     body1: {
-      fontFamily: 'Lato, Arial, sans-serif',
-      fontWeight: 400, // Normal weight for body text
-      width:'185px'
+      fontFamily: 'Lato',
+      fontWeight: 400,
     },
   },
   palette: {
@@ -23,6 +22,48 @@ const theme: ThemeOptions = createTheme({
     },
     secondary: {
       main: '#dc004e',
+    },
+  },
+  components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          whiteSpace: 'nowrap', // Applies nowrap to the body
+        },
+        div: {
+          whiteSpace: 'nowrap', // Applies nowrap to all div elements
+        },
+      },
+    },
+    MuiTypography: {
+      styleOverrides: {
+        root: {
+          whiteSpace: 'nowrap',
+        },
+      },
+    },
+    MuiButton: {
+      defaultProps: {
+        disableRipple: true,
+        disableElevation: true,
+      },
+      styleOverrides: {
+        contained: {
+          backgroundColor: '#1976d2',
+          color: '#fff',
+          '&:hover': {
+            backgroundColor: '#115293',
+          },
+        },
+        outlined: {
+          borderColor: '#1976d2',
+          color: '#1976d2',
+          '&:hover': {
+            borderColor: '#115293',
+            backgroundColor: 'rgba(25, 118, 210, 0.04)',
+          },
+        },
+      },
     },
   },
 });

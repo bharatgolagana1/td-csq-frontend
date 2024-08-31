@@ -5,11 +5,11 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { Link } from 'react-router-dom';
 import './Sidebar.css';
 
-import dashboard from '../../../assert/dashboard.png'
-import customerSampling from '../../../assert/customerSampling.png'
-import assessment from '../../../assert/assessment.png'
-import history from '../../../assert/history.png'
-import assessmentHistory from '../../../assert/assessmentHistory.png'
+import dashboard from '../../../assets/dashboard.png';
+import customerSampling from '../../../assets/customerSampling.png';
+import assessment from '../../../assets/assessment.png';
+import history from '../../../assets/history.png';
+import assessmentHistory from '../../../assets/assessmentHistory.png';
 
 const Sidebar: React.FC = () => {
   const [activeItem, setActiveItem] = useState<string>('Assessment');
@@ -40,7 +40,7 @@ const Sidebar: React.FC = () => {
               <ListItemIcon className="list-item-icon">
                 <img src={dashboard} alt="Dashboard" style={{ width: 24, height: 24 }} />
               </ListItemIcon>
-              <ListItemText primary="Dashboard" />
+              <ListItemText primary="Dashboard" className="hide-on-small" />
             </ListItem>
             <ListItem
               className={`list-item ${activeItem === 'Assessment' ? 'active' : ''}`}
@@ -51,7 +51,7 @@ const Sidebar: React.FC = () => {
               <ListItemIcon className="list-item-icon">
                 <img src={assessment} alt="Assessment" style={{ width: 24, height: 24 }} />
               </ListItemIcon>
-              <ListItemText primary="Assessment" />
+              <ListItemText primary="Assessment" className="hide-on-small" />
             </ListItem>
             <ListItem
               className={`list-item ${activeItem === 'Customer Sampling' ? 'active' : ''}`}
@@ -62,7 +62,7 @@ const Sidebar: React.FC = () => {
               <ListItemIcon className="list-item-icon">
                 <img src={customerSampling} alt="Customer Sampling" style={{ width: 24, height: 24 }} />
               </ListItemIcon>
-              <ListItemText primary="Customer Sampling" style={{width:'137px'}}/>
+              <ListItemText primary="Customer Sampling" className="hide-on-small" />
             </ListItem>
             <ListItemButton
               className={`list-item ${activeItem === 'History' ? 'active' : ''}`}
@@ -71,7 +71,7 @@ const Sidebar: React.FC = () => {
               <ListItemIcon className="list-item-icon">
                 <img src={history} alt="History" style={{ width: 24, height: 24 }} />
               </ListItemIcon>
-              <ListItemText primary="History" />
+              <ListItemText primary="History" className="hide-on-small" />
               {historyExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
             </ListItemButton>
             <Collapse in={historyExpanded}>
@@ -85,7 +85,7 @@ const Sidebar: React.FC = () => {
                   <ListItemIcon className="list-item-icon">
                     <img src={assessmentHistory} alt="Assessment History" style={{ width: 24, height: 24 }} />
                   </ListItemIcon>
-                  <ListItemText primary="Assessment" />
+                  <ListItemText primary="Assessment" className="hide-on-small" />
                 </ListItemButton>
               </List>
             </Collapse>

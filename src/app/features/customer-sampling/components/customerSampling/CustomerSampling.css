@@ -1,0 +1,106 @@
+.customer {
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+.selection-bar {
+    display: flex;
+    align-items: center;
+    background-color: black;
+    color: white;
+    padding: 0.625rem; /* 10px */
+    margin-bottom: 0.625rem; /* 10px */
+    justify-content: space-between;
+    font-family: Lato;
+    font-weight: 700;
+}
+
+.selection-bar .delete-button {
+    color: white;
+    width: 5.375rem; /* 86px */
+    height: 1.5rem; /* 24px */
+    gap: 0.875rem; /* 14px */
+}
+
+.selection-bar .close-button {
+    color: white;
+}
+
+.error-message {
+    color: red;
+}
+
+.no-data-message {
+    color: gray;
+}
+
+.button-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.625rem; /* 10px */
+}
+
+.add-button-customer-sampling {
+    margin-left: 0;
+    color: blue;
+}
+
+.delete-button {
+    margin-right: 2rem;
+}
+
+.icon-button {
+    color: blue;
+    background-color: blue;
+}
+
+.assessment-details {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.625rem; /* 10px */
+}
+
+body, html {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.filter-search-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.25rem; 
+    gap: 1.25rem;
+}
+
+.searchbar-container {
+    flex: 0 0 40%;
+    margin-right: 2.5%; 
+    padding: 0.625rem; 
+    border: 0.0625rem solid #ddd; 
+    border-radius: 0.3125rem;
+    background-color: #f9f9f9; 
+}
+
+.filter-options-container {
+    flex: 0 0 55%;
+    padding: 0.625rem;
+    border: 0.0625rem solid #ddd;
+    border-radius: 0.3125rem;
+    background-color: #f9f9f9; 
+    display: flex;
+    justify-content: space-around;
+}
+
+.filter-item {
+    margin-right: 0.625rem; 
+}
+
+.searchbar-container input,
+.filter-options-container select {
+    width: 100%;
+    box-sizing: border-box;
+}
