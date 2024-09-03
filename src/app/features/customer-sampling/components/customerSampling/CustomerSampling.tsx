@@ -1,29 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Paper,
-  TableContainer,
-  IconButton,
-} from '@mui/material';
+import { Button, Paper, TableContainer, IconButton, CircularProgress, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CloseIcon from '@mui/icons-material/Close';
-import {
-  deleteCustomer,
-  fetchCustomers,
-  Customer,
-} from '../../api/CustomerSamplingAPI';
+import { deleteCustomer, fetchCustomers, Customer, updateCustomer } from '../../api/CustomerSamplingAPI';
 import { useNavigate } from 'react-router-dom';
 import CustomerSamplingTable from '../customerSamplingTable/CustomerSamplingTable';
 import CustomerSamplingSkeleton from '../customerSamplingHelpers/CustomerSamplingSkeleton';
 import AlertMessage from '../customerSamplingHelpers/AlertMessage';
 import FilterOptions from '../customerSamplingHelpers/FilterOptions';
 import SearchbarComponent from '../customerSamplingHelpers/SearchbarComponent';
+import CustomerSamplingDialogs from '../customerSamplingHelpers/CustomerSamplingDialogs';
 import './CustomerSampling.css';
 
 const CustomerSampling: React.FC = () => {
@@ -31,11 +18,14 @@ const CustomerSampling: React.FC = () => {
   const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
   const [openDelete, setOpenDelete] = useState(false);
   const [openGroupDelete, setOpenGroupDelete] = useState(false);
+  const [openSampleDialog, setOpenSampleDialog] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [queryStatus, setQueryStatus] = useState<'loading' | 'error' | 'success'>('loading');
   const [showSelectionBar, setShowSelectionBar] = useState<boolean>(false);
   const [alertOpen, setAlertOpen] = useState<boolean>(false);
   const [alertMessage, setAlertMessage] = useState<string>('');
+  const [isSampling, setIsSampling] = useState<boolean>(false);
+  const [loadingDelete, setLoadingDelete] = useState<boolean>(false);
   const [, setFilterType] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const navigate = useNavigate();
@@ -59,8 +49,8 @@ const CustomerSampling: React.FC = () => {
   }, [selectedCustomers]);
 
   const handleAdd = () => {
-    navigate('add-customer')
-  }
+    navigate('add-customer');
+  };
 
   const handleDelete = (id: string) => {
     setDeleteId(id);
@@ -69,10 +59,22 @@ const CustomerSampling: React.FC = () => {
 
   const confirmDelete = async () => {
     if (deleteId) {
-      await deleteCustomer(deleteId);
-      setRows(rows.filter((row) => row._id !== deleteId));
-      setOpenDelete(false);
-      setDeleteId(null);
+      setLoadingDelete(true);
+      try {
+        await deleteCustomer(deleteId);
+        setRows(rows.filter((row) => row._id !== deleteId));
+        setAlertMessage('Customer deleted successfully.');
+      } catch (error) {
+        console.error('Error deleting customer:', error);
+      } finally {
+        setTimeout(() => {
+          setLoadingDelete(false);
+          setOpenDelete(false);
+          setDeleteId(null);
+          setAlertOpen(true);
+          setTimeout(() => setAlertOpen(false), 3000);
+        }, 3000);
+      }
     }
   };
 
@@ -82,15 +84,22 @@ const CustomerSampling: React.FC = () => {
   };
 
   const confirmGroupDelete = async () => {
+    setLoadingDelete(true);
     try {
       await Promise.all(selectedCustomers.map((id) => deleteCustomer(id)));
       setRows(rows.filter((row) => !selectedCustomers.includes(row._id)));
-      setAlertMessage(`${selectedCustomers.length} users deleted successfully.`);
-      setAlertOpen(true);
+      setAlertMessage(`${selectedCustomers.length} customers deleted successfully.`);
       setOpenGroupDelete(false);
-      setSelectedCustomers([]);
     } catch (error) {
       console.error('Error deleting customers:', error);
+    } 
+    finally {
+      setTimeout(() => {
+        setLoadingDelete(false); 
+        setSelectedCustomers([]);
+        setAlertOpen(true);
+        setTimeout(() => setAlertOpen(false), 3000);
+      }, 3000);
     }
   };
 
@@ -120,6 +129,50 @@ const CustomerSampling: React.FC = () => {
   const handleSearch = (query: string) => {
     setSearchQuery(query);
   };
+
+  const handleSampleCustomer = () => {
+    setOpenSampleDialog(true);
+  };
+
+  const confirmSampleCustomer = async () => {
+    const currentDate = new Date().toISOString().split('T')[0];
+    setIsSampling(true); // Start sampling loading
+    try {
+      await Promise.all(
+        selectedCustomers.map((id) => {
+          const customerToUpdate = rows.find((row) => row._id === id);
+          if (customerToUpdate) {
+            return updateCustomer(id, { ...customerToUpdate, sampledDate: currentDate });
+          }
+        })
+      );
+      setRows((prevRows) =>
+        prevRows.map((row) =>
+          selectedCustomers.includes(row._id)
+            ? { ...row, sampledDate: currentDate }
+            : row
+        )
+      );
+      setAlertMessage('Sampled date updated successfully.');
+      setOpenSampleDialog(false);
+    } catch (error) {
+      console.error('Error updating sampled date:', error);
+    } finally {
+      setTimeout(() => {
+        setIsSampling(false);
+        setSelectedCustomers([]);
+        setAlertOpen(true);
+        setTimeout(() => setAlertOpen(false), 3000);
+      }, 3000);
+    }
+  };
+  const handleCloseSampleDialog = () => {
+    setOpenSampleDialog(false);
+  };
+
+  const filteredRows = rows.filter((row) =>
+    row.customerName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const renderError = () => (
     <div className="error-message">
@@ -163,10 +216,6 @@ const CustomerSampling: React.FC = () => {
     </div>
   );
 
-  const filteredRows = rows.filter((row) => {
-    return row.customerName.toLowerCase().includes(searchQuery.toLowerCase());
-  });
-
   return (
     <div className="customer">
       <div className="button-row">
@@ -179,40 +228,52 @@ const CustomerSampling: React.FC = () => {
           Add Customer
         </Button>
       </div>
-
+      <div className="section-divider" /> 
       <div className="filter-search-container">
-      <SearchbarComponent onSearch={handleSearch} />
+        <SearchbarComponent onSearch={handleSearch} />
         <FilterOptions onFilter={handleFilter} />
       </div>
+      <div className="section-divider" /> 
       {showSelectionBar && (
         <div className="selection-bar">
           <span>{selectedCustomers.length} selected</span>
+          <Button
+            className="sample-button"
+            onClick={handleSampleCustomer}
+            variant="contained"
+            color="primary"
+            disabled={isSampling || loadingDelete}
+          >
+            {isSampling ?
+            <>
+           <CircularProgress size={24} color="secondary" />
+           <Typography variant="body1">Sampling {selectedCustomers.length} customers</Typography>
+           </>
+            : 'Sample Customer'}
+          </Button>
           <IconButton
             className="delete-button"
             onClick={() => setOpenGroupDelete(true)}
             aria-label="delete"
+            disabled={isSampling || loadingDelete} 
           >
-            <span>Delete</span>
-            <DeleteIcon />
+            {loadingDelete ?  
+            <>
+            <CircularProgress size={24} color="secondary" />
+             <Typography variant="body2" color="inherit">Deleting {selectedCustomers.length} customers</Typography>
+             </> 
+             : <><span>Delete </span><DeleteIcon /></>}
           </IconButton>
           <IconButton
             className="close-button"
             onClick={() => setSelectedCustomers([])}
             aria-label="close"
+            disabled={isSampling || loadingDelete}
           >
             <CloseIcon />
           </IconButton>
         </div>
       )}
-
-      {alertOpen && (
-        <AlertMessage
-          open={alertOpen}
-          message={alertMessage}
-          onClose={() => setAlertOpen(false)}
-        />
-      )}
-
       {queryStatus === 'loading' && <CustomerSamplingSkeleton />}
       {queryStatus === 'error' && renderError()}
       {queryStatus === 'success' && filteredRows.length < 1 && renderNoData()}
@@ -229,38 +290,25 @@ const CustomerSampling: React.FC = () => {
         </TableContainer>
       )}
 
-      <Dialog open={openDelete} onClose={handleCloseDelete}>
-        <DialogTitle>{'Delete Customer'}</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to delete this customer?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDelete} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={confirmDelete} color="secondary">
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <Dialog open={openGroupDelete} onClose={handleCloseGroupDelete}>
-        <DialogTitle>{'Delete Selected Customers'}</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to delete the selected customers?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseGroupDelete} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={confirmGroupDelete} color="secondary">
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <CustomerSamplingDialogs
+        openDelete={openDelete}
+        openGroupDelete={openGroupDelete}
+        openSampleDialog={openSampleDialog}
+        handleCloseDelete={handleCloseDelete}
+        handleCloseGroupDelete={handleCloseGroupDelete}
+        handleCloseSampleDialog={handleCloseSampleDialog}
+        confirmDelete={confirmDelete}
+        confirmGroupDelete={confirmGroupDelete}
+        confirmSampleCustomer={confirmSampleCustomer}
+      />
+
+      {alertOpen && (
+        <AlertMessage
+          open={alertOpen}
+          message={alertMessage}
+          onClose={() => setAlertOpen(false)}
+        />
+      )}
     </div>
   );
 };

@@ -5,11 +5,11 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { Link } from 'react-router-dom';
 import './Sidebar.css';
 
-import dashboard from '../../../assets/dashboard.png';
-import customerSampling from '../../../assets/customerSampling.png';
-import assessment from '../../../assets/assessment.png';
-import history from '../../../assets/history.png';
-import assessmentHistory from '../../../assets/assessmentHistory.png';
+import dashboard from '../../../assets/dashboard.svg';
+import customerSampling from '../../../assets/customerSampling.svg';
+import assessment from '../../../assets/assessment.svg';
+import history from '../../../assets/history.svg';
+import assessmentHistory from '../../../assets/assessmentHistory.svg';
 
 const Sidebar: React.FC = () => {
   const [activeItem, setActiveItem] = useState<string>('Assessment');
@@ -18,7 +18,7 @@ const Sidebar: React.FC = () => {
   const handleListItemClick = (item: string) => {
     setActiveItem(item);
     if (item === 'History') {
-      setHistoryExpanded(!historyExpanded); // Toggle expanded state
+      setHistoryExpanded(!historyExpanded);
     }
   };
 
@@ -33,8 +33,8 @@ const Sidebar: React.FC = () => {
           <List className="list-items">
             <ListItem
               className={`list-item ${activeItem === 'Dashboard' ? 'active' : ''}`}
-              component={Link} // Use Link to enable navigation
-              to="/dashboard" // Set the route path here
+              component={Link} 
+              to="/dashboard" 
               onClick={() => handleListItemClick('Dashboard')}
             >
               <ListItemIcon className="list-item-icon">
@@ -44,19 +44,19 @@ const Sidebar: React.FC = () => {
             </ListItem>
             <ListItem
               className={`list-item ${activeItem === 'Assessment' ? 'active' : ''}`}
-              component={Link} // Use Link to enable navigation
-              to="/assessment" // Set the route path here
+              component={Link} 
+              to="/assessment"
               onClick={() => handleListItemClick('Assessment')}
             >
               <ListItemIcon className="list-item-icon">
                 <img src={assessment} alt="Assessment" style={{ width: 24, height: 24 }} />
               </ListItemIcon>
-              <ListItemText primary="Assessment" className="hide-on-small" />
+              <ListItemText primary="Assessment" className="hide-on-small"/>
             </ListItem>
             <ListItem
               className={`list-item ${activeItem === 'Customer Sampling' ? 'active' : ''}`}
-              component={Link} // Use Link to enable navigation
-              to="/customer-sampling" // Set the route path here
+              component={Link}
+              to="/customer-sampling" 
               onClick={() => handleListItemClick('Customer Sampling')}
             >
               <ListItemIcon className="list-item-icon">
@@ -78,8 +78,8 @@ const Sidebar: React.FC = () => {
               <List component="div" disablePadding>
                 <ListItemButton
                   className={`list-item ${activeItem === 'Assessment History' ? 'active' : ''}`}
-                  component={Link} // Use Link to enable navigation
-                  to="/assessment-history" // Set the route path here
+                  component={Link} 
+                  to="/assessment-history" 
                   onClick={() => handleListItemClick('Assessment History')}
                 >
                   <ListItemIcon className="list-item-icon">

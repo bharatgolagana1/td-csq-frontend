@@ -1,4 +1,4 @@
-import { CustomerSampling } from "../customer-sampling"
+import { CustomerSampling } from "../../features/customer-sampling"
 
 const CustomerSamplingPage = () => {
   return (

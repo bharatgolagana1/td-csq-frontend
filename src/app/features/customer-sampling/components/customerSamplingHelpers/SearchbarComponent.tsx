@@ -9,13 +9,15 @@ const SearchbarComponent: React.FC<{ onSearch: (query: string) => void }> = ({ o
       placeholder="Search by Customer Name"
       onChange={(e) => onSearch(e.target.value)}
       InputProps={{
-        startAdornment: (
-          <InputAdornment position="start">
-            <SearchIcon />
+        endAdornment: (
+          <InputAdornment position="end">
+            <SearchIcon/>
           </InputAdornment>
         ),
       }}
-      fullWidth
+      margin="dense"
+      size="small"
+      sx={{width:'300px' , marginRight:'3rem'}}
     />
   );
 };

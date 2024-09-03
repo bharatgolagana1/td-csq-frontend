@@ -1,7 +1,9 @@
+import { AssessmentFeedback } from "../features/assessment"
+
 const AssessmentPage = () => {
   return (
     <div  style={{marginTop:'40px'}}>
-      Assessment Page Works...
+      <AssessmentFeedback/>
     </div>
   )
 }

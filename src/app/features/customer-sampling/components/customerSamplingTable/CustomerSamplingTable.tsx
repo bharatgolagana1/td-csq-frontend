@@ -43,7 +43,7 @@ const CustomerSamplingTable: React.FC<CustomerSamplingTableProps> = ({
             </TableCell>
             <TableCell className="sampling-style-table-head-cell">Customer Type</TableCell>
             <TableCell className="sampling-style-table-head-cell">Customer Name</TableCell>
-            <TableCell className="sampling-style-table-head-cell">Email</TableCell>
+            <TableCell className="sampling-style-table-head-cell">Customer SPOC Email</TableCell>
             <TableCell className="sampling-style-table-head-cell">Sampled Date</TableCell>
           </TableRow>
         </TableHead>
