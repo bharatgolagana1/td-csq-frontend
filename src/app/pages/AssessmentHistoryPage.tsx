@@ -1,9 +1,9 @@
 const AssessmentHistoryPage = () => {
   return (
-    <div>
+    <div style={{marginTop:'40px'}}>
       AssessmentHistorypage Works...
     </div>
   )
 }
 
-export default AssessmentHistoryPage
+export default AssessmentHistoryPage;

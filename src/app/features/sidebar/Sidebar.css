@@ -1,5 +1,3 @@
-/* Sidebar.css */
-
 /* Sidebar container */
 .sidebar_main .drawer {
     width: 220px;
@@ -34,26 +32,101 @@
 .sidebar_main .list-item {
     display: flex;
     align-items: center;
-    width: 185px; /* Width of list items */
+    justify-content: center; /* Center items horizontally */
+    border-radius: 8px; /* Add border-radius */
+    transition: background-color 0.3s, color 0.3s, border-radius 0.3s; /* Smooth transition */
+    padding: 8px; /* Add padding for better spacing */
+}
+
+/* Active item styling */
+.sidebar_main .list-item.active,
+.sidebar_main .list-item.active:hover,
+.sidebar_main .list-item:hover {
+    background-color: #E9E0FE; /* Active background color */
+    color: #6822FE; /* Active text color */
+    border-radius: 8px; /* Apply border-radius */
+}
+
+/* Hover state for non-active items */
+.sidebar_main .list-item:not(.active):hover {
+    background-color: #E9E0FE; /* Active background color on hover */
+    color: #6822FE; /* Active text color on hover */
+    border-radius: 8px; /* Apply border-radius */
 }
 
 /* List item icon */
 .sidebar_main .list-item-icon {
-    min-width: 36px;
-    transition: color 0.3s;
+    min-width: 36px; /* Keep the icon width as is */
+    display: flex;
+    justify-content: center; /* Center icon horizontally */
+    transition: color 0.3s, filter 0.3s; /* Transition for color and filter */
+}
+
+.sidebar_main .list-item-icon img {
+    width: 24px;
+    height: 24px;
+    transition: filter 0.2s ease, opacity 0.3s ease;
+}
+
+/* Active item icon styling */
+.sidebar_main .list-item.active .list-item-icon img,
+.sidebar_main .list-item.active:hover .list-item-icon img,
+.sidebar_main .list-item:hover .list-item-icon img {
+    filter: brightness(0) saturate(100%) invert(18%) sepia(88%) saturate(2577%) hue-rotate(251deg) brightness(98%) contrast(99%);
 }
 
 /* List item text */
 .sidebar_main .list-item-text {
-    width: 137px; /* Width of text */
+    width: 137px; /* Keep the text width as is */
+    transition: opacity 0.3s; /* Smooth transition for hiding text */
 }
 
-/* Active state styling */
-.sidebar_main .list-item.active {
-    background-color: rgba(123, 63, 228, 0.12);
-    color: #7B3FE4;
+/* Hide text on medium and small screens */
+.sidebar_main .hide-on-small {
+    display: block; /* Default display for text */
 }
 
-.sidebar_main .list-item.active .list-item-icon {
-    color: #7B3FE4;
+@media (max-width: 1024px) {
+    /* For medium screens */
+    .sidebar_main .drawer {
+        width: 60px; /* Reduced width */
+    }
+
+    .sidebar_main .drawer-paper {
+        width: 60px; /* Reduced width */
+    }
+
+    .sidebar_main .sidebar_box .list-items {
+        padding: 8px 0; /* Adjusted padding */
+    }
+
+    .sidebar_main .hide-on-small {
+        display: none; /* Hide text on medium screens */
+    }
+
+    .sidebar_main .list-item-icon {
+        min-width: 20px; /* Smaller icon size */
+    }
+}
+
+@media (max-width: 600px) {
+    .sidebar_main .drawer {
+        width: 40px; /* Reduced width */
+    }
+
+    .sidebar_main .drawer-paper {
+        width: 40px; /* Reduced width */
+    }
+
+    .sidebar_main .sidebar_box .list-items {
+        padding: 6px 0; /* Adjusted padding */
+    }
+
+    .sidebar_main .hide-on-small {
+        display: none; /* Hide text on small screens */
+    }
+
+    .sidebar_main .list-item-icon {
+        min-width: 18px; /* Smaller icon size */
+    }
 }

@@ -1,0 +1,43 @@
+.bulk-upload-page {
+    padding : 1rem;
+    margin-top:2rem;
+  }
+  
+  .page-title {
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+  
+  .stepper {
+    margin-bottom: 40px;
+  }
+  
+  .upload-section {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .upload-title {
+    margin-right: 10px;
+  }
+  
+  .upload-section .upload-button {
+    color: var(--Brand-Primary, #6822FE);
+    background-color: transparent;
+    font-family: Lato;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 19.2px;
+    text-align: left;
+    text-transform: none;
+  }
+  
+  .next-button-section {
+    margin-top: 20px;
+  }
+  
+  .next-button {
+    background-color: #e0e0e0;
+  }
+  

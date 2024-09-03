@@ -1,0 +1,134 @@
+.customer {
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+.customer .selection-bar {
+    display: flex;
+    align-items: center;
+    background-color: black;
+    color: white;
+    padding: 0.625rem;
+    margin-bottom: 0.625rem;
+    font-family: Lato, sans-serif;
+    font-weight: 700;
+    gap: 0.5rem;
+}
+
+.customer .selection-bar .sample-button {
+    background-color: black;
+    color: white;
+    font-family: Lato, sans-serif;
+    font-size: 1rem; /* 16px */
+    text-transform: capitalize;
+    border-radius: 0.3125rem; /* 5px */
+}
+
+.customer .selection-bar .sample-button:hover {
+    background-color: black;
+}
+
+.customer .selection-bar .delete-button {
+    color: white;
+    font-family: Lato, sans-serif;
+    font-size: 1rem; 
+    text-transform: capitalize;
+}
+
+.customer .selection-bar .close-button {
+    color: white;
+    font-family: Lato, sans-serif;
+    margin-left: auto;
+}
+
+.customer .error-message {
+    color: red;
+}
+
+.customer .no-data-message {
+    color: gray;
+}
+
+.customer .button-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.625rem; 
+}
+
+.customer .button-row .add-button-customer-sampling {
+    color: var(--Brand-Primary, #6822FE);
+    background-color: transparent;
+    font-family: Lato, sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 19.2px;
+    text-align: left;
+    text-transform: none;
+}
+
+.customer .button-row .add-button-customer-sampling:hover {
+    background-color: white;
+    color: blue;
+}
+
+.customer .icon-button {
+    color: blue;
+    background-color: blue;
+}
+
+.customer .assessment-details {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.625rem;
+}
+
+.customer body,
+.customer html {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.customer .filter-search-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.25rem; 
+    gap: 1.25rem;
+}
+
+.customer .section-divider {
+    border-top: 1px solid #ddd;
+    margin: 10px 0;
+}
+
+.customer .button-row .searchbar-container {
+    flex: 0 0 40%;
+    margin-right: 5%; 
+    padding: 0.625rem; 
+    border: 0.0625rem solid #ddd; 
+    border-radius: 0.3125rem;
+    background-color: #f9f9f9; 
+}
+
+.customer .filter-options-container {
+    flex: 0 0 55%;
+    padding: 0.625rem;
+    border: 0.0625rem solid #ddd;
+    border-radius: 0.3125rem;
+    background-color: #f9f9f9; 
+    display: flex;
+    justify-content: space-around;
+}
+
+.customer .filter-item {
+    margin-right: 0.625rem; 
+}
+
+.customer .searchbar-container input,
+.customer .filter-options-container select {
+    width: 100%;
+    box-sizing: border-box;
+}

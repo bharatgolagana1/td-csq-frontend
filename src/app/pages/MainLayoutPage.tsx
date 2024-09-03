@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
 import { Box, CssBaseline } from '@mui/material';
-import Toolbar from '../toolbar/Toolbar';
-import Sidebar from '../sidebar/Sidebar';
+import Toolbar from '../features/toolbar/Toolbar';
+import Sidebar from '../features/sidebar/Sidebar';
 import { Outlet } from 'react-router-dom';
 
 interface MainLayoutProps {

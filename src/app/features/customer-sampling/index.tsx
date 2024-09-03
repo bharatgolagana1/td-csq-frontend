@@ -1,0 +1,1 @@
+export {default as CustomerSampling} from './components/customerSampling/CustomerSampling'

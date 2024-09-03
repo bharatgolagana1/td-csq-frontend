@@ -1,0 +1,81 @@
+.add-customer-page .add-customer-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1131px;
+  padding: 32px;
+  gap: 16px;
+  margin: 0 auto;
+}
+
+.add-customer-page .add-customer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 3.5rem;
+  margin-bottom: 3rem;
+}
+
+.add-customer-page .add-customer-title {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin: 0;
+}
+
+.add-customer-page .add-customer-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.add-customer-page .form-row {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+}
+
+.add-customer-page .form-row > .MuiTextField-root {
+  flex: 1;
+}
+
+.add-customer-page .second-row {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+}
+
+.add-customer-page .customer-type-control {
+  flex: 1;
+}
+
+.add-customer-page .add-customer-submit-button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 8px;
+  border-radius: 5px;
+  background-color: grey;
+  color: #fff;
+  font-size: 0.875rem; /* Ensure button text is smaller */
+  margin-top: 8px; /* Add spacing to match form fields */
+}
+
+.add-customer-page .add-customer-submit-button.active {
+  background-color: var(--Brand-Primary, #6822FE);
+  border-color: var(--Brand-Primary, #6822FE);
+}
+
+.add-customer-page .add-customer-submit-button:hover {
+  background-color: var(--Brand-Primary, #6822FE);
+  color: white;
+}
+
+.add-customer-page .empty-space {
+  flex: 1;
+}
+
+.error-text {
+  color: #f44336; /* Red color for error messages */
+  font-size: 0.75rem; /* Smaller font size for error messages */
+}

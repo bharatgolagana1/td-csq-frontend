@@ -3,8 +3,8 @@ import { AppBar, Toolbar as MuiToolbar, Typography, IconButton, Box } from '@mui
 import './Toolbar.css';
 
 // Import your PNG images
-import help from '../../../assert/help.png';
-import logout from '../../../assert/logout.png'
+import help from '../../../assets/help.png';
+import logout from '../../../assets/logout.png'
 
 const Toolbar: React.FC = () => {
   return (
@@ -12,7 +12,7 @@ const Toolbar: React.FC = () => {
       <AppBar position="fixed" className="toolbar">
         <MuiToolbar className="toolbar__content">
           <Box className="toolbar__title">
-            <img src="/src/assert/Icon.svg" alt="Logo" className="toolbar__logo" />
+            <img src="/src/assets/Icon.svg" alt="Logo" className="toolbar__logo" />
             <Typography variant="h6" noWrap component="div" className="title_card">
               Cargo Service Quality
             </Typography>
