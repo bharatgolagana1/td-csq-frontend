@@ -1,0 +1,52 @@
+.filter {
+    display: flex;
+    align-items: center; /* Vertically center the filter options */
+}
+
+.filter .button-group {
+    gap: 3rem; /* Reduced space between buttons and dropdowns */
+    display: flex;
+    align-items: center; /* Ensure items in the button group are centered */
+}
+
+.filter .button-group .filter-button,
+.filter .button-group .reset-button,
+.filter .button-group .dropdown .MuiSelect-outlined {
+    color: #616161;
+    border: 1px solid #000000; 
+    border-radius: 0.3125rem; /* 5px */
+    padding: 7px 12px; /* Smaller padding for smaller size */
+    font-size: 0.875rem; /* Smaller font size */
+    box-sizing: border-box;
+    background-color: transparent;
+    text-transform: none;
+}
+
+.filter .dropdown .MuiSelect-outlined {
+    min-width: 150px; /* Reduced minimum width for dropdowns */
+}
+
+.filter .filter-button:hover,
+.filter .dropdown:hover .MuiSelect-outlined,
+.filter .button-group button.active {
+    background-color: #E9E0FE;
+    color: #616161;
+    border: 1px solid #6822FE;
+}
+
+.filter .button-group .reset-button {
+    color: #6822FE;
+    border: 1px solid #6822FE;
+    border-radius: 4px;
+}
+
+.filter .reset-button:hover {
+    background-color: #E9E0FE;
+    color: #6822FE;
+    border: 1px solid #6822FE;
+}
+
+.filter .button-group button:hover {
+    background-color: #E9E0FE;
+    border: 1px solid #6822FE;
+}

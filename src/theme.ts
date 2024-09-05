@@ -34,6 +34,42 @@ const theme: ThemeOptions = createTheme({
       styleOverrides: {
         body: {
           backgroundColor: '#F9FAFB',
+          '&::-webkit-scrollbar': {
+            width: '5px',
+            height: '5px',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            backgroundColor: '#B0B0B0', // Grey color for the scrollbar thumb
+            borderRadius: '4px',
+          },
+          '&::-webkit-scrollbar-thumb:hover': {
+            backgroundColor: '#A0A0A0', // Slightly darker grey on hover
+          },
+          '&::-webkit-scrollbar-track': {
+            backgroundColor: '#E5E7EB',
+          },
+        },
+      },
+    },
+    MuiDrawer: {
+      styleOverrides: {
+        root: {
+          '& .MuiPaper-root': {
+            '&::-webkit-scrollbar': {
+              width: '4px',
+              height: '4px',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              backgroundColor: '#B0B0B0',
+              borderRadius: '4px',
+            },
+            '&::-webkit-scrollbar-thumb:hover': {
+              backgroundColor: '#A0A0A0',
+            },
+            '&::-webkit-scrollbar-track': {
+              backgroundColor: '#E5E7EB',
+            },
+          },
         },
       },
     },
@@ -121,6 +157,21 @@ const theme: ThemeOptions = createTheme({
           justifyContent: 'space-between',
           gap: '8px',
           padding: '16px',
+        },
+      },
+    },
+    MuiTableRow: {
+      styleOverrides: {
+        root: {
+          '&:nth-of-type(odd)': {
+            backgroundColor: 'white',
+          },
+          '&:nth-of-type(even)': {
+            backgroundColor: 'white',
+          },
+          '&:hover': {
+            backgroundColor: '#f1f1f1',
+          },
         },
       },
     },

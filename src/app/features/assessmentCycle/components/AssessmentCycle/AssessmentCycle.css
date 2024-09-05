@@ -1,0 +1,57 @@
+.assessment-cycle-container {
+    padding: 1rem;
+    background-color: #ffffff;
+    margin-top: 60px;
+  }
+  .assessment-cycle-container .filter-search-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem; 
+    gap: 1rem;
+}
+
+.assessment-cycle-container .section-divider {
+    border-top: 1px solid #ddd;
+    margin: 10px 0;
+}
+  
+  .assessment-cycle-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .assessment-cycle-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin: 10px;
+  }
+  
+  .add-cycle-button {
+    display: flex;
+    align-items: center;
+    background: none; /* No background */
+    border: none;
+    color: #6822FE;
+    font-size: 16px;
+    cursor: pointer;
+    transition: color 0.3s ease; /* Smooth color transition */
+    padding: 0;
+  }
+  
+  .add-cycle-button:hover {
+    color: #6c2afb;
+    background-color: #ffffff;
+  }
+  
+  .add-icon {
+    margin-right: 8px;
+    font-size: 20px;
+  }
+  
+  .add-cycle-text {
+    font-weight: 500;
+  }
+  

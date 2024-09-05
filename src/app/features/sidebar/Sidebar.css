@@ -25,7 +25,7 @@
     color: #424242;
     cursor: pointer;
     transition: background-color 0.3s, color 0.3s;
-    gap: 36px; /* Adjusted gap for vertical spacing */
+    gap: 20px; /* Adjusted gap for vertical spacing */
 }
 
 /* List item styling */
@@ -36,8 +36,8 @@
     border-radius: 8px; /* Add border-radius */
     transition: background-color 0.3s, color 0.3s, border-radius 0.3s; /* Smooth transition */
     padding: 8px; /* Add padding for better spacing */
+    color: #000000;
 }
-
 /* Active item styling */
 .sidebar_main .list-item.active,
 .sidebar_main .list-item.active:hover,
@@ -67,7 +67,6 @@
     height: 24px;
     transition: filter 0.2s ease, opacity 0.3s ease;
 }
-
 /* Active item icon styling */
 .sidebar_main .list-item.active .list-item-icon img,
 .sidebar_main .list-item.active:hover .list-item-icon img,
