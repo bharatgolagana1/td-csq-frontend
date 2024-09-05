@@ -2,7 +2,7 @@ import React from 'react';
 import { TextField, InputAdornment } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 
-const SearchbarComponent: React.FC<{ onSearch: (query: string) => void }> = ({ onSearch }) => {
+const AssessmentCycleSearchBar: React.FC<{ onSearch: (query: string) => void }> = ({ onSearch }) => {
   return (
     <TextField
       variant="outlined"
@@ -22,4 +22,4 @@ const SearchbarComponent: React.FC<{ onSearch: (query: string) => void }> = ({ o
   );
 };
 
-export default SearchbarComponent;
+export default AssessmentCycleSearchBar;

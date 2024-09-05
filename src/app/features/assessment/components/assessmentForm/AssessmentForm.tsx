@@ -3,17 +3,30 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import CategoryHeader from '../categoryHeader/CategoryHeader';
 import QuestionSection, { Question, SubParameter } from '../questionSection/QuestionSection';
 import { fetchQuestionsByCategory, saveSubparameters, finalSubmit } from '../../api/AssessmentAPI';
+import axios from 'axios';
 import './AssessmentForm.css';
 
-const categories = ['Process', 'Technology', 'Facilities', 'Regulators', 'General Airport Infrastructure', 'Others'];
-
 const FeedbackForm: React.FC = () => {
+  const [categories, setCategories] = useState<string[]>([]);
   const [allQuestions, setAllQuestions] = useState<{ [key: string]: Question[] }>({});
   const location = useLocation();
   const navigate = useNavigate();
   const [category, setCategory] = useState<string>(new URLSearchParams(location.search).get('category') || 'Process');
   const [questions, setQuestions] = useState<Question[]>([]);
   const [autoSaveMessage, setAutoSaveMessage] = useState<string>('');
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/feedback/feedback/categories');
+        setCategories(response.data);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -40,21 +53,23 @@ const FeedbackForm: React.FC = () => {
 
   const handleOptionChange = (questionId: string, subId: string) => {
     setQuestions((prevQuestions) =>
-      prevQuestions.map((question) =>
-        question.id === questionId
-          ? {
-              ...question,
-              options: question.options.map((option) =>
-                option.subId === subId ? { ...option, selected: !option.selected } : option
-              ),
-              currentRating: calculateRating(
-                question.options.map((option) =>
-                  option.subId === subId ? { ...option, selected: !option.selected } : option
-                )
-              ),
-            }
-          : question
-      )
+      prevQuestions.map((question) => {
+        if (question.id === questionId) {
+          const updatedOptions = question.options.map((option) =>
+            option.subId === subId ? { ...option, selected: !option.selected } : option
+          );
+          const currentRating = calculateRating(updatedOptions);
+          const ratingValue = calculateRatingValue(updatedOptions);
+          return {
+            ...question,
+            options: updatedOptions,
+            currentRating,
+            ratingValue,
+            finalRating: calculateFinalRating(questions), // Update finalRating
+          };
+        }
+        return question;
+      })
     );
   };
 
@@ -66,21 +81,37 @@ const FeedbackForm: React.FC = () => {
     );
   };
 
-  const calculateRating = (options: SubParameter[]) => {
-    const totalOptions = options.length;
-    const selectedCount = options.filter((option) => option.selected).length;
-    
-    if (totalOptions === 0) return 'Poor'; 
-  
-    const selectionRatio = selectedCount / totalOptions;
-  
-    if (selectionRatio === 0) return 'Poor';
-    if (selectionRatio <= 0.25) return 'Fair';
-    if (selectionRatio <= 0.5) return 'Good';
-    if (selectionRatio <= 0.75) return 'Very Good';
-    if (selectionRatio > 0.80) return 'Excellent';
-  
-    return 'NA';
+  const calculateRating = (options: SubParameter[]): string => {
+    const x = options.filter((option) => option.selected).length;
+    const y = options.length;
+    if (y === 0 || x === 0) return 'NA';
+    const z = (x / y) * 100;
+    if (z >= 80) return 'Excellent';
+    else if (z >= 60) return 'Very Good';
+    else if (z >= 40) return 'Good';
+    else if (z >= 20) return 'Fair';
+    else if (z > 0) return 'Poor';
+    else return 'NA';
+  };
+  const calculateRatingValue = (options: SubParameter[]): number => {
+    const x = options.filter((option) => option.selected).length;
+    const y = options.length;
+    if (y === 0 || x === 0) return 0;
+    const z = (x / y) * 100;
+    // Map the calculated percentage to the appropriate rating value
+    if (z >= 80) return 5; // Excellent
+    else if (z >= 60) return 4; // Very Good
+    else if (z >= 40) return 3; // Good
+    else if (z >= 20) return 2; // Fair
+    else if (z > 0) return 1; // Poor
+    else return 0; // NA or no selected options
+  };
+  const calculateFinalRating = (questions: Question[]): number => {
+    // Extract all rating values from the questions
+    const ratingValues = questions.map(question => question.ratingValue).filter(value => value > 0);
+    if (ratingValues.length === 0) return 0; // Return 0 if no valid ratings
+    // Calculate the average rating value
+    return ratingValues.reduce((acc, val) => acc + val, 0) / ratingValues.length;
   };
   
   useEffect(() => {
@@ -114,13 +145,30 @@ const FeedbackForm: React.FC = () => {
 
   const handleFinalSubmit = async () => {
     try {
-      const response = await finalSubmit(allQuestions);
-      alert('Feedback submitted successfully!');
-      console.log(response);
-      localStorage.removeItem('autoSaveData');
+      // Save the current category's questions before submission
+      setAllQuestions((prev) => {
+        const updatedQuestions = { ...prev, [category]: questions };
+        const allQuestionsArray = Object.values(updatedQuestions).flat();
+        const finalRating = calculateFinalRating(allQuestionsArray);
+        // Update the final rating for each question
+        const questionsWithFinalRating = allQuestionsArray.map((question) => ({
+          ...question,
+          finalRating,
+        }));
+        // Submit the feedback with the updated payload
+        finalSubmit(questionsWithFinalRating)
+          .then((response) => {
+            alert('Feedback submitted successfully!');
+            console.log(response);
+          })
+          .catch((error) => {
+            console.error('Error submitting feedback:', error);
+            alert('Error submitting feedback. Please try again.');
+          });
+        return updatedQuestions; // Update state with the latest questions for all categories
+      });
     } catch (error) {
-      console.error('Error submitting feedback:', error);
-      alert('Error submitting feedback. Please try again.');
+      console.error('Error during final submission:', error);
     }
   };
 

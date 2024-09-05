@@ -1,0 +1,96 @@
+.table-container {
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  
+  .assessment-cycle .table-header {
+    background-color: white;
+    color: black;
+    font-weight: bold;
+  }
+  
+  .assessment-cycle .table-header-cell {
+    font-weight: bold;
+    color: black;
+    background-color: white;
+    text-align: start;
+  }
+  
+  .checkbox-cell {
+    padding: 8px;
+  }
+  
+  .table-cell {
+    padding: 16px;
+    text-align: center;
+  }
+  .table-row:hover {
+    background-color: #f1f1f1;
+  }
+  .selected-actions {
+    background-color: #000;
+    color: #fff;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+  }
+  
+  /* Gap between selected count and buttons */
+  .selected-text {
+    margin-right: 4rem; /* Add gap here */
+    font-weight: bold;
+  }
+  
+  /* Style for delete and close buttons */
+  .selected-actions .delete-button-cycle {
+    color : #ffffff;
+    font-family: Lato;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 19.2px;
+    text-align: left;
+  }
+  
+  .selected-actions .close-operation-button {
+    color: white;
+    margin-left: auto;
+  }
+  
+  /* Modal and Alert Styling */
+  .modal-box {
+    position: absolute;
+    margin: 0px auto;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px;
+    background-color: white;
+    padding: 16px;
+    box-shadow: 24px;
+  }
+  
+  .dialog-content {
+    padding: 20px;
+    text-align: center;
+  }
+  
+  .alert-box {
+    margin: 20px;
+  }
+  
+  .view-text {
+    color: blue;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  
+  .view-text:hover {
+    text-decoration: underline;
+  }
+  
+  .close-alert {
+    cursor: pointer;
+    font-weight: bold;
+    margin-left: 10px;
+  }
+

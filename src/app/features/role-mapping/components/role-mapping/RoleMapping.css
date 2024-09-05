@@ -1,0 +1,94 @@
+.role-mapping-container {
+    padding: 20px;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+  }
+  
+  .role-actions-box {
+    margin-bottom: 20px;
+  }
+  
+  .role-action-btn {
+    margin-right: 10px;
+    background-color: #2196f3;
+    color: white;
+    padding: 10px 20px;
+  }
+  
+  .role-action-btn:hover {
+    background-color: #1976d2;
+  }
+  
+  .role-matrix-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+  
+  .role-matrix-table th,
+  .role-matrix-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+  }
+  
+  .role-matrix-table th {
+    background-color: #4caf50;
+    color: white;
+  }
+  
+  .role-matrix-table td {
+    background-color: #ffffff;
+  }
+  
+  .save-button {
+    display: flex;
+    justify-content: flex-start; /* Align button to the left */
+    margin-top: 20px;
+    padding: 10px 20px; /* Add padding inside the button */
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .save-button:hover {
+    background-color: #388e3c;
+  }
+  
+  .add-task-main {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    width: 400px;
+    padding: 20px;
+  }
+  
+  .add-task-board {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .add-task-label {
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+  
+  .add-task-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+  .add-task-actions button {
+    margin-left: 10px;
+  }
+  .role-mapping-container .save-button-container .save-button {
+    margin : 1rem;
+  }

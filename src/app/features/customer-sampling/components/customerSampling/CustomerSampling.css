@@ -1,8 +1,9 @@
 .customer {
     width: 100%;
-    padding: 0;
-    margin: 0;
+    padding: 1rem;
     box-sizing: border-box;
+    background-color: #ffffff;
+    margin-top:60px;
 }
 
 .customer .selection-bar {

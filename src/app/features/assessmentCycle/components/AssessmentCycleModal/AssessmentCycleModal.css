@@ -1,0 +1,79 @@
+.modal-box {
+    position: absolute;
+    width: 600px;
+    max-height: 600px;
+    overflow-y: auto;
+    background-color: white;
+    box-shadow: 24px;
+    padding: 20px;
+    border-radius: 16px 0px 0px 0px;
+    scrollbar-width: thin;
+    scrollbar-color: #6200ea #e0e0e0;
+  }
+  
+  /* Customize the scrollbar */
+  .modal-box::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .modal-box::-webkit-scrollbar-track {
+    background: #e0e0e0;
+  }
+  
+  .modal-box::-webkit-scrollbar-thumb {
+    background-color: #6200ea;
+    border-radius: 10px;
+  }
+  
+  .modal-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .title-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .modal-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .input-row {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .input-field {
+    flex: 1;
+  }
+  
+  .detail-text {
+    margin-bottom: 15px;
+    font-size: 16px;
+  }
+  
+  .edit-button,
+  .close-button {
+    color: #6200ea;
+  }
+  
+  .save-button {
+    color: #fff;
+    background-color: #6200ea;
+    margin-top: 20px;
+  }
+  
+  .action-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+  }
+  

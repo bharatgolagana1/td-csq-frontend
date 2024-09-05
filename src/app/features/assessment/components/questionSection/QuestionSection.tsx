@@ -14,6 +14,8 @@ export interface Question {
   rating: string[];
   currentRating: string;
   comment: string;
+  ratingValue: number; 
+  finalRating?: number;
 }
 
 interface QuestionSectionProps {
