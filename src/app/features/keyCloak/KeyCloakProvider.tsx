@@ -28,7 +28,7 @@ const KeycloakProvider = ({ children }: { children: React.ReactNode }) => {
               },
             });
             setUserInfo({
-              id: data.id,
+              userId: data.userId,
               selectedOrganization: data.organizationId,
               authorities: data.permissions,
               isInternalUser: !data.isVisitor,

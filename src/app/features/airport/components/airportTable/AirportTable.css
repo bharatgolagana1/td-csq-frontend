@@ -1,0 +1,77 @@
+.airport-table {
+    padding : 8px;
+}
+
+.airport-table .styled-table-cell-airport {
+    font-family: Lato;
+    font-weight: 400;
+    font-size: 0.875rem;
+    line-height: 1.43;
+    display: table-cell;
+    vertical-align: inherit;
+    border-bottom: 1px solid rgba(224, 224, 224, 1);
+    text-align: start;
+    padding: 8px;
+    padding-bottom: none;
+    color: rgba(0, 0, 0, 0.87);
+}
+.airport-table .styled-table-head-cell-airport {
+  font-family: "Lato";
+  font-weight: bold;
+  font-size: 0.875rem;
+  line-height: 1.5rem;
+  letter-spacing: 0.01071em;
+  display: table-cell ;
+  vertical-align: middle ;
+  text-align: start;
+  padding: 8px ;
+  color: black;
+}
+.airport-table .action-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.airport-table .styled-table-cell-actions-airport {
+  display: flex;
+  gap: 8px;
+}
+.selected-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
+  background-color: #000;
+  color: #fff;
+}
+.selected-actions .delete-icon {
+  background: none;
+  border: none;
+  color: white;
+  margin-right: 16px;
+  cursor: pointer;
+}
+.selected-actions .close-icon {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+}
+.airport-table .styled-table-row:last-child td,
+.styled-table-row:last-child th {
+  border: 0;
+}
+
+.airport-table .styled-table-cell-actions-airport {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.airport-table .styled-table-cell-actions-airport button {
+  cursor: pointer;
+  color: #6822FE;
+  font-weight: 600;
+  min-width: none;
+  font-size: 14px;
+  padding: 0px;
+}

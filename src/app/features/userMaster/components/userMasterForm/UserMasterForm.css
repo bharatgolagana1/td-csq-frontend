@@ -1,0 +1,20 @@
+.add-user {
+  margin-top: 40px;
+  padding: 1rem;
+  background-color: #fff;
+}
+
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.layout-main .text-field-gap {
+  margin-bottom: 16px;
+}
+
+.layout-main .submit-button {
+  margin: 16px 0px;
+}

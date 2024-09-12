@@ -1,9 +1,12 @@
+import HasAccess from "../../context/HasAccess"
 import AddAssessmentCycleForm from "../../features/assessmentCycle/components/AssessmentCycleForm/AssessmentCycleForm"
 
 const AddAssessmentCyclePage = () => {
   return (
     <div>
-      <AddAssessmentCycleForm/>
+      <HasAccess requiredPermission="ADD_ASSESSMENT">
+       <AddAssessmentCycleForm/>
+      </HasAccess>
     </div>
   )
 }

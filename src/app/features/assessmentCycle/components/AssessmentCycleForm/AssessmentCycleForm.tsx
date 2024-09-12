@@ -87,6 +87,8 @@ const AssessmentCycleForm: React.FC = () => {
               fullWidth
               required
               className="form-field"
+              margin = "dense"
+              size="small"
             />
           </Grid>
           <Grid item xs={12} sm={4} className="grid-item">
@@ -98,6 +100,8 @@ const AssessmentCycleForm: React.FC = () => {
               fullWidth
               required
               className="form-field"
+              margin = "dense"
+              size="small"
             />
           </Grid>
           <Grid item xs={12} sm={4} className="grid-item">
@@ -109,6 +113,8 @@ const AssessmentCycleForm: React.FC = () => {
               fullWidth
               required
               className="form-field"
+              margin = "dense"
+              size="small"
             />
           </Grid>
           <Grid item xs={12} sm={4} className="grid-item">
@@ -122,6 +128,8 @@ const AssessmentCycleForm: React.FC = () => {
               fullWidth
               required
               className="form-field"
+              margin = "dense"
+              size="small"
             />
           </Grid>
           <Grid item xs={12} sm={4} className="grid-item">
@@ -133,6 +141,8 @@ const AssessmentCycleForm: React.FC = () => {
               fullWidth
               required
               className="form-field"
+              margin = "dense"
+              size="small"
             />
           </Grid>
           <Grid item xs={12} sm={4} className="grid-item">
@@ -146,6 +156,8 @@ const AssessmentCycleForm: React.FC = () => {
               fullWidth
               required
               className="form-field"
+              margin = "dense"
+              size="small"
             />
           </Grid>
           <Grid item xs={12} sm={4} className="grid-item">
@@ -158,6 +170,8 @@ const AssessmentCycleForm: React.FC = () => {
               InputLabelProps={{ shrink: true }}
               fullWidth
               className="form-field"
+              margin = "dense"
+              size="small"
             />
           </Grid>
           <Grid item xs={12} sm={4} className="grid-item">
@@ -171,6 +185,8 @@ const AssessmentCycleForm: React.FC = () => {
               fullWidth
               required
               className="form-field"
+              margin = "dense"
+              size="small"
             />
           </Grid>
           <Grid item xs={12} sm={4} className="grid-item">
@@ -182,6 +198,8 @@ const AssessmentCycleForm: React.FC = () => {
               fullWidth
               required
               className="form-field"
+              margin = "dense"
+              size="small"
             />
           </Grid>
           <Grid item xs={12} sm={4} className="grid-item">
@@ -195,6 +213,8 @@ const AssessmentCycleForm: React.FC = () => {
               fullWidth
               required
               className="form-field"
+              margin = "dense"
+              size="small"
             />
           </Grid>
           <Grid item xs={12} sm={4} className="grid-item">
@@ -207,6 +227,8 @@ const AssessmentCycleForm: React.FC = () => {
               InputLabelProps={{ shrink: true }}
               fullWidth
               className="form-field"
+              margin = "dense"
+              size="small"
             />
           </Grid>
           <Grid item xs={12} sm={4} className="grid-item">
@@ -220,6 +242,8 @@ const AssessmentCycleForm: React.FC = () => {
               fullWidth
               required
               className="form-field"
+              margin = "dense"
+              size="small"
             />
           </Grid>
           <Grid item xs={12} className="submit-grid-item">
