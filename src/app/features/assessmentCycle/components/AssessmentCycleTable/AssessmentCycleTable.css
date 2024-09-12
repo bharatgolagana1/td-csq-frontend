@@ -15,7 +15,19 @@
     background-color: white;
     text-align: start;
   }
-  
+
+  .assessment-cycle .table-row .table-cell {
+    color : #616161;
+    padding: 8px;
+    font-family: "Lato";
+    font-weight: 400;
+    font-size: 0.875rem;
+    line-height: 1.43;
+    letter-spacing: 0.01071em;
+    text-align: left;
+    border-bottom: 1px solid rgba(224, 224, 224, 1);
+  }
+
   .checkbox-cell {
     padding: 8px;
   }
@@ -79,9 +91,9 @@
   }
   
   .view-text {
-    color: blue;
+    color: #6822FE;
     cursor: pointer;
-    font-weight: bold;
+    font-weight: 600;
   }
   
   .view-text:hover {

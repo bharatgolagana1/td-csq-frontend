@@ -1,0 +1,67 @@
+.user {
+  margin: 50px 0 0;
+  background-color: #fff;
+}
+
+.user-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ffffff;
+  margin-top: 60px;
+}
+
+.user-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  margin: 10px;
+}
+
+.add-user-button {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  color: #6822FE;
+  font-size: 16px;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  padding: 0;
+}
+
+.add-user-button:hover {
+  color: #6c2afb;
+}
+
+.add-user-icon {
+  margin-right: 8px;
+  font-size: 20px;
+}
+
+.add-user-text {
+  font-weight: bold;
+}
+
+.user-filters {
+  display: flex;
+  align-items: center;
+  margin: 10px 0;
+  gap: 1rem;
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+  padding: 10px 0;
+}
+
+.selected-actions {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.delete-button,
+.close-operation-button {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+}

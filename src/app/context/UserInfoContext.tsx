@@ -11,7 +11,7 @@ export type UserPermissions = {
 
 export type UserInfo = {
   role: string;
-  id: string | undefined;
+  userId: string | undefined;
   selectedOrganization?: string;
   organizations: string[] | undefined;
   authorities: string[];
@@ -25,7 +25,7 @@ export type UserInfo = {
 };
 
 export const initialState: UserInfo = {
-  id: undefined,
+  userId: undefined,
   selectedOrganization: undefined,
   authorities: [],
   isInternalUser: undefined,
@@ -41,7 +41,7 @@ interface UserInfoContextType {
   fetchPermissions: (roleId: string) => void;
 }
 
-const UserInfoContext = createContext<UserInfoContextType | undefined>(undefined);
+export const UserInfoContext = createContext<UserInfoContextType | undefined>(undefined);
 UserInfoContext.displayName = 'UserInfoContext';
 
 export function UserInfoProvider({ children }: { children: React.ReactNode }): JSX.Element {

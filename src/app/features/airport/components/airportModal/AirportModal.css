@@ -1,0 +1,73 @@
+.modal-box-airport {
+    position: absolute; /* Changed from relative to absolute */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Centering the modal */
+    width: 600px;
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .modal-box-airport .modal-title-airport {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .title-actions {
+    display: flex;
+    align-items: center;
+  }
+  
+  .edit-button {
+    color: #6822FE;
+    margin-right: 10px;
+  }
+  
+  .close-button {
+    color: #999;
+  }
+  
+  .modal-content {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .input-field {
+    margin-bottom: 15px;
+  }
+  
+  .action-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+  }
+  
+  .save-button {
+    background-color: #6822FE;
+    color: #fff;
+    margin-right: 10px;
+  }
+  
+  .cancel-button {
+    background-color: #f44336;
+    color: #fff;
+  }
+  
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  
+  .detail-label {
+    font-weight: bold;
+  }
+  
+  .detail-value {
+    color: #333;
+  }
+  

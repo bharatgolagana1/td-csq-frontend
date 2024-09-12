@@ -14,7 +14,7 @@ export const UseUserPermissions = () => {
   const { userInfo } = useUserInfo();
   const [userPermissions, setUserPermissions] = useState<UserPermissions[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const API_URL = import.meta.env.VITE_API_BASE_URL;
+  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
   useEffect(() => {
     const fetchPermissions = async () => {

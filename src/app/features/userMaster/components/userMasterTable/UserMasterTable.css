@@ -1,0 +1,44 @@
+/* Target the container that holds the table */
+.user-table-container .user-table-cell-header {
+  color: black;
+  font-weight: bold;
+  font-family: "Lato", sans-serif;
+  font-weight: 600;
+  font-size: 0.875rem;
+  line-height: 1.43;
+  letter-spacing: 0.01071em;
+  text-align: left;
+}
+
+/* Checkbox select all container alignment */
+.user-table-container .select-all-container {
+  display: flex;
+  align-items: start;
+}
+
+/* Select all checkbox margin reset */
+.user-table-container .select-all-container span {
+  margin-left: 0;
+}
+
+/* Cell body styling */
+.user-table-container .user-table-cell-body {
+  color: #616161;
+  padding: 8px;
+  font-family: "Lato", sans-serif;
+  font-weight: 400;
+  font-size: 0.875rem;
+  line-height: 1.43;
+  letter-spacing: 0.01071em;
+  text-align: left;
+  border-bottom: 1px solid rgba(224, 224, 224, 1);
+}
+
+/* View button styling */
+.user-table-container .user-table .user-table-row .view-button {
+  cursor: pointer;
+  font-weight: 600;
+  color: #6822FE;
+  min-width: 0px;
+  font-size: 14px;
+}

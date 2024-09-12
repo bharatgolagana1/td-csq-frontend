@@ -3,11 +3,10 @@
   }
   
   .customer-sampling .sampling-style-table-head-cell {
-    color: blue;
-    background-color: #f2f2f2;
+    color: black;
     font-weight: bold;
-    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
-    font-weight: 400;
+    font-family: "Lato";
+    font-weight: 600;
     font-size: 0.875rem;
     line-height: 1.43;
     letter-spacing: 0.01071em;
@@ -29,15 +28,9 @@
   .customer-sampling .icon-button-sampling {
     color: blue;
   }
-  
-  .customer-sampling .sampling-style-table-head-cell {
-    color: black;
-    background-color: #f2f2f2;
-    font-weight: bold;
-  }
   .customer-sampling .sampling-style-table-body-cell {
     padding: 8px;
-    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+    font-family: "Lato";
     font-weight: 400;
     font-size: 0.875rem;
     line-height: 1.43;

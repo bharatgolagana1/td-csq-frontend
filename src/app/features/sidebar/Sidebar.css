@@ -25,9 +25,8 @@
     color: #424242;
     cursor: pointer;
     transition: background-color 0.3s, color 0.3s;
-    gap: 20px; /* Adjusted gap for vertical spacing */
+    gap: 30px; /* Adjusted gap for vertical spacing */
 }
-
 /* List item styling */
 .sidebar_main .list-item {
     display: flex;

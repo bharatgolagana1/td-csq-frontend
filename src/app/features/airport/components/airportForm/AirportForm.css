@@ -1,0 +1,45 @@
+.form-container-airport {
+    margin: auto;
+    padding: 1rem;
+    background-color: #fff;
+    margin-top: 3rem;
+  }
+  .form-container-airport .add-text {
+    padding : 5px;
+  }  
+  .airport-form .form-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Space out the elements evenly */
+    gap: 20px; /* Add spacing between the elements */
+    margin-bottom: 20px;
+  }
+  
+  .form-row > div {
+    flex: 1;
+  }
+  
+  .add-btn {
+    width: 150px;
+  }
+  
+  .form-buttons {
+    display: flex;
+    align-items: center;
+    gap : 5rem;
+  }
+  
+  .cancel-btn {
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+  .add-btn {
+    margin-right: 50px;
+  }
+  
+  .add-cancel-btns {
+    display: flex;
+    align-items: center;
+  }
+  

@@ -6,6 +6,7 @@ import { DashboardRoute } from "./DashboardRoute";
 import { RouteObject } from 'react-router-dom';
 import RoleMappingRoute from "./RoleMappingRoute";
 import { AssessmentCycleRoute } from "./AssessmentCycleRoute";
+import { UserMasterRoute } from "./UserMasterRoute";
 import { AirportRoute } from "./AirportRoute";
 
 const createRoutes = (): RouteObject[] => [
@@ -19,6 +20,7 @@ const createRoutes = (): RouteObject[] => [
       ...DashboardRoute,
       ...RoleMappingRoute,
       ...AssessmentCycleRoute,
+      ...UserMasterRoute,
       ...AirportRoute,
     ],
   },

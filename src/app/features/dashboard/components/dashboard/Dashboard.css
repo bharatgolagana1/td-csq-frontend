@@ -1,0 +1,11 @@
+/* Dashboard.css */
+
+.dashboard-container {
+    padding: 24px;
+}
+
+.grid-item {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

@@ -12,7 +12,7 @@ export type UserPermissions = {
 export const useHasPermission = (roleName: string): ((permissions: string) => boolean) => {
   const [userPermissions, setUserPermissions] = useState<UserPermissions[]>([]);
   const [roleId, setRoleId] = useState<string | null>(null);
-  const API_URL = import.meta.env.VITE_API_BASE_URL;
+  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
   useEffect(() => {
     const fetchRoleId = async () => {
