@@ -1,0 +1,83 @@
+.orbis-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+}
+
+.orbis-wrap--full {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  padding: 0;
+  background: var(--csq-bg, #06090a);
+}
+
+.orbis {
+  --orbis-size: 78px;
+  --orbis-border: 3px;
+  /* the CSQ rating ramp, outermost to innermost */
+  --orbis-ring-1: var(--csq-r3, #93a4a5);
+  --orbis-ring-2: var(--csq-r4, #5fb3c4);
+  --orbis-ring-3: var(--csq-r5, #5fd6b2);
+
+  width: var(--orbis-size);
+  height: var(--orbis-size);
+  position: relative;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: var(--orbis-border) solid transparent;
+  border-top-color: var(--orbis-ring-1);
+  border-right-color: var(--orbis-ring-1);
+  border-bottom-color: var(--orbis-ring-1);
+  animation: orbis-cw 2.6s linear infinite;
+}
+
+.orbis::before,
+.orbis::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  box-sizing: border-box;
+  border: var(--orbis-border) solid transparent;
+}
+
+.orbis::before {
+  inset: 10px;
+  border-top-color: var(--orbis-ring-2);
+  border-right-color: var(--orbis-ring-2);
+  border-bottom-color: var(--orbis-ring-2);
+  animation: orbis-ccw 1.4s linear infinite;
+}
+
+.orbis::after {
+  inset: 20px;
+  border-top-color: var(--orbis-ring-3);
+  border-right-color: var(--orbis-ring-3);
+  border-bottom-color: var(--orbis-ring-3);
+  animation: orbis-cw 1s linear infinite;
+}
+
+.orbis-label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--csq-muted, #7f8f92);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orbis,
+  .orbis::before,
+  .orbis::after {
+    animation: none;
+  }
+}
+
+@keyframes orbis-cw {
+  to { transform: rotate(360deg); }
+}
+@keyframes orbis-ccw {
+  to { transform: rotate(-360deg); }
+}
