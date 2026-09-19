@@ -2,31 +2,45 @@ import type { CSSProperties, FC } from 'react';
 import './Orbis.css';
 
 export interface OrbisProps {
-  /** Outer ring diameter in px. Rings inset from this. */
+  /** Dot diameter in px. Gap scales from it. */
   size?: number;
-  /** Text under the rings. Also announced to screen readers. */
+  /** Dot colour. Defaults to the CSQ accent. */
+  color?: string;
+  /** Text beneath the dots. Also announced to screen readers. */
   label?: string;
   /** Cover the viewport rather than sit inline. */
   fullScreen?: boolean;
 }
 
 /**
- * Orbis: three concentric rings, each drawn on three sides only, counter-rotating
- * at different speeds. Carried over from Legal Genius and recoloured to the CSQ
- * rating ramp, so the loader is built from the same palette that carries meaning
- * everywhere else in the product.
+ * Orbis: three dots scaling and fading in sequence, carried over from Legal
+ * Genius (shared/components/DotsLoader) with its timing intact and the colour
+ * moved to the CSQ palette.
  *
- * Pure CSS. No animation library, nothing to import, and it degrades to three
- * static rings under prefers-reduced-motion.
+ * Pure CSS rather than the original's injected keyframes: a runtime
+ * `document.head.appendChild` on every mount is avoidable work, and it breaks
+ * under a strict style-src CSP.
  */
-export const Orbis: FC<OrbisProps> = ({ size = 78, label, fullScreen = false }) => (
+export const Orbis: FC<OrbisProps> = ({ size = 12, color, label, fullScreen = false }) => (
   <div
     className={fullScreen ? 'orbis-wrap orbis-wrap--full' : 'orbis-wrap'}
     role="status"
     aria-live="polite"
     aria-label={label ?? 'Loading'}
   >
-    <span className="orbis" style={{ '--orbis-size': `${size}px` } as CSSProperties} />
+    <span
+      className="orbis"
+      style={
+        {
+          '--orbis-dot': `${size}px`,
+          ...(color ? { '--orbis-color': color } : {}),
+        } as CSSProperties
+      }
+    >
+      <i />
+      <i />
+      <i />
+    </span>
     {label ? <span className="orbis-label">{label}</span> : null}
   </div>
 );
