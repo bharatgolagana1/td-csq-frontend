@@ -1,0 +1,36 @@
+/* CSQ design tokens.
+   Light ground: a dashboard is read for hours, and the instrument-dark register
+   used on the marketing site is the wrong choice for dense working data.
+   The rating ramp is the one thing carried across unchanged, because colour on
+   a rating must mean the same thing everywhere in the product. */
+:root {
+  --csq-bg:        #f6f7f8;
+  --csq-surface:   #ffffff;
+  --csq-surface-2: #f0f2f3;
+  --csq-ink:       #0c1416;
+  --csq-ink-2:     #3b4b50;
+  --csq-muted:     #6b7d82;
+  --csq-line:      #dfe4e6;
+  --csq-line-2:    #c3cccf;
+
+  /* the five-point scale, plus NA. ordered, colour-blind safe, and not a
+     traffic light: a pure red on POOR reads as a public scolding of a named
+     operator, which is exactly what ACFI says this exercise is not */
+  --csq-r5: #0f7a63;   /* Excellent  */
+  --csq-r4: #3f9d93;   /* Very good  */
+  --csq-r3: #8aa0a3;   /* Good       */
+  --csq-r2: #c8873c;   /* Fair       */
+  --csq-r1: #b4543c;   /* Poor       */
+  --csq-na: #9aa7ab;
+
+  --csq-up:   #0f7a63;
+  --csq-down: #b4543c;
+
+  --csq-accent: #0a5c63;
+
+  --csq-radius: 4px;
+  --csq-shadow: 0 1px 2px rgba(12,20,22,.06), 0 1px 1px rgba(12,20,22,.04);
+
+  --csq-font: 'Lato', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --csq-mono: ui-monospace, 'SF Mono', Menlo, monospace;
+}

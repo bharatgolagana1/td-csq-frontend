@@ -1,0 +1,303 @@
+/* Customer directory and sampling lock.
+   Same light working surface as the dashboard. The five rating colours are
+   aliased to intent here rather than used directly: a colour on a rating has
+   to keep meaning a rating everywhere in the product, so an error message
+   borrows the token through a name that says what it is for. */
+.smp {
+  --smp-ok:   var(--csq-up);
+  --smp-warn: var(--csq-r2);
+  --smp-bad:  var(--csq-down);
+  --smp-tint: #eef5f5;
+  --smp-tint: color-mix(in srgb, var(--csq-accent) 8%, var(--csq-surface));
+  --smp-warn-tint: #fbf3e8;
+  --smp-warn-tint: color-mix(in srgb, var(--csq-r2) 10%, var(--csq-surface));
+  --smp-bad-tint: #fbefec;
+  --smp-bad-tint: color-mix(in srgb, var(--csq-down) 9%, var(--csq-surface));
+
+  font-family: var(--csq-font);
+  color: var(--csq-ink);
+  background: var(--csq-bg);
+  min-height: 100%;
+  padding: 20px 24px 64px;
+}
+
+.smp :focus-visible {
+  outline: 2px solid var(--csq-accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.smp-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- header ---- */
+.smp-head { display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 24px; flex-wrap: wrap; margin-bottom: 18px; }
+.smp-head h1 { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -.01em; }
+.smp-eyebrow { font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--csq-muted); font-weight: 700; margin-bottom: 6px; }
+.smp-headside { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.smp-chip { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--csq-muted); border: 1px solid var(--csq-line-2); padding: 5px 9px;
+  border-radius: var(--csq-radius); white-space: nowrap; }
+
+/* ---- cycle windows ---- */
+.smp-windows { display: flex; flex-wrap: wrap; gap: 0; background: var(--csq-surface);
+  border: 1px solid var(--csq-line); border-radius: var(--csq-radius);
+  box-shadow: var(--csq-shadow); margin-bottom: 16px; overflow: hidden; }
+.smp-window { padding: 12px 18px; border-right: 1px solid var(--csq-line); min-width: 190px; flex: 1 1 190px; }
+.smp-window:last-child { border-right: 0; }
+.smp-window .k { font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--csq-muted); font-weight: 700; }
+.smp-window .v { font-size: 13.5px; font-weight: 700; margin-top: 5px; font-variant-numeric: tabular-nums; }
+.smp-window .n { font-size: 11.5px; color: var(--csq-muted); margin-top: 3px; line-height: 1.45; }
+
+/* ---- layout ---- */
+.smp-layout { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr) 340px; align-items: start; }
+@media (max-width: 1080px) { .smp-layout { grid-template-columns: minmax(0, 1fr); } }
+.smp-side { display: grid; gap: 16px; position: sticky; top: 16px; }
+@media (max-width: 1080px) { .smp-side { position: static; } }
+
+.smp-card { background: var(--csq-surface); border: 1px solid var(--csq-line);
+  border-radius: var(--csq-radius); box-shadow: var(--csq-shadow); min-width: 0; }
+.smp-card > header { padding: 16px 18px 0; }
+.smp-card h2 { margin: 0 0 2px; font-size: 14px; font-weight: 800; letter-spacing: -.005em; }
+.smp-card .sub { font-size: 12px; color: var(--csq-muted); line-height: 1.5; margin: 0; }
+.smp-pad { padding: 16px 18px; }
+
+/* ---- buttons ---- */
+.smp-btn { font-family: inherit; font-size: 13px; font-weight: 700; line-height: 1;
+  min-height: 38px; padding: 10px 14px; border-radius: var(--csq-radius); cursor: pointer;
+  border: 1px solid var(--csq-line-2); background: var(--csq-surface); color: var(--csq-ink);
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  transition: background .12s ease, border-color .12s ease, color .12s ease; }
+.smp-btn:hover:not(:disabled) { background: var(--csq-surface-2); }
+.smp-btn:disabled { opacity: .45; cursor: not-allowed; }
+.smp-btn--primary { background: var(--csq-accent); border-color: var(--csq-accent); color: #fff; }
+.smp-btn--primary:hover:not(:disabled) { background: var(--csq-ink); border-color: var(--csq-ink); }
+.smp-btn--ghost { border-color: transparent; background: transparent; color: var(--csq-accent); padding-inline: 8px; }
+.smp-btn--ghost:hover:not(:disabled) { background: var(--smp-tint); }
+.smp-btn--danger { color: var(--smp-bad); border-color: var(--csq-line-2); }
+.smp-btn--danger:hover:not(:disabled) { background: var(--smp-bad-tint); border-color: var(--smp-bad); }
+.smp-btn--block { width: 100%; }
+.smp-btn--lg { min-height: 44px; font-size: 13.5px; }
+
+/* ---- toolbar ---- */
+.smp-toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+  padding: 14px 18px; border-bottom: 1px solid var(--csq-line); }
+.smp-search { flex: 1 1 220px; min-width: 180px; }
+.smp-input, .smp-select { font-family: inherit; font-size: 13px; color: var(--csq-ink);
+  background: var(--csq-surface); border: 1px solid var(--csq-line-2);
+  border-radius: var(--csq-radius); padding: 9px 11px; min-height: 38px; width: 100%; }
+.smp-select { font-weight: 600; cursor: pointer; width: auto; }
+.smp-input::placeholder { color: var(--csq-muted); }
+.smp-input[aria-invalid='true'] { border-color: var(--smp-bad); background: var(--smp-bad-tint); }
+.smp-toolbar .smp-count { font-size: 12px; color: var(--csq-muted); font-variant-numeric: tabular-nums;
+  margin-left: auto; white-space: nowrap; }
+
+/* ---- selection bar ---- */
+.smp-selbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 10px 18px; background: var(--smp-tint); border-bottom: 1px solid var(--csq-line); }
+.smp-selbar .n { font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.smp-selbar .spacer { margin-left: auto; }
+
+/* ---- table ---- */
+/* The header sticks only because the wrapper is the scroll container. Below
+   the breakpoint the side panel stops being sticky too, and a nested scroll
+   area on a phone is worse than a long page. */
+.smp-tablewrap { overflow: auto; max-height: 70vh; }
+@media (max-width: 1080px) { .smp-tablewrap { max-height: none; overflow-x: auto; } }
+.smp-table { width: 100%; border-collapse: collapse; min-width: 940px; font-size: 13px; }
+.smp-table th, .smp-table td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--csq-line);
+  vertical-align: middle; }
+.smp-table thead th { position: sticky; top: 0; z-index: 1; background: var(--csq-surface);
+  font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--csq-muted);
+  font-weight: 700; border-bottom: 1px solid var(--csq-line-2); white-space: nowrap; padding: 0; }
+.smp-table thead th .pad { display: block; padding: 10px 12px; }
+.smp-sort { font: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit;
+  background: none; border: 0; cursor: pointer; padding: 10px 12px; width: 100%; text-align: left;
+  display: flex; align-items: center; gap: 5px; min-height: 40px; }
+.smp-sort:hover { color: var(--csq-ink); }
+.smp-sort .arrow { font-size: 9px; opacity: .35; }
+.smp-table th[aria-sort] .smp-sort { color: var(--csq-ink); }
+.smp-table th[aria-sort] .arrow { opacity: 1; color: var(--csq-accent); }
+.smp-table tbody tr:hover { background: var(--csq-surface-2); }
+.smp-table tbody tr.is-picked { background: var(--smp-tint); }
+.smp-table tbody tr.is-picked:hover { background: var(--smp-tint); }
+.smp-table td.num { font-variant-numeric: tabular-nums; color: var(--csq-muted); white-space: nowrap; }
+.smp-table .nm { font-weight: 700; }
+.smp-table .co { color: var(--csq-ink-2); }
+.smp-table .em { font-size: 12.5px; color: var(--csq-ink-2); word-break: break-all; }
+.smp-table .cell-pick { width: 44px; padding: 0; }
+.smp-table .cell-act { width: 56px; text-align: right; }
+
+.smp-pick { display: flex; align-items: center; justify-content: center;
+  width: 100%; min-height: 44px; cursor: pointer; }
+.smp-pick input { width: 17px; height: 17px; accent-color: var(--csq-accent); cursor: pointer; margin: 0; }
+
+.smp-tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .04em;
+  padding: 3px 7px; border-radius: 2px; background: var(--csq-surface-2); color: var(--csq-ink-2);
+  border: 1px solid var(--csq-line); white-space: nowrap; }
+.smp-flag { display: inline-flex; align-items: center; justify-content: center; margin-left: 6px;
+  width: 16px; height: 16px; border-radius: 50%; background: var(--smp-warn-tint);
+  color: var(--smp-warn); font-size: 10px; font-weight: 800; vertical-align: middle;
+  border: 1px solid var(--smp-warn); cursor: help; }
+.smp-never { color: var(--csq-muted); font-style: italic; }
+
+.smp-rowremove { background: none; border: 0; cursor: pointer; color: var(--csq-muted);
+  font-size: 16px; line-height: 1; min-width: 44px; min-height: 44px; border-radius: var(--csq-radius); }
+.smp-rowremove:hover { color: var(--smp-bad); background: var(--smp-bad-tint); }
+
+.smp-nomatch { padding: 40px 18px; text-align: center; color: var(--csq-muted); font-size: 13px; }
+
+/* ---- lock gate ---- */
+.smp-gate { padding: 16px 18px; }
+.smp-gate .headline { font-size: 26px; font-weight: 800; letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums; line-height: 1.1; margin-top: 10px; }
+.smp-gate .headline .of { font-size: 15px; color: var(--csq-muted); font-weight: 700; }
+.smp-meter { height: 8px; background: var(--csq-surface-2); border-radius: 2px; overflow: hidden;
+  margin: 12px 0 10px; border: 1px solid var(--csq-line); }
+.smp-meter span { display: block; height: 100%; background: var(--csq-accent);
+  transition: width .4s cubic-bezier(.16,1,.3,1); }
+.smp-meter.is-ready span { background: var(--smp-ok); }
+.smp-gate .verdict { font-size: 13px; line-height: 1.55; color: var(--csq-ink-2); margin: 0 0 14px; }
+.smp-gate .verdict b { color: var(--csq-ink); }
+.smp-note { font-size: 12px; line-height: 1.55; padding: 10px 12px; border-radius: var(--csq-radius);
+  border: 1px solid var(--csq-line); background: var(--csq-surface-2); color: var(--csq-ink-2); margin: 0 0 14px; }
+.smp-note--warn { background: var(--smp-warn-tint); border-color: var(--smp-warn); }
+.smp-note--bad { background: var(--smp-bad-tint); border-color: var(--smp-bad); }
+.smp-note--ok { background: var(--smp-tint); border-color: var(--csq-accent); }
+.smp-gate .fine { font-size: 11.5px; color: var(--csq-muted); line-height: 1.5; margin: 12px 0 0; }
+
+/* ---- integrity signals ---- */
+.smp-signal { padding: 13px 18px; border-top: 1px solid var(--csq-line); }
+.smp-signal h3 { margin: 0 0 4px; font-size: 13px; font-weight: 800; display: flex; gap: 7px; align-items: baseline; }
+.smp-signal p { margin: 0 0 8px; font-size: 12px; line-height: 1.55; color: var(--csq-muted); }
+.smp-clean { padding: 16px 18px; font-size: 12.5px; color: var(--csq-muted); line-height: 1.55; }
+
+/* ---- locked banner ---- */
+.smp-locked { border-left: 3px solid var(--csq-accent); }
+.smp-locked .row { display: flex; gap: 10px; justify-content: space-between;
+  padding: 9px 0; border-bottom: 1px solid var(--csq-line); font-size: 13px; }
+.smp-locked .row:last-child { border-bottom: 0; }
+.smp-locked .row .k { color: var(--csq-muted); }
+.smp-locked .row .v { font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+.smp-status { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800;
+  letter-spacing: .08em; text-transform: uppercase; padding: 4px 8px; border-radius: 2px;
+  border: 1px solid currentColor; }
+.smp-status--pending { color: var(--smp-warn); background: var(--smp-warn-tint); }
+.smp-status--approved { color: var(--smp-ok); background: var(--smp-tint); }
+.smp-status--changes { color: var(--smp-bad); background: var(--smp-bad-tint); }
+
+/* ---- page level states ---- */
+.smp-center { display: flex; align-items: center; justify-content: center; min-height: 60vh; }
+.smp-state { max-width: 560px; margin: 8vh auto; text-align: center; padding: 32px 24px;
+  background: var(--csq-surface); border: 1px solid var(--csq-line);
+  border-radius: var(--csq-radius); box-shadow: var(--csq-shadow); }
+.smp-state h2 { margin: 0 0 8px; font-size: 17px; font-weight: 800; }
+.smp-state p { margin: 0 0 18px; font-size: 13.5px; line-height: 1.6; color: var(--csq-ink-2); }
+.smp-state .acts { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.smp-empty { padding: 48px 24px; text-align: center; }
+.smp-empty h3 { margin: 0 0 8px; font-size: 15px; font-weight: 800; }
+.smp-empty p { margin: 0 auto 18px; font-size: 13px; line-height: 1.6; color: var(--csq-muted); max-width: 440px; }
+
+/* ---- dialog ---- */
+.smp-overlay { position: fixed; inset: 0; background: rgba(12,20,22,.44); z-index: 1300;
+  display: flex; align-items: flex-start; justify-content: center; padding: 24px 16px; overflow-y: auto; }
+.smp-dialog { background: var(--csq-surface); border-radius: var(--csq-radius);
+  box-shadow: 0 18px 48px rgba(12,20,22,.24); width: 100%; max-width: 520px; margin: auto;
+  font-family: var(--csq-font); color: var(--csq-ink); }
+.smp-dialog--wide { max-width: 1040px; }
+.smp-dialog > header { padding: 18px 20px 14px; border-bottom: 1px solid var(--csq-line);
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.smp-dialog h2 { margin: 0 0 3px; font-size: 16px; font-weight: 800; }
+.smp-dialog .sub { margin: 0; font-size: 12.5px; color: var(--csq-muted); line-height: 1.5; }
+.smp-dialog > .body { padding: 18px 20px; }
+.smp-dialog > footer { padding: 14px 20px; border-top: 1px solid var(--csq-line);
+  display: flex; gap: 10px; justify-content: flex-end; align-items: center; flex-wrap: wrap; }
+.smp-dialog > footer .spacer { margin-right: auto; font-size: 12.5px; color: var(--csq-muted); }
+.smp-x { background: none; border: 0; font-size: 20px; line-height: 1; color: var(--csq-muted);
+  cursor: pointer; min-width: 44px; min-height: 44px; border-radius: var(--csq-radius); }
+.smp-x:hover { color: var(--csq-ink); background: var(--csq-surface-2); }
+
+/* ---- forms ---- */
+.smp-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 560px) { .smp-grid2 { grid-template-columns: 1fr; } }
+.smp-field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.smp-field label { font-size: 11.5px; font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--csq-muted); }
+.smp-field .hint { font-size: 11.5px; color: var(--csq-muted); line-height: 1.45; }
+.smp-field .err { font-size: 11.5px; color: var(--smp-bad); font-weight: 600; line-height: 1.45; }
+.smp-field select.smp-select { width: 100%; }
+
+/* ---- import ---- */
+.smp-drop { display: block; border: 1px dashed var(--csq-line-2); border-radius: var(--csq-radius);
+  background: var(--csq-surface-2); padding: 34px 20px; text-align: center; cursor: pointer;
+  transition: border-color .12s ease, background .12s ease; }
+.smp-drop:hover, .smp-drop.is-over { border-color: var(--csq-accent); background: var(--smp-tint); }
+.smp-drop .big { font-size: 14px; font-weight: 800; margin-bottom: 5px; }
+.smp-drop .small { font-size: 12.5px; color: var(--csq-muted); line-height: 1.55; }
+.smp-drop input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+
+.smp-summary { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.smp-stat { flex: 1 1 130px; border: 1px solid var(--csq-line); border-radius: var(--csq-radius);
+  padding: 10px 12px; background: var(--csq-surface); }
+.smp-stat .n { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.smp-stat .k { font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--csq-muted); font-weight: 700; margin-top: 4px; }
+.smp-stat--bad { background: var(--smp-bad-tint); border-color: var(--smp-bad); }
+.smp-stat--bad .n { color: var(--smp-bad); }
+.smp-stat--ok .n { color: var(--smp-ok); }
+
+.smp-imp-wrap { overflow: auto; max-height: 46vh; border: 1px solid var(--csq-line);
+  border-radius: var(--csq-radius); }
+.smp-imp { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 900px; }
+.smp-imp th { position: sticky; top: 0; z-index: 1; background: var(--csq-surface-2);
+  text-align: left; padding: 8px 10px; font-size: 10.5px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--csq-muted); font-weight: 700;
+  border-bottom: 1px solid var(--csq-line-2); white-space: nowrap; }
+.smp-imp td { padding: 6px 10px; border-bottom: 1px solid var(--csq-line); vertical-align: top; }
+.smp-imp tr.is-bad td { background: var(--smp-bad-tint); }
+.smp-imp tr.is-fixed td { background: var(--smp-tint); }
+.smp-imp .ln { font-variant-numeric: tabular-nums; color: var(--csq-muted); width: 52px; white-space: nowrap; }
+.smp-imp input, .smp-imp select { font-family: inherit; font-size: 12.5px; width: 100%;
+  min-width: 108px; padding: 6px 8px; min-height: 34px; border-radius: 2px;
+  border: 1px solid var(--csq-line-2); background: var(--csq-surface); color: var(--csq-ink); }
+.smp-imp input[aria-invalid='true'], .smp-imp select[aria-invalid='true'] { border-color: var(--smp-bad); }
+.smp-imp .cellerr { display: block; font-size: 11px; color: var(--smp-bad); margin-top: 3px; line-height: 1.35; }
+.smp-imp .ok { color: var(--smp-ok); font-weight: 800; }
+
+.smp-rejects { margin: 0; padding: 0; list-style: none; }
+.smp-rejects li { font-size: 12.5px; line-height: 1.55; padding: 7px 0;
+  border-bottom: 1px solid var(--csq-line); color: var(--csq-ink-2); }
+.smp-rejects li:last-child { border-bottom: 0; }
+.smp-rejects b { font-variant-numeric: tabular-nums; }
+
+.smp-confirm { display: flex; gap: 10px; align-items: flex-start; font-size: 13px;
+  line-height: 1.5; cursor: pointer; padding: 12px; border: 1px solid var(--csq-line-2);
+  border-radius: var(--csq-radius); background: var(--csq-surface-2); }
+.smp-confirm input { width: 17px; height: 17px; margin: 1px 0 0; accent-color: var(--csq-accent); flex: none; }
+
+.smp-foot { margin-top: 20px; font-size: 12px; color: var(--csq-muted); line-height: 1.6;
+  border-top: 1px solid var(--csq-line); padding-top: 14px; }
+
+/* Touch: the directory is a desk screen, but it is opened on a phone often
+   enough that no control may be smaller than a fingertip. */
+@media (pointer: coarse) {
+  .smp-btn, .smp-input, .smp-select, .smp-sort { min-height: 44px; }
+  .smp-imp input, .smp-imp select { min-height: 44px; }
+  .smp-table td, .smp-table th .pad { padding-block: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .smp * { transition: none !important; }
+}
