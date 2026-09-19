@@ -34,16 +34,14 @@ const withSuspense = (routes: RouteObject[], label: string, fullScreen = false):
     ),
   }));
 
-const createRoutes = (): RouteObject[] => [
-  /**
-   * The assessor form sits OUTSIDE the application shell on purpose. A sampled
-   * freight forwarder has no account, no Keycloak session, no sidebar and no
-   * toolbar: the signed link is the whole session. Rendering it inside
-   * MainLayoutPage would wrap an unauthenticated page in authenticated chrome
-   * and push an anonymous assessor into the login flow.
-   */
-  ...withSuspense(AssessmentFormRoute, 'Loading your assessment', true),
+/**
+ * Routes reachable without an account. Mounted by App outside KeycloakProvider,
+ * because a sampled forwarder's signed link is their only credential.
+ */
+export const createPublicRoutes = (): RouteObject[] =>
+  withSuspense(AssessmentFormRoute, 'Loading your assessment', true);
 
+const createRoutes = (): RouteObject[] => [
   {
     path: '/',
     element: <MainLayoutPage children={undefined} />,
