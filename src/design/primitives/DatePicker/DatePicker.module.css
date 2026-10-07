@@ -1,0 +1,284 @@
+/* Input-like trigger (mirrors Input.module.css) + the popover / bottom sheet. */
+
+.control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: var(--control-h);
+  padding: 0 4px 0 12px;
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  transition:
+    border-color var(--dur-1) var(--ease),
+    box-shadow var(--dur-1) var(--ease);
+}
+.control:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.invalid {
+  border-color: var(--danger);
+}
+.invalid:focus-within {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 20%, transparent);
+}
+.disabled {
+  background: var(--surface-2);
+  color: var(--muted);
+}
+.sm {
+  height: var(--control-h-sm);
+  padding-left: 10px;
+}
+.lg {
+  height: var(--control-h-lg);
+}
+.leadIcon {
+  flex-shrink: 0;
+  color: var(--muted);
+}
+.input,
+.trigger {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  text-align: left;
+}
+.input:focus,
+.trigger:focus {
+  outline: none;
+  box-shadow: none;
+}
+.input::placeholder,
+.placeholder {
+  color: var(--muted);
+  font-family: var(--font-body);
+}
+.input:disabled,
+.trigger:disabled {
+  cursor: not-allowed;
+}
+.trigger {
+  display: flex;
+  align-items: center;
+}
+.triggerText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.iconButton {
+  flex-shrink: 0;
+  color: var(--muted);
+}
+.iconButton:hover:not(:disabled) {
+  color: var(--ink);
+}
+
+/* popover */
+.popover {
+  z-index: var(--z-popover);
+  display: flex;
+  flex-direction: column;
+  width: max-content;
+  max-width: calc(100vw - 16px);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-2);
+  outline: none;
+  animation: pop var(--dur-1) var(--ease);
+}
+.body {
+  display: flex;
+  align-items: stretch;
+}
+.aside {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 156px;
+  padding: 12px 8px;
+  border-right: 1px solid var(--line);
+}
+.preset {
+  display: block;
+  width: 100%;
+  height: 32px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink-2);
+  font-size: 13px;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.preset:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+.preset:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+.preset[aria-pressed='true'] {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 700;
+}
+.calendar {
+  padding: 12px;
+  min-width: 316px;
+}
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px 12px;
+  border-top: 1px solid var(--line);
+}
+.caption {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+.pill {
+  border-radius: var(--radius-pill);
+}
+
+/* bottom sheet (phones) */
+.sheetLayer {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-dialog);
+  display: flex;
+  align-items: flex-end;
+}
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--ink) 45%, transparent);
+  animation: fade var(--dur-2) var(--ease);
+}
+.sheet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: calc(100dvh - 24px);
+  overflow: auto;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  border-radius: 16px 16px 0 0;
+  box-shadow: var(--shadow-2);
+  outline: none;
+  animation: rise var(--dur-3) var(--ease);
+}
+.grabber {
+  flex-shrink: 0;
+  width: 36px;
+  height: 4px;
+  margin: 8px auto 0;
+  border-radius: 2px;
+  background: var(--line-2);
+}
+.chips {
+  display: flex;
+  gap: 8px;
+  padding: 12px var(--gutter) 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.chips::-webkit-scrollbar {
+  display: none;
+}
+.chip {
+  flex-shrink: 0;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--ink-2);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.chip[aria-pressed='true'] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.chip:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+.sheet .body {
+  flex-direction: column;
+}
+.sheet .calendar {
+  padding: 8px var(--gutter) 12px;
+  min-width: 0;
+}
+.sheet .footer {
+  flex-wrap: wrap;
+  padding: 12px var(--gutter) 16px;
+}
+.sheet .caption {
+  width: 100%;
+}
+.sheet .actions {
+  width: 100%;
+  margin-left: 0;
+}
+.sheet .actions > * {
+  flex: 1;
+  height: var(--control-h-lg);
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+.popover[data-placement='top'] {
+  animation-name: popUp;
+}
+@keyframes popUp {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes rise {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+}

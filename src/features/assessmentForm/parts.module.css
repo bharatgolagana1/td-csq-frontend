@@ -1,0 +1,287 @@
+/* Shared styles for the stepper's small parts (StepHeader, ProgressBar, SaveStatus,
+   StepList, ReviewList). Tokens only; 44px targets (public pages). */
+
+/* --- StepHeader --- */
+.stepHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-bottom: var(--space-4);
+}
+.stepEyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.stepTitle {
+  font-size: var(--text-xl);
+}
+.stepDescription {
+  color: var(--ink-2);
+  font-size: var(--text-sm);
+}
+
+/* --- ProgressBar --- */
+.progress {
+  width: 100%;
+}
+.progressCaption {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- SaveStatus --- */
+.save {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 24px;
+  font-size: var(--text-sm);
+  color: var(--muted);
+  white-space: nowrap;
+}
+.saveTime {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.saveIcon {
+  flex: none;
+}
+.saveSaving .saveIcon {
+  animation: spin 900ms linear infinite;
+}
+.saveSaved {
+  color: var(--muted);
+}
+.saveSaved .saveIcon {
+  color: var(--success);
+}
+.saveOffline {
+  color: var(--warn);
+}
+.saveError {
+  color: var(--danger);
+}
+.saveRetry {
+  min-height: 24px;
+  padding: 0 6px;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 700;
+  border-radius: var(--radius);
+}
+.saveRetry:hover {
+  text-decoration: underline;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .saveSaving .saveIcon {
+    animation: none;
+  }
+}
+
+/* --- StepList --- */
+.stepList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.stepItem {
+  margin: 0;
+}
+.stepButton {
+  position: relative; /* contains the visually-hidden spans inside the scrolling chip row */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink-2);
+  text-align: left;
+  font: inherit;
+  font-size: var(--text-sm);
+  line-height: 18px;
+}
+.stepButton:hover {
+  background: var(--surface-2);
+}
+.stepButton[aria-current='step'] {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+  color: var(--ink);
+  font-weight: 700;
+}
+.stepMarker {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid var(--line-2);
+  background: var(--surface);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+}
+.stepMarkerDone {
+  border-color: var(--success);
+  background: var(--success);
+  color: #fff;
+}
+.stepLabel {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.stepCount {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+.stepCountDone {
+  color: var(--success);
+}
+
+/* Phone: a horizontally scrolling chip row. */
+@media (max-width: 899px) {
+  .stepList {
+    flex-direction: row;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .stepList::-webkit-scrollbar {
+    display: none;
+  }
+  .stepItem {
+    flex: none;
+  }
+  .stepButton {
+    width: auto;
+    padding: 8px 12px 8px 8px;
+    border-color: var(--line);
+    background: var(--surface);
+  }
+  .stepLabel {
+    max-width: 160px;
+  }
+}
+
+/* --- ReviewList --- */
+.review {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.reviewHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.reviewHeadIcon {
+  color: var(--warn);
+}
+.reviewHeadIconDone {
+  color: var(--success);
+}
+.reviewList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.reviewItem {
+  margin: 0;
+}
+.reviewJump {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  text-align: left;
+  font: inherit;
+  font-size: var(--text-sm);
+  line-height: 18px;
+}
+.reviewJump:hover {
+  border-color: var(--line-2);
+  background: var(--surface-2);
+}
+.reviewCode {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--muted);
+  padding-top: 1px;
+}
+.reviewText {
+  flex: 1;
+  min-width: 0;
+}
+.reviewMeta {
+  display: block;
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+.reviewReason {
+  flex: none;
+  align-self: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.reviewEmpty {
+  color: var(--ink-2);
+  font-size: var(--text-sm);
+}
+
+/* --- SubmitConfirm --- */
+.submitNote {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--text-sm);
+}
+.submitError {
+  margin: var(--space-3) 0 0;
+  color: var(--danger);
+  font-size: var(--text-sm);
+}

@@ -1,0 +1,595 @@
+/* Operator dashboard (ACFI deck slide 8) and the question-level table. */
+
+/* --- inverse scope: the hero card and the context strip ---------------------
+   Re-points the tokens the primitives read so Pill, Tag, Stat, DeltaChip and
+   Select render on the navy without their own dark variants. The ramp and the
+   status colours take their dark-mode steps (validated on a dark surface). */
+.inverse {
+  --surface: var(--surface-inverse);
+  --surface-2: var(--surface-inverse-2);
+  --bg: var(--surface-inverse);
+  --ink: var(--ink-inverse);
+  --ink-2: var(--ink-inverse-2);
+  --muted: var(--muted-inverse);
+  --line: var(--line-inverse);
+  --line-2: var(--line-inverse);
+  --accent: var(--accent-inverse);
+  --accent-ink: var(--accent-inverse-ink);
+  --accent-hover: var(--accent-inverse);
+  --accent-soft: color-mix(in srgb, var(--accent-inverse) 16%, transparent);
+  --neutral-soft: color-mix(in srgb, var(--ink-inverse) 12%, transparent);
+  --success: #35a98f;
+  --up: #35a98f;
+  --danger: #d1705a;
+  --down: #d1705a;
+  --warn: #d4a83c;
+  --info: #5f9fc4;
+  --success-soft: color-mix(in srgb, #35a98f 18%, transparent);
+  --danger-soft: color-mix(in srgb, #d1705a 18%, transparent);
+  --warn-soft: color-mix(in srgb, #d4a83c 18%, transparent);
+  --info-soft: color-mix(in srgb, #5f9fc4 18%, transparent);
+  --r5: #35a98f;
+  --r4: #62bdb3;
+  --r3: #94aaad;
+  --r2: #d99a52;
+  --r1: #d1705a;
+  --na: #8c999d;
+  --focus-ring: 0 0 0 2px var(--surface-inverse), 0 0 0 4px var(--accent-inverse);
+  color: var(--ink-inverse);
+  color-scheme: dark;
+}
+
+/* --- context strip ---------------------------------------------------------- */
+.strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  flex-wrap: wrap;
+  min-height: 52px;
+  margin-bottom: var(--space-4);
+  padding: 8px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-inverse);
+}
+.stripTitle {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-variation-settings:
+    'wdth' 110,
+    'wght' 700;
+  font-size: var(--text-sm);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.stripBrand {
+  color: var(--ink-inverse);
+}
+.stripSep {
+  color: var(--muted-inverse);
+}
+.stripScope {
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent-inverse);
+}
+.stripControls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-left: auto;
+  min-width: 0;
+}
+.pillSelect {
+  min-width: 176px;
+}
+.pillOperator {
+  min-width: 240px;
+}
+.pillSelect > div {
+  border-radius: var(--radius-pill);
+  border-color: var(--line-inverse);
+  background: var(--surface-inverse-2);
+}
+.pillSelect select {
+  padding-left: 14px;
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+@media (max-width: 760px) {
+  .strip {
+    padding: 10px 12px;
+  }
+  .stripControls {
+    width: 100%;
+    margin-left: 0;
+  }
+  .pillSelect,
+  .pillOperator {
+    flex: 1 1 150px;
+    min-width: 0;
+  }
+}
+
+/* --- grid --------------------------------------------------------------------- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--space-4);
+  transition: opacity var(--dur-2) var(--ease);
+}
+.grid[data-stale] {
+  opacity: 0.6;
+}
+.hero {
+  grid-column: 1 / span 5;
+  grid-row: 1;
+}
+.overall {
+  grid-column: 6 / span 4;
+  grid-row: 1;
+}
+.feedback {
+  grid-column: 10 / span 3;
+  grid-row: 1;
+}
+.categories {
+  grid-column: 1 / span 7;
+  grid-row: 2;
+}
+.national {
+  grid-column: 8 / span 5;
+  grid-row: 2;
+}
+.assessors {
+  grid-column: 1 / -1;
+  grid-row: 3;
+}
+@media (max-width: 1200px) {
+  .hero {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+  .overall {
+    grid-column: 1 / span 7;
+    grid-row: 2;
+  }
+  .feedback {
+    grid-column: 8 / span 5;
+    grid-row: 2;
+  }
+  .categories {
+    grid-column: 1 / span 7;
+    grid-row: 3;
+  }
+  .national {
+    grid-column: 8 / span 5;
+    grid-row: 3;
+  }
+  .assessors {
+    grid-column: 1 / -1;
+    grid-row: 4;
+  }
+}
+@media (max-width: 1000px) {
+  .hero,
+  .overall,
+  .feedback,
+  .categories,
+  .national,
+  .assessors {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+}
+
+/* --- hero ---------------------------------------------------------------------- */
+.heroInner {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.heroHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent-inverse);
+}
+.heroName {
+  margin-top: 4px;
+  font-size: 26px;
+  line-height: 1.15;
+  color: var(--ink-inverse);
+}
+.heroAirport {
+  margin-top: 2px;
+  font-size: var(--text-sm);
+  color: var(--ink-inverse-2);
+}
+.heroBody {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-4) var(--space-6);
+  align-items: end;
+  margin-top: 18px;
+}
+.heroRating {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.heroValue {
+  font-family: var(--font-mono);
+  font-size: 80px;
+  font-weight: 500;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  color: var(--accent-inverse);
+}
+.heroLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted-inverse);
+}
+.heroPills {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+.heroRank {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding-bottom: 4px;
+  min-width: 0;
+}
+.rankPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-inverse);
+  color: var(--accent-inverse-ink);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.rankPillMuted {
+  background: var(--surface-inverse-2);
+  color: var(--ink-inverse-2);
+}
+.heroCounts {
+  font-size: var(--text-sm);
+  line-height: 18px;
+  color: var(--ink-inverse-2);
+}
+.heroSuppressed {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 18px;
+}
+.heroValueNone {
+  font-size: 48px;
+  line-height: 1;
+  color: var(--muted-inverse);
+}
+.heroRule {
+  max-width: 52ch;
+  font-size: var(--text-sm);
+  color: var(--ink-inverse-2);
+}
+.heroTiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line-inverse);
+}
+.heroTile {
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: var(--surface-inverse-2);
+}
+@media (min-width: 761px) and (max-width: 1200px) {
+  .heroInner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 32%);
+    column-gap: var(--space-6);
+  }
+  .heroTiles {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    grid-template-columns: minmax(0, 1fr);
+    align-content: center;
+    margin-top: 0;
+    padding-top: 0;
+    padding-left: var(--space-5);
+    border-top: 0;
+    border-left: 1px solid var(--line-inverse);
+  }
+}
+@media (max-width: 480px) {
+  .heroBody {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+  .heroValue {
+    font-size: 64px;
+  }
+  .heroName {
+    font-size: 22px;
+  }
+}
+
+/* --- card chrome --------------------------------------------------------------- */
+.headCount {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.headCount .num {
+  font-weight: 700;
+  color: var(--ink);
+}
+.toggles {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-3);
+}
+.cardFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-top: var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+.link {
+  font-weight: 700;
+  color: var(--accent);
+  text-decoration: none;
+}
+.link:hover {
+  text-decoration: underline;
+}
+.assessorRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4) var(--space-6);
+  align-items: center;
+}
+@media (min-width: 900px) {
+  .assessorRow {
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 34%);
+  }
+}
+.tiles4 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+@media (max-width: 520px) {
+  .tiles4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* --- category table view ---------------------------------------------------- */
+.name {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.nameMain {
+  color: var(--ink);
+  font-weight: 700;
+}
+.nameSub {
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+.cellN {
+  margin-left: 6px;
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+.muted {
+  color: var(--muted);
+}
+.note {
+  margin-top: var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+
+/* --- All-India table ------------------------------------------------------------ */
+.rankTable {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 14px;
+}
+.rankTable th {
+  height: 36px;
+  padding: 0 12px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: left;
+  white-space: nowrap;
+}
+.rankTable td {
+  height: 36px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+.rankTable th:first-child,
+.rankTable td:first-child {
+  padding-left: 20px;
+}
+.rankTable th:last-child,
+.rankTable td:last-child {
+  padding-right: 20px;
+}
+.rankTable tbody tr:last-child td {
+  border-bottom: 0;
+}
+.rankCol {
+  width: 64px;
+}
+.rankCell {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  color: var(--muted);
+}
+.airport {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+.airportName {
+  font-weight: 700;
+  color: var(--ink);
+}
+.airportIata {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted);
+}
+.you {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 7px;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.ratingCol,
+.ratingCell {
+  width: 84px;
+  text-align: right;
+}
+.ratingCell {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--ink);
+}
+.highlight td {
+  background: var(--accent-soft);
+}
+.highlight td:first-child {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+.highlight .rankCell,
+.highlight .airportName,
+.highlight .ratingCell {
+  color: var(--accent);
+}
+.nationalEmpty {
+  padding: 8px 20px 20px;
+}
+.nationalFoot {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--text-xs);
+  line-height: 16px;
+}
+@media (max-width: 520px) {
+  .rankTable thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .rankTable,
+  .rankTable tbody {
+    display: block;
+  }
+  .rankTable tr {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 8px;
+    padding: 9px 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  .rankTable tbody tr:last-child {
+    border-bottom: 0;
+  }
+  .rankTable td,
+  .rankTable td:first-child,
+  .rankTable td:last-child {
+    display: block;
+    height: auto;
+    padding: 0;
+    border: 0;
+  }
+  .highlight td,
+  .highlight td:first-child {
+    background: transparent;
+    box-shadow: none;
+  }
+  .highlight {
+    background: var(--accent-soft);
+    box-shadow: inset 3px 0 0 var(--accent);
+  }
+  .airport {
+    flex-wrap: wrap;
+    gap: 2px 8px;
+  }
+}
+
+/* --- skeleton / misc ----------------------------------------------------------- */
+.skeletonHero {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.questionText {
+  white-space: normal;
+  min-width: 240px;
+}

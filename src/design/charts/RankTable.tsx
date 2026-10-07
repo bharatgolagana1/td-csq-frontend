@@ -52,7 +52,7 @@ export function RankTable({ rows, highlightId, labelHeader = 'Airport', extraHea
       ),
     },
     { id: 'rating', header: 'Rating', width: 90, align: 'right', mono: true, cell: (r) => formatRating(r.rating) },
-    { id: 'band', header: 'Band', width: 120, cell: (r) => <RatingPill rating={r.rating} size="sm" /> },
+    { id: 'band', header: 'Band', width: 120, hideBelow: 'sm', cell: (r) => <RatingPill rating={r.rating} size="sm" /> },
   ];
   if (extraHeader) columns.push({ id: 'extra', header: extraHeader, align: 'right', mono: true, cell: (r) => r.extra ?? '—' });
 

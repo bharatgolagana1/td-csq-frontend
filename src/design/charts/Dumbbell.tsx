@@ -18,6 +18,7 @@ export type DumbbellProps = {
   max?: number;
   rowHeight?: number;
   loading?: boolean;
+  provisional?: boolean;
   summary?: string;
   className?: string;
 };
@@ -26,7 +27,7 @@ type RenderParams = { dataIndex: number };
 type RenderApi = { value: (i: number) => number | string; coord: (v: [number, number]) => [number, number] };
 
 /** Self vs customer per category: a line between two dots, one row per category. */
-export function Dumbbell({ rows, min = 1, max = 5, rowHeight = 36, loading, summary, className }: DumbbellProps) {
+export function Dumbbell({ rows, min = 1, max = 5, rowHeight = 36, loading, provisional, summary, className }: DumbbellProps) {
   const t = useChartTokens();
   const reduced = useReducedMotion();
   const height = Math.max(120, rows.length * rowHeight + 48);
@@ -74,7 +75,7 @@ export function Dumbbell({ rows, min = 1, max = 5, rowHeight = 36, loading, summ
             }
             if (hasSelf) {
               const [cx, cy] = api.coord([self, y]);
-              children.push({ type: 'circle', shape: { cx, cy, r: 5 }, style: { fill: t.self, stroke: t.surface, lineWidth: 2 } });
+              children.push({ type: 'circle', shape: { cx, cy, r: 5 }, style: { fill: t.selfStrong, stroke: t.surface, lineWidth: 2 } });
             }
             if (hasCustomer) {
               const [cx, cy] = api.coord([customer, y]);
@@ -105,12 +106,12 @@ export function Dumbbell({ rows, min = 1, max = 5, rowHeight = 36, loading, summ
   const legend = (
     <>
       <LegendDot color={t.customer} label="Customer" />
-      <LegendDot color={t.self} label="Self" />
+      <LegendDot color={t.selfStrong} label="Self" />
     </>
   );
 
   return (
-    <ChartFrame height={height} loading={loading} empty={empty} summary={summary} legend={legend} className={className}>
+    <ChartFrame height={height} loading={loading} empty={empty} provisional={provisional} summary={summary} legend={legend} className={className}>
       <ReactEChartsCore echarts={echarts} option={option} notMerge style={{ height, width: '100%' }} opts={{ renderer: 'canvas' }} />
     </ChartFrame>
   );

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useReducedMotion } from '@/design/hooks/useReducedMotion';
 
@@ -21,25 +21,48 @@ export type GroupedBarProps = {
   max?: number;
   height?: number;
   loading?: boolean;
+  provisional?: boolean;
+  /** One quiet line under the plot. */
+  note?: ReactNode;
   summary?: string;
   className?: string;
 };
 
 function seriesColor(t: ChartTokens, key: BarSeriesKey) {
-  return key === 'customer' ? t.customer : key === 'self' ? t.self : t.previous;
+  return key === 'customer' ? t.customer : key === 'self' ? t.selfStrong : t.previous;
 }
 
-/** Self vs customer grouped bars (Overall / Current / Previous …). Direct value labels, 1 dp. */
-export function GroupedBar({ categories, series, max = 5, height = 260, loading, summary, className }: GroupedBarProps) {
+/** Width of the element, tracked so category labels can wrap to their slot at any viewport. */
+function useWidth<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  const [width, setWidth] = useState(0);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver((entries) => {
+      const w = entries[0]?.contentRect.width ?? 0;
+      setWidth(Math.round(w));
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return { ref, width };
+}
+
+/** Self vs customer grouped bars (Overall / Current / Previous …). Direct value labels, 1 dp; legend top-right, hairline grid. */
+export function GroupedBar({ categories, series, max = 5, height = 260, loading, provisional, note, summary, className }: GroupedBarProps) {
   const t = useChartTokens();
   const reduced = useReducedMotion();
+  const { ref, width } = useWidth<HTMLDivElement>();
   const empty = !loading && (categories.length === 0 || series.every((s) => s.values.every((v) => v === null)));
+  // Each category label wraps inside its own slot (never into the neighbour's).
+  const labelWidth = width > 0 && categories.length > 0 ? Math.max(44, Math.floor((width - 40) / categories.length) - 8) : undefined;
 
   const option = useMemo(
     () => ({
       ...baseOption(t, reduced),
-      grid: { top: 36, right: 8, bottom: 28, left: 36, containLabel: false },
-      legend: { ...baseOption(t, reduced).legend, top: 0, left: 0 },
+      grid: { top: 36, right: 8, bottom: 8, left: 8, containLabel: true },
+      legend: { ...baseOption(t, reduced).legend, top: 0, right: 0 },
       tooltip: {
         ...baseOption(t, reduced).tooltip,
         trigger: 'axis' as const,
@@ -50,7 +73,7 @@ export function GroupedBar({ categories, series, max = 5, height = 260, loading,
         type: 'category' as const,
         data: categories,
         ...axisStyle(t),
-        axisLabel: { ...axisStyle(t).axisLabel, interval: 0, hideOverlap: false },
+        axisLabel: { ...axisStyle(t).axisLabel, interval: 0, hideOverlap: false, width: labelWidth, overflow: 'break' as const, lineHeight: 14 },
         splitLine: { show: false },
       },
       yAxis: {
@@ -64,9 +87,9 @@ export function GroupedBar({ categories, series, max = 5, height = 260, loading,
         name: s.name,
         type: 'bar' as const,
         data: s.values,
-        barMaxWidth: 36,
-        barGap: '12%',
-        barCategoryGap: '40%',
+        barMaxWidth: 24,
+        barGap: '16%',
+        barCategoryGap: '44%',
         itemStyle: { color: seriesColor(t, s.key), borderRadius: [4, 4, 0, 0] },
         emphasis: { itemStyle: { color: seriesColor(t, s.key) } },
         label: {
@@ -79,12 +102,14 @@ export function GroupedBar({ categories, series, max = 5, height = 260, loading,
         },
       })),
     }),
-    [t, reduced, categories, series, max],
+    [t, reduced, categories, series, max, labelWidth],
   );
 
   return (
-    <ChartFrame height={height} loading={loading} empty={empty} summary={summary} className={className}>
-      <ReactEChartsCore echarts={echarts} option={option} notMerge style={{ height, width: '100%' }} opts={{ renderer: 'canvas' }} />
+    <ChartFrame height={height} loading={loading} empty={empty} provisional={provisional} note={note} summary={summary} className={className}>
+      <div ref={ref} style={{ width: '100%', height }}>
+        <ReactEChartsCore echarts={echarts} option={option} notMerge style={{ height, width: '100%' }} opts={{ renderer: 'canvas' }} />
+      </div>
     </ChartFrame>
   );
 }

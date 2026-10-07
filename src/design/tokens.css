@@ -46,8 +46,22 @@
   /* chart series */
   --series-customer: var(--accent);
   --series-self: #8aa0a3;
+  /* Self as a true second series (grouped bars, self markers): a plum that clears
+     the CVD checks against the accent (ΔE 16 protan / 23 normal); --series-self
+     stays the de-emphasis grey. */
+  --series-self-strong: #9c7aa8;
   --series-previous: #c3cccf;
   --chart-grid: #e9edee;
+
+  /* inverse surface (hero card, dashboard context strip): derived from the ink */
+  --surface-inverse: #0f1b1f;
+  --surface-inverse-2: #1b2a30;
+  --ink-inverse: #f2f5f5;
+  --ink-inverse-2: #b9c6c9;
+  --muted-inverse: #93a4a8;
+  --line-inverse: rgba(255, 255, 255, 0.14);
+  --accent-inverse: #4cc2c9; /* 8.2:1 on --surface-inverse */
+  --accent-inverse-ink: #06191b;
 
   /* type */
   --font-display: 'Archivo Variable', 'Archivo', system-ui, sans-serif;
@@ -139,8 +153,18 @@
     --info: #5f9fc4;
 
     --series-self: #94aaad;
+    --series-self-strong: #946fa6;
     --series-previous: #34454b;
     --chart-grid: #1f2b2f;
+
+    --surface-inverse: #1b2a30;
+    --surface-inverse-2: #27393f;
+    --ink-inverse: #f2f5f5;
+    --ink-inverse-2: #c3cfd2;
+    --muted-inverse: #9fb0b4;
+    --line-inverse: rgba(255, 255, 255, 0.16);
+    --accent-inverse: #5bc2c9;
+    --accent-inverse-ink: #06191b;
 
     --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 1px rgba(0, 0, 0, 0.3);
     --shadow-2: 0 12px 32px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.4);
@@ -177,8 +201,18 @@
   --info: #5f9fc4;
 
   --series-self: #94aaad;
+  --series-self-strong: #946fa6;
   --series-previous: #34454b;
   --chart-grid: #1f2b2f;
+
+  --surface-inverse: #1b2a30;
+  --surface-inverse-2: #27393f;
+  --ink-inverse: #f2f5f5;
+  --ink-inverse-2: #c3cfd2;
+  --muted-inverse: #9fb0b4;
+  --line-inverse: rgba(255, 255, 255, 0.16);
+  --accent-inverse: #5bc2c9;
+  --accent-inverse-ink: #06191b;
 
   --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 1px rgba(0, 0, 0, 0.3);
   --shadow-2: 0 12px 32px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.4);

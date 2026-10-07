@@ -1,0 +1,223 @@
+/* Onboarding: links and registration requests, the create-link drawer and the review drawer. */
+
+.code {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.cell {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  max-width: 280px;
+  line-height: 1.25;
+}
+@media (max-width: 760px) {
+  .cell {
+    max-width: 160px;
+  }
+}
+.cellMain {
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cellSub {
+  font-size: var(--text-xs);
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.airportCell {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  max-width: 220px;
+}
+@media (max-width: 760px) {
+  .airportCell {
+    max-width: 110px;
+  }
+}
+.airportCell span:last-child {
+  color: var(--ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.note {
+  display: block;
+  max-width: 280px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--ink-2);
+}
+.muted {
+  color: var(--muted);
+}
+.panel {
+  padding-top: var(--space-4);
+}
+
+/* ---- forms ------------------------------------------------------------- */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+@media (max-width: 520px) {
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+}
+.errorBox {
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: var(--text-sm);
+}
+.errorBox code {
+  font-size: 12px;
+}
+
+/* ---- created link ------------------------------------------------------- */
+
+.created {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.urlBox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.url {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+/* ---- review drawer -------------------------------------------------------- */
+
+.review {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.sectionTitle {
+  margin: 0;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--font-display);
+  font-variation-settings:
+    'wdth' 110,
+    'wght' 700;
+  font-size: var(--text-sm);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.address {
+  margin: 0;
+  font-style: normal;
+  line-height: var(--leading-body);
+}
+.shareList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.shareRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+}
+.shareRowNew {
+  color: var(--accent);
+  font-weight: 700;
+}
+.shareName {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+.shareName span:last-child {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sharePct {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+.shareTotals {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--line);
+}
+.shareTotal {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.shareTotalLabel {
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+.shareTotalValue {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-lg);
+  font-weight: 500;
+}
+.decision {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+}
+.decisionActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}

@@ -1,6 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
+import { useCurrentCycles } from '@/api/sampling';
+import { type CurrentCycle } from '@/api/sampling.types';
+import { useSession } from '@/auth/session';
 import { Icon } from '@/design/icons';
 import { Pill, statusVariant } from '@/design/primitives/Pill/Pill';
 import { cn } from '@/lib/cn';
@@ -26,6 +29,49 @@ export type CycleStripProps = {
   to?: string;
   actionLabel?: string;
 };
+
+const SAMPLING_PHASE = new Set(['PUBLISHED', 'SAMPLING_OPEN', 'SAMPLING_CLOSED']);
+
+export type StripAccess = { canSample: boolean; canSelfAssess: boolean };
+
+/** The entry to show when an operator is in several cycles: the nearest deadline, else the first (oldest sampling start). */
+export function pickCurrent(entries: readonly CurrentCycle[]): CurrentCycle | null {
+  if (entries.length === 0) return null;
+  const dated = entries.filter((e) => e.nextDeadline !== null).sort((a, b) => (a.nextDeadline?.at ?? '').localeCompare(b.nextDeadline?.at ?? ''));
+  return dated[0] ?? entries[0] ?? null;
+}
+
+/** Pure mapping of a `GET /cycles/current` entry to the strip (ARCHITECTURE §4). */
+export function stripPropsFrom(entry: CurrentCycle | null | undefined, access: StripAccess = { canSample: true, canSelfAssess: true }): CycleStripProps | null {
+  if (!entry) return null;
+  const { cycle, participant, nextDeadline } = entry;
+  const inSampling = SAMPLING_PHASE.has(cycle.status);
+  const locked = participant.sampling.status === 'LOCKED';
+  const base: CycleStripProps = {
+    cycleName: cycle.name,
+    cycleCode: cycle.code,
+    phase: cycle.status,
+    tz: cycle.tz,
+    deadlineAt: nextDeadline?.at ?? null,
+    deadlineLabel: nextDeadline ? humanise(nextDeadline.kind) : 'No deadline',
+  };
+  if (inSampling) {
+    const to = access.canSample ? '/sampling' : '/dashboard';
+    return { ...base, selected: participant.sampling.selectedCount, required: participant.requiredSampleSize, to, actionLabel: access.canSample ? (locked ? 'View sample' : 'Go to sampling') : 'Dashboard' };
+  }
+  if (cycle.status === 'ASSESSMENT_OPEN' && access.canSelfAssess) return { ...base, to: '/self-assessment', actionLabel: 'Self-assessment' };
+  return { ...base, to: '/dashboard', actionLabel: 'Dashboard' };
+}
+
+/** Operator shells only: the strip data from `GET /cycles/current` (null hides the strip). */
+export function useCycleStripProps(): CycleStripProps | null {
+  const { scope, hasTask } = useSession();
+  const acoId = scope.kind === 'ACO' ? scope.acoId : '';
+  const query = useCurrentCycles(acoId, acoId !== '' && hasTask('cycles.view'));
+  const canSample = hasTask('sampling.view');
+  const canSelfAssess = hasTask('assessments.self');
+  return useMemo(() => stripPropsFrom(pickCurrent(query.data ?? []), { canSample, canSelfAssess }), [query.data, canSample, canSelfAssess]);
+}
 
 function useNow(intervalMs = 60_000): Date {
   const [now, setNow] = useState(() => new Date());

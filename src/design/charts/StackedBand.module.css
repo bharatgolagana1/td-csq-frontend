@@ -1,0 +1,123 @@
+.band {
+  display: flex;
+  gap: 2px; /* the surface gap between fills */
+  width: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+}
+.seg {
+  position: relative;
+  flex: 0 1 0px;
+  min-width: 4px;
+  height: 100%;
+  transition: filter var(--dur-1) var(--ease);
+}
+.seg:first-child {
+  border-top-left-radius: var(--radius-pill);
+  border-bottom-left-radius: var(--radius-pill);
+}
+.seg:last-child {
+  border-top-right-radius: var(--radius-pill);
+  border-bottom-right-radius: var(--radius-pill);
+}
+.seg:hover {
+  filter: brightness(1.08);
+}
+/* NA: a hatched tail (135°, tone-on-tone) so it never reads as a rating band. */
+.na {
+  background-image: repeating-linear-gradient(135deg, transparent 0 4px, color-mix(in srgb, var(--surface) 55%, transparent) 4px 6px);
+}
+.dotNa {
+  background-image: repeating-linear-gradient(135deg, transparent 0 2px, color-mix(in srgb, var(--surface) 55%, transparent) 2px 3px);
+}
+
+.tip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  z-index: var(--z-popover);
+  padding: 5px 9px;
+  border-radius: var(--radius);
+  background: var(--ink);
+  color: var(--bg);
+  font-size: var(--text-xs);
+  line-height: 16px;
+  white-space: nowrap;
+  pointer-events: none;
+  visibility: hidden; /* hidden tips must not widen the page */
+  opacity: 0;
+  transform: translate(-50%, 4px);
+  transition:
+    opacity var(--dur-1) var(--ease),
+    transform var(--dur-1) var(--ease),
+    visibility 0s linear var(--dur-1);
+}
+.seg:hover .tip {
+  visibility: visible;
+  opacity: 1;
+  transform: translate(-50%, 0);
+  transition-delay: 0s;
+}
+/* The tail segments sit at the band's edge: anchor their tips inward. */
+.seg:last-child .tip,
+.seg:nth-last-child(2) .tip {
+  left: auto;
+  right: 0;
+  transform: translate(0, 4px);
+}
+.seg:last-child:hover .tip,
+.seg:nth-last-child(2):hover .tip {
+  transform: translate(0, 0);
+}
+
+.legend {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 10px 16px;
+  width: 100%;
+  margin: 0;
+  padding: 4px 0 0;
+  list-style: none;
+}
+.item {
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  column-gap: 8px;
+  row-gap: 1px;
+  align-items: center;
+  min-width: 0;
+}
+.dot {
+  grid-row: 1;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.itemLabel {
+  grid-column: 2;
+  grid-row: 1;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.itemValue {
+  grid-column: 2;
+  grid-row: 2;
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.sep {
+  color: var(--muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seg,
+  .tip {
+    transition: none;
+  }
+}

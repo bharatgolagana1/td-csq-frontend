@@ -1,0 +1,17 @@
+.root {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.short {
+  display: none;
+}
+@media (max-width: 760px) {
+  .full {
+    display: none;
+  }
+  .short {
+    display: inline;
+  }
+}

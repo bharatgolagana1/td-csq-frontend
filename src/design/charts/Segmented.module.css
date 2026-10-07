@@ -1,0 +1,71 @@
+.root {
+  display: inline-flex;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  gap: 2px;
+}
+.option {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: calc(var(--radius) - 2px);
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.md .option {
+  height: 36px;
+}
+.sm .option {
+  height: 30px;
+  font-size: var(--text-xs);
+}
+.option:hover {
+  color: var(--ink);
+}
+.option:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.option:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.selected,
+.selected:hover {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-1);
+}
+
+/* Pills on a dark surface (dashboard context strip). */
+.inverse {
+  border-color: var(--line-inverse);
+  border-radius: var(--radius-pill);
+  background: transparent;
+}
+.inverse .option {
+  border-radius: var(--radius-pill);
+  color: var(--ink-inverse-2);
+}
+.inverse .option:hover {
+  color: var(--ink-inverse);
+}
+.inverse .option:focus-visible {
+  outline-color: var(--accent-inverse);
+}
+.inverse .selected,
+.inverse .selected:hover {
+  background: var(--surface-inverse-2);
+  color: var(--ink-inverse);
+  box-shadow: none;
+}

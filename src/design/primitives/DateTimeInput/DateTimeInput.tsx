@@ -3,8 +3,10 @@ import { type ReactNode, useEffect, useId, useState } from 'react';
 import { cn } from '@/lib/cn';
 import { DEFAULT_TZ, describeTimeZone } from '@/lib/format';
 
+import { DatePicker } from '../DatePicker/DatePicker';
 import { Field, fieldIds } from '../Field/Field';
 import styles from './DateTimeInput.module.css';
+import { TimeField } from './TimeField';
 
 /** Wall-clock value as the API stores it: 'YYYY-MM-DDTHH:mm'. */
 export type Wall = string;
@@ -36,15 +38,23 @@ export function joinWall(date: string, time: string): Wall | null {
   return `${date}T${time}`;
 }
 
-/** Native date + time inputs composed into one zoned wall-clock field. */
+/**
+ * Zoned wall-clock field: a DatePicker (labelled "Date") and a 24 h TimeField
+ * (labelled "Time") under one group label, with the zone as a caption. Emits
+ * only when both parts are present, `null` when either is cleared.
+ */
 export function DateTimeInput({ label, value, onChange, tz = DEFAULT_TZ, hint, error, required, disabled, min, max, id: idProp, className }: DateTimeInputProps) {
   const autoId = useId();
   const id = idProp ?? autoId;
+  // Local parts so a half-filled field (date without time) survives until both exist.
   const [parts, setParts] = useState(() => splitWall(value));
-
   useEffect(() => {
-    setParts(splitWall(value));
+    setParts((p) => (value === null ? (joinWall(p.date, p.time) === null ? p : { date: '', time: '' }) : splitWall(value)));
   }, [value]);
+  const { hintId, errorId } = fieldIds(id);
+  const describedBy = error ? errorId : `${id}-tz${hint ? ` ${hintId}` : ''}`;
+  const minParts = splitWall(min);
+  const maxParts = splitWall(max);
 
   const update = (next: { date: string; time: string }) => {
     setParts(next);
@@ -52,41 +62,25 @@ export function DateTimeInput({ label, value, onChange, tz = DEFAULT_TZ, hint, e
     if (joined !== value) onChange(joined);
   };
 
-  const { hintId, errorId } = fieldIds(id);
-  const describedBy = error ? errorId : `${id}-tz${hint ? ` ${hintId}` : ''}`;
-  const minParts = splitWall(min);
-  const maxParts = splitWall(max);
-
   return (
     <Field id={id} label={label} hint={hint} error={error} required={required} asGroup className={className}>
-      <div className={cn(styles.row, error && styles.invalid, disabled && styles.disabled)}>
-        <input
+      <div className={cn(styles.row, disabled && styles.disabled)}>
+        <DatePicker
           id={`${id}-date`}
-          type="date"
-          aria-label="Date"
-          className={cn(styles.input, styles.date)}
-          value={parts.date}
+          ariaLabel="Date"
+          className={styles.date}
+          value={parts.date || null}
+          onChange={(d) => update({ ...parts, date: d ?? '' })}
           min={minParts.date || undefined}
           max={maxParts.date || undefined}
           required={required}
           disabled={disabled}
-          aria-invalid={error ? true : undefined}
-          aria-describedby={describedBy}
-          onChange={(e) => update({ ...parts, date: e.target.value })}
+          invalid={Boolean(error)}
+          describedBy={describedBy}
+          tz={tz}
+          placeholder="Date"
         />
-        <input
-          id={`${id}-time`}
-          type="time"
-          aria-label="Time"
-          className={cn(styles.input, styles.time)}
-          value={parts.time}
-          step={60}
-          required={required}
-          disabled={disabled}
-          aria-invalid={error ? true : undefined}
-          aria-describedby={describedBy}
-          onChange={(e) => update({ ...parts, time: e.target.value })}
-        />
+        <TimeField id={`${id}-time`} className={styles.time} value={parts.time} onChange={(t) => update({ ...parts, time: t })} required={required} disabled={disabled} invalid={Boolean(error)} describedBy={describedBy} />
       </div>
       <span id={`${id}-tz`} className={styles.tz}>
         {tz} · {describeTimeZone(tz)}

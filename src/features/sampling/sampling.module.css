@@ -1,0 +1,269 @@
+/* Sampling: cycle header with the counter, eligible table, sticky lock footer,
+   audit and invitations tabs. */
+
+.layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  /* room for the sticky footer so the last rows are never hidden */
+  padding-bottom: 72px;
+}
+
+/* PLATFORM: operator + cycle pickers */
+.pickers {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.picker {
+  min-width: 280px;
+  max-width: 100%;
+}
+@media (max-width: 520px) {
+  .picker {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+/* Header card */
+.header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-4) var(--space-6);
+  align-items: center;
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+@media (max-width: 760px) {
+  .header {
+    grid-template-columns: 1fr;
+    padding: var(--space-4);
+  }
+}
+.cycleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.cycleName {
+  margin: 0;
+  font-family: var(--font-display);
+  font-variation-settings: 'wdth' 110, 'wght' 700;
+  font-size: var(--text-xl);
+  line-height: var(--leading-tight);
+  color: var(--ink);
+}
+.cycleMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+.cycleCode {
+  font-family: var(--font-mono);
+  color: var(--ink-2);
+}
+.deadline {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+.deadlineStrong {
+  font-weight: 700;
+  color: var(--ink);
+}
+.deadlineAbs {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+.counterBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 260px;
+}
+@media (max-width: 760px) {
+  .counterBlock {
+    min-width: 0;
+  }
+}
+.counter {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+.counterValue {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  font-size: var(--text-3xl);
+  line-height: 1;
+  color: var(--ink);
+}
+.counterLabel {
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+
+/* Toolbar extras */
+.toolbarNote {
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+
+/* Table cells */
+.customer {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+.customerName {
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.customerContact {
+  font-size: var(--text-xs);
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.email {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 240px;
+  display: inline-block;
+  vertical-align: middle;
+}
+.muted {
+  color: var(--muted);
+}
+.pills {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.rowSelected {
+  background: var(--accent-soft);
+}
+.rowIneligible {
+  opacity: 0.75;
+}
+
+/* Sticky lock footer */
+.footer {
+  position: sticky;
+  bottom: 0;
+  z-index: var(--z-sticky);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin: 0 calc(-1 * var(--content-pad, 24px));
+  padding: 10px var(--content-pad, 24px);
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: 0 -6px 16px -12px rgb(0 0 0 / 0.3);
+}
+@media (max-width: 760px) {
+  .footer {
+    margin: 0 calc(-1 * var(--gutter, 16px));
+    padding: 10px var(--gutter, 16px);
+    gap: var(--space-2) var(--space-3);
+  }
+  /* the header already carries the bar; keep the footer to one or two lines on phones */
+  .footerProgress {
+    display: none;
+  }
+}
+.footerCounter {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+.footerValue {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-lg);
+  font-weight: 500;
+  color: var(--ink);
+}
+.footerProgress {
+  flex: 1 1 160px;
+  min-width: 120px;
+  max-width: 320px;
+}
+.footerReason {
+  flex: 1 1 100%;
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+@media (min-width: 761px) {
+  .footerReason {
+    flex: 1 1 auto;
+  }
+}
+.footerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+.lockedNote {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+.lockedWhen {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+
+/* Dialogs */
+.dialogBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Audit / invitations */
+.actor {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+  display: inline-block;
+  vertical-align: middle;
+}
+.detail {
+  color: var(--ink-2);
+}
+.empty {
+  padding: var(--space-6) 0;
+}

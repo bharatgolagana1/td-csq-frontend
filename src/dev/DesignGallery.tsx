@@ -7,6 +7,7 @@ import { Button } from '@/design/primitives/Button/Button';
 import styles from './gallery.module.css';
 import { ChartsSection } from './sections/ChartsSection';
 import { ControlsSection } from './sections/ControlsSection';
+import { DatesSection } from './sections/DatesSection';
 import { DisplaySection } from './sections/DisplaySection';
 import { IconsSection } from './sections/IconsSection';
 import { NavigationSection } from './sections/NavigationSection';
@@ -22,6 +23,7 @@ const SECTIONS = [
   ['tokens', 'Tokens & type'],
   ['icons', 'Icons'],
   ['controls', 'Form controls'],
+  ['dates', 'Dates'],
   ['status', 'Status'],
   ['display', 'Display'],
   ['navigation', 'Navigation'],
@@ -64,6 +66,7 @@ export function DesignGallery() {
         <TokensSection />
         <IconsSection />
         <ControlsSection />
+        <DatesSection />
         <StatusSection />
         <DisplaySection />
         <NavigationSection />

@@ -1,0 +1,319 @@
+/* Calendar grid. Day cells are --cal-cell tall (40px md, 44px lg); the range
+   band is exactly that tall; chips sit below it inside the same gridcell. */
+
+.root {
+  --cal-cell: 40px;
+  --cal-day: 36px;
+  --cal-chip: 0px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: calc(7 * var(--cal-cell));
+  color: var(--ink);
+  font-family: var(--font-body);
+}
+.lg {
+  --cal-cell: 44px;
+  --cal-day: 40px;
+}
+.withChips {
+  --cal-chip: 18px;
+}
+.framed {
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
+}
+
+/* header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+.monthButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: var(--control-h-sm);
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-variation-settings:
+    'wdth' 110,
+    'wght' 700;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+.monthButton:hover {
+  background: var(--surface-2);
+}
+.monthButton:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+.monthChevron {
+  color: var(--muted);
+}
+
+/* month/year menu */
+.menu {
+  position: absolute;
+  top: calc(var(--control-h-sm) + 8px);
+  left: 50%;
+  z-index: var(--z-popover);
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  transform: translateX(-50%);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-2);
+  animation: pop var(--dur-1) var(--ease);
+}
+.framed .menu {
+  top: calc(12px + var(--control-h-sm) + 8px);
+}
+.menuColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 120px;
+}
+.menuYears {
+  min-width: 76px;
+  max-height: calc(12 * 28px + 11px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.menuItem {
+  display: flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink);
+  font-size: 13px;
+  text-align: left;
+  white-space: nowrap;
+}
+.menuYear {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.menuItem:hover,
+.menuItem:focus-visible {
+  background: var(--surface-2);
+  box-shadow: none;
+}
+.menuItem:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+.menuItem[aria-checked='true'] {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 700;
+}
+.menuItemDisabled,
+.menuItemDisabled:hover {
+  color: var(--line-2);
+  background: transparent;
+  cursor: not-allowed;
+}
+
+/* grid */
+.grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.weekdays,
+.row {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+.weekday {
+  height: 24px;
+  line-height: 24px;
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+}
+.cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: calc(var(--cal-cell) + var(--cal-chip));
+}
+/* the band: one pseudo-element per cell, continuous because cells have no gap */
+.band::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--cal-cell);
+  background: var(--accent-soft);
+}
+.preview::before {
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+.bandStart::before {
+  left: 50%;
+}
+.bandEnd::before {
+  right: 50%;
+}
+.rowStart:not(.bandStart)::before {
+  border-top-left-radius: var(--radius-pill);
+  border-bottom-left-radius: var(--radius-pill);
+}
+.rowEnd:not(.bandEnd)::before {
+  border-top-right-radius: var(--radius-pill);
+  border-bottom-right-radius: var(--radius-pill);
+}
+
+.day {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--cal-day);
+  height: var(--cal-day);
+  margin: calc((var(--cal-cell) - var(--cal-day)) / 2) 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  line-height: 1;
+  transition:
+    background-color var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease);
+}
+.day:hover {
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+}
+.band .day:hover {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.day:focus-visible {
+  border-radius: 50%;
+  box-shadow: var(--focus-ring);
+}
+.outside .day {
+  color: var(--muted);
+  opacity: 0.75;
+}
+.today .day {
+  color: var(--accent);
+  font-weight: 500;
+}
+.today .day::after {
+  content: '';
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.selected .day,
+.selected .day:hover {
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 500;
+  opacity: 1;
+}
+.disabled .day,
+.disabled .day:hover {
+  background: transparent;
+  color: var(--line-2);
+  opacity: 1;
+  cursor: not-allowed;
+}
+.disabled.selected .day {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* chips */
+.chips {
+  display: flex;
+  gap: 2px;
+  width: 100%;
+  height: var(--cal-chip);
+  padding: 2px 2px 0;
+}
+.chipWrap {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.chipWrapMore {
+  flex: 0 0 auto;
+}
+.chip {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: 15px;
+  padding: 0 4px;
+  border-radius: 4px;
+  background: var(--chip-bg, var(--neutral-soft));
+  color: var(--chip-ink, var(--ink-2));
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 15px;
+  letter-spacing: 0.01em;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.more {
+  width: auto;
+  padding: 0 3px;
+  font-family: var(--font-mono);
+  text-align: center;
+}
+.tone-warn {
+  --chip-bg: var(--warn-soft);
+  --chip-ink: color-mix(in srgb, var(--warn) 80%, var(--ink));
+}
+.tone-info {
+  --chip-bg: var(--info-soft);
+  --chip-ink: color-mix(in srgb, var(--info) 85%, var(--ink));
+}
+.tone-accent {
+  --chip-bg: var(--accent-soft);
+  --chip-ink: var(--accent);
+}
+.tone-neutral {
+  --chip-bg: var(--neutral-soft);
+  --chip-ink: var(--ink-2);
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -4px);
+  }
+}

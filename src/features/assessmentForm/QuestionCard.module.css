@@ -1,0 +1,203 @@
+/* QuestionCard + RatingScale. Tokens only; targets ≥ 44px (public pages). The
+   ramp colour appears only on the selected rating cell. */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
+  scroll-margin-top: 96px;
+}
+.card:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+@media (min-width: 600px) {
+  .card {
+    padding: 20px;
+  }
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: var(--text-xs);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.eyebrowSection {
+  text-transform: none;
+  letter-spacing: 0;
+}
+.head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+.text {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: var(--text-lg);
+  line-height: 1.35;
+}
+.helpButton {
+  flex: none;
+  margin-top: -4px;
+}
+.help {
+  margin: 0;
+  padding: 8px 12px;
+  border-left: 3px solid var(--line-2);
+  background: var(--surface-2);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  color: var(--ink-2);
+  font-size: var(--text-sm);
+}
+
+/* --- RatingScale --- */
+.scale {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+}
+@media (max-width: 559px) {
+  .scale {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.cell {
+  position: relative;
+  display: block;
+  min-width: 0;
+  cursor: pointer;
+}
+.cell[data-rating='5'] {
+  --tone: var(--r5);
+}
+.cell[data-rating='4'] {
+  --tone: var(--r4);
+}
+.cell[data-rating='3'] {
+  --tone: var(--r3);
+}
+.cell[data-rating='2'] {
+  --tone: var(--r2);
+}
+.cell[data-rating='1'] {
+  --tone: var(--r1);
+}
+.cell[data-rating='NA'] {
+  --tone: var(--na);
+}
+.radio {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+.face {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 52px;
+  padding: 6px 4px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink-2);
+  font-size: var(--text-xs);
+  line-height: 1.2;
+  text-align: center;
+  transition:
+    background var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease);
+}
+.faceNum {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  line-height: 1;
+}
+.cell:hover .face {
+  background: var(--surface-2);
+  border-color: var(--muted);
+}
+.radio:focus-visible + .face {
+  box-shadow: var(--focus-ring);
+}
+.radio:checked + .face {
+  background: color-mix(in srgb, var(--tone) 14%, var(--surface));
+  border-color: var(--tone);
+  box-shadow: inset 0 0 0 1px var(--tone);
+  color: color-mix(in srgb, var(--tone) 70%, var(--ink));
+  font-weight: 700;
+}
+.radio:checked + .face .faceNum {
+  color: var(--tone);
+}
+.radio:checked:focus-visible + .face {
+  box-shadow:
+    inset 0 0 0 1px var(--tone),
+    var(--focus-ring);
+}
+.scaleInvalid .face {
+  border-color: color-mix(in srgb, var(--danger) 55%, var(--line-2));
+}
+.scaleDisabled .cell {
+  cursor: default;
+}
+.scaleDisabled .face {
+  opacity: 0.7;
+}
+.scaleDisabled .cell:hover .face {
+  background: var(--surface);
+  border-color: var(--line-2);
+}
+.radio:checked:disabled + .face {
+  opacity: 1;
+}
+
+.error {
+  margin: -4px 0 0;
+  color: var(--danger);
+  font-size: var(--text-sm);
+}
+
+/* --- follow-up --- */
+.followUp {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.followUpPrompt {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--ink);
+}
+.followUpOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.comment {
+  margin-top: 2px;
+}

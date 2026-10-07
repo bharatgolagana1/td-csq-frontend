@@ -1,0 +1,159 @@
+/* History grid, phone cards and the read-only return. */
+
+.cycleSelect {
+  min-width: 220px;
+}
+
+.cycle {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.cycleCode {
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+.cycleName {
+  color: var(--muted);
+  font-size: var(--text-xs);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.assessor {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.assessorName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.assessorEmail {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+.dash {
+  color: var(--muted);
+}
+.linkButton {
+  border: 0;
+  background: transparent;
+  padding: 8px 12px;
+  min-height: 40px;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 700;
+  border-radius: var(--radius);
+}
+.linkButton:hover {
+  text-decoration: underline;
+}
+
+/* --- phone cards (< 760px) --- */
+.cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  min-height: 44px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--ink);
+  text-align: left;
+  font: inherit;
+}
+.card:hover {
+  border-color: var(--line-2);
+  background: var(--surface-2);
+}
+.cardSkeleton {
+  height: 112px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+}
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.cardCycle {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+.cardName {
+  font-weight: 700;
+}
+.cardEmail {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+.cardMeta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+.cardScore {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+.cardSubmitted {
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+
+/* --- return --- */
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-width: 920px;
+}
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 40px;
+  padding: 0 10px 0 6px;
+  border-radius: var(--radius);
+  color: var(--accent);
+  font-weight: 700;
+  text-decoration: none;
+}
+.backLink:hover {
+  background: var(--surface-2);
+}
+.identity {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+.identityEmail {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+.selfNote {
+  margin: var(--space-3) 0 0;
+  color: var(--muted);
+  font-size: var(--text-sm);
+}

@@ -1,0 +1,219 @@
+/* Overview: active cycle cards with a funnel, what needs attention, quick links. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+.sectionHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+.sectionTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-variation-settings:
+    'wdth' 110,
+    'wght' 700;
+  font-size: var(--text-lg);
+  color: var(--ink);
+}
+.sectionLink {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--accent);
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--space-4);
+}
+@media (max-width: 420px) {
+  .cards {
+    grid-template-columns: 1fr;
+  }
+}
+.cardLink {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  border-radius: var(--radius-lg);
+}
+.cardLink:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.cardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.cardName {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+.cardName b {
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cardCode {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+.deadline {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+.countdown {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+/* Funnel: four horizontal bars in one hue, label left, value right, widths relative to the first stage. */
+.funnel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: var(--space-4);
+}
+.funnelGroup {
+  display: grid;
+  grid-template-columns: 96px 1fr auto;
+  column-gap: 10px;
+  row-gap: 6px;
+  align-items: center;
+}
+.funnelGroup + .funnelGroup {
+  padding-top: 8px;
+  border-top: 1px dashed var(--line);
+}
+.funnelLabel {
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+.funnelTrack {
+  height: 10px;
+  border-radius: 4px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.funnelBar {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  background: var(--accent);
+  box-shadow: 0 0 0 2px var(--surface);
+}
+.funnelValue {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+  text-align: right;
+  min-width: 56px;
+}
+
+/* Needs attention */
+.attention {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-4);
+}
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+.item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px var(--space-3);
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+  font-size: var(--text-sm);
+}
+.item:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+.itemMain {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.3;
+}
+.itemMain b {
+  color: var(--ink);
+}
+.itemSub {
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+.itemValue {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.itemWarn {
+  color: var(--warn);
+  font-weight: 700;
+}
+.calm {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+
+/* Quick links */
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-decoration: none;
+}
+.link:hover {
+  border-color: var(--line-2);
+  background: var(--surface-2);
+}
+.link:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.skeletons {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--space-4);
+}

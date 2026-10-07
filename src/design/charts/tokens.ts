@@ -12,7 +12,10 @@ export type ChartTokens = {
   grid: string;
   accent: string;
   customer: string;
+  /** De-emphasis grey (the "others" bars, the timeline's second phase). */
   self: string;
+  /** Self as a true second series beside the customer accent (validated plum). */
+  selfStrong: string;
   previous: string;
   r5: string;
   r4: string;
@@ -36,6 +39,7 @@ const FALLBACK: ChartTokens = {
   accent: '#0a5c63',
   customer: '#0a5c63',
   self: '#8aa0a3',
+  selfStrong: '#9c7aa8',
   previous: '#c3cccf',
   r5: '#0f7a63',
   r4: '#3f9d93',
@@ -59,6 +63,7 @@ const VARS: Record<keyof ChartTokens, string> = {
   accent: '--accent',
   customer: '--series-customer',
   self: '--series-self',
+  selfStrong: '--series-self-strong',
   previous: '--series-previous',
   r5: '--r5',
   r4: '--r4',

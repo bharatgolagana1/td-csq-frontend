@@ -1,0 +1,33 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 22px;
+  padding: 0 8px 0 4px;
+  border-radius: var(--radius-pill);
+  background: var(--neutral-soft);
+  color: var(--ink-2);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-xs);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.sm {
+  height: 20px;
+  padding: 0 6px 0 3px;
+  font-size: 11px;
+}
+.good {
+  background: var(--success-soft);
+  color: var(--up);
+}
+.bad {
+  background: var(--danger-soft);
+  color: var(--down);
+}
+.none {
+  padding: 0 8px;
+  color: var(--muted);
+  background: transparent;
+}

@@ -1,0 +1,46 @@
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: center;
+}
+@media (min-width: 560px) {
+  .split {
+    grid-template-columns: minmax(180px, 1fr) minmax(200px, 1.1fr);
+  }
+}
+.plot {
+  min-width: 0;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+.table th,
+.table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: middle;
+}
+.table thead th {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--muted);
+}
+.table tbody th {
+  font-weight: 400;
+  color: var(--ink);
+}
+.table tfoot th,
+.table tfoot td {
+  border-bottom: 0;
+  font-weight: 700;
+  color: var(--ink);
+}
+.num {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}

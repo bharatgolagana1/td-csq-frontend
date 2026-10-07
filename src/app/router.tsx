@@ -32,19 +32,35 @@ export const appChildren: RouteObject[] = [
     { path: 'cycles', lazy: page(() => import('@/features/cycles/CyclesPage')) },
     { path: 'cycles/new', ...guarded('cycles.manage', [{ index: true, lazy: page(() => import('@/features/cycles/CycleBuilderPage')) }]) },
     { path: 'cycles/:id', lazy: page(() => import('@/features/cycles/CycleDetailPage')) },
+    { path: 'cycles/:id/edit', ...guarded('cycles.manage', [{ index: true, lazy: page(() => import('@/features/cycles/CycleBuilderPage')) }]) },
   ]),
 
+  // List and detail are nested so the detail's route-relative links ("..") resolve to the list (as users/roles does).
   guarded('operators.view', [
-    { path: 'operators', lazy: page(() => import('@/features/operators/OperatorsPage')) },
-    { path: 'operators/:id', lazy: page(() => import('@/features/operators/OperatorDetailPage')) },
+    {
+      path: 'operators',
+      children: [
+        { index: true, lazy: page(() => import('@/features/operators/OperatorsPage')) },
+        { path: ':id', lazy: page(() => import('@/features/operators/OperatorDetailPage')) },
+      ],
+    },
   ]),
 
   guarded('airports.view', [
-    { path: 'airports', lazy: page(() => import('@/features/airports/AirportsPage')) },
-    { path: 'airports/:id', lazy: page(() => import('@/features/airports/AirportDetailPage')) },
+    {
+      path: 'airports',
+      children: [
+        { index: true, lazy: page(() => import('@/features/airports/AirportsPage')) },
+        { path: ':id', lazy: page(() => import('@/features/airports/AirportDetailPage')) },
+      ],
+    },
   ]),
 
-  guarded('onboarding.review', [{ path: 'onboarding', lazy: page(() => import('@/features/onboarding/OnboardingPage')) }]),
+  guarded('onboarding.review', [
+    { path: 'onboarding', lazy: page(() => import('@/features/onboarding/OnboardingPage')) },
+    // The reviewer URL the backend e-mails (`registrationReviewUrl`): the Requests tab with that request open.
+    { path: 'registrations/:id', lazy: page(() => import('@/features/onboarding/OnboardingPage')) },
+  ]),
 
   guarded('surveys.view', [
     { path: 'surveys', lazy: page(() => import('@/features/surveys/SurveysPage')) },
@@ -61,6 +77,7 @@ export const appChildren: RouteObject[] = [
       { path: 'airport', ...guarded('reports.airport', [{ index: true, lazy: page(() => import('@/features/reports/AirportReportPage')) }]) },
       { path: 'national', ...guarded('reports.national', [{ index: true, lazy: page(() => import('@/features/reports/NationalReportPage')) }]) },
       { path: 'comparison', ...guarded('reports.operator', [{ index: true, lazy: page(() => import('@/features/reports/ComparisonPage')) }]) },
+      { path: 'operator/:acoId/questions', ...guarded('reports.operator', [{ index: true, lazy: page(() => import('@/features/dashboard/OperatorQuestionsPage')) }]) },
       { path: 'exports', lazy: page(() => import('@/features/reports/ExportsPage')) },
     ],
   },

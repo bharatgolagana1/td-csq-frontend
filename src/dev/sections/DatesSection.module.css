@@ -1,0 +1,11 @@
+.phoneFrame {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 390px;
+  max-width: 100%;
+  padding: var(--gutter);
+  background: var(--bg);
+  border: 1px solid var(--line-2);
+  border-radius: 24px;
+}

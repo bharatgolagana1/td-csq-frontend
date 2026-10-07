@@ -1,7 +1,13 @@
 export { ChartFrame, type ChartFrameProps, LegendDot } from './ChartFrame';
+export { DeltaChip, type DeltaChipProps } from './DeltaChip';
 export { Donut, type DonutProps, type DonutSlice } from './Donut';
 export { Dumbbell, type DumbbellProps, type DumbbellRow } from './Dumbbell';
 export { type BarSeriesKey, GroupedBar, type GroupedBarProps, type GroupedBarSeries } from './GroupedBar';
+export { HorizontalBar, type HorizontalBarProps, type HorizontalBarRow } from './HorizontalBar';
+export { type PairedBarRow, PairedBars, type PairedBarsProps } from './PairedBars';
 export { type RankRow, RankTable, type RankTableProps } from './RankTable';
+export { ScoreHero, type ScoreHeroProps } from './ScoreHero';
+export { Segmented, type SegmentedOption, type SegmentedProps } from './Segmented';
 export { Sparkline, type SparklineProps } from './Sparkline';
+export { type BandSegment, StackedBand, type StackedBandProps } from './StackedBand';
 export { type ChartTokens, ratingColor, readChartTokens, useChartTokens } from './tokens';
