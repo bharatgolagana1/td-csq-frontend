@@ -1,0 +1,24 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-2);
+  line-height: 18px;
+}
+.required {
+  color: var(--danger);
+}
+.hint,
+.error {
+  font-size: var(--text-xs);
+  line-height: 16px;
+  color: var(--muted);
+}
+.error {
+  color: var(--danger);
+}

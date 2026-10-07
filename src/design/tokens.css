@@ -1,0 +1,185 @@
+/* CSQ design tokens — ARCHITECTURE.md §3. Light is the working surface; dark is
+   a selected palette (not an automatic flip). The ACFI rating ramp (--r5 … --r1,
+   --na) is the only colour that carries meaning. */
+
+:root {
+  color-scheme: light;
+
+  /* surfaces + ink */
+  --bg: #f6f7f8;
+  --surface: #ffffff;
+  --surface-2: #f0f2f3;
+  --ink: #0c1416;
+  --ink-2: #3b4b50;
+  --muted: #6b7d82;
+  --line: #dfe4e6;
+  --line-2: #c3cccf;
+
+  /* brand */
+  --accent: #0a5c63;
+  --accent-ink: #ffffff;
+  --accent-hover: #084d53;
+  --accent-soft: color-mix(in srgb, var(--accent) 10%, transparent);
+
+  /* ACFI rating ramp */
+  --r5: #0f7a63; /* Excellent */
+  --r4: #3f9d93; /* Very good */
+  --r3: #8aa0a3; /* Good */
+  --r2: #c8873c; /* Fair */
+  --r1: #b4543c; /* Poor */
+  --na: #9aa7ab; /* Not applicable */
+
+  /* semantics */
+  --up: #0f7a63;
+  --down: #b4543c;
+  --success: #0f7a63;
+  --warn: #b88a1e;
+  --danger: #b4543c;
+  --info: #2f6f8f;
+
+  --success-soft: color-mix(in srgb, var(--success) 12%, transparent);
+  --warn-soft: color-mix(in srgb, var(--warn) 14%, transparent);
+  --danger-soft: color-mix(in srgb, var(--danger) 12%, transparent);
+  --info-soft: color-mix(in srgb, var(--info) 12%, transparent);
+  --neutral-soft: color-mix(in srgb, var(--muted) 14%, transparent);
+
+  /* chart series */
+  --series-customer: var(--accent);
+  --series-self: #8aa0a3;
+  --series-previous: #c3cccf;
+  --chart-grid: #e9edee;
+
+  /* type */
+  --font-display: 'Archivo Variable', 'Archivo', system-ui, sans-serif;
+  --font-body: 'Lato', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-md: 15px;
+  --text-lg: 17px;
+  --text-xl: 20px;
+  --text-2xl: 26px;
+  --text-3xl: 34px;
+  --leading-body: 22px;
+  --leading-tight: 1.2;
+
+  /* geometry */
+  --radius: 6px;
+  --radius-lg: 10px;
+  --radius-pill: 999px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 40px;
+  --space-8: 48px;
+
+  --control-h: 40px;
+  --control-h-sm: 32px;
+  --control-h-lg: 44px;
+  --row-h: 44px;
+  --rail-w: 240px;
+  --rail-icon-w: 64px;
+  --topbar-h: 56px;
+  --content-max: 1440px;
+  --content-pad: 24px;
+  --gutter: 16px;
+
+  /* elevation */
+  --shadow-1: 0 1px 2px rgba(12, 20, 22, 0.06), 0 1px 1px rgba(12, 20, 22, 0.04);
+  --shadow-2: 0 8px 24px rgba(12, 20, 22, 0.12), 0 2px 6px rgba(12, 20, 22, 0.06);
+  --focus-ring: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent);
+
+  /* layers */
+  --z-sticky: 10;
+  --z-rail: 30;
+  --z-drawer: 40;
+  --z-dialog: 50;
+  --z-toast: 60;
+  --z-popover: 45;
+
+  /* motion */
+  --dur-1: 120ms;
+  --dur-2: 200ms;
+  --dur-3: 320ms;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --bg: #0c1416;
+    --surface: #121b1e;
+    --surface-2: #192427;
+    --ink: #e7ecec;
+    --ink-2: #bdc8ca;
+    --muted: #8a9a9e;
+    --line: #243136;
+    --line-2: #34454b;
+
+    --accent: #3fb1b9;
+    --accent-ink: #06191b;
+    --accent-hover: #5bc2c9;
+
+    --r5: #35a98f;
+    --r4: #62bdb3;
+    --r3: #94aaad;
+    --r2: #d99a52;
+    --r1: #d1705a;
+    --na: #8c999d;
+
+    --up: #35a98f;
+    --down: #d1705a;
+    --success: #35a98f;
+    --warn: #d4a83c;
+    --danger: #d1705a;
+    --info: #5f9fc4;
+
+    --series-self: #94aaad;
+    --series-previous: #34454b;
+    --chart-grid: #1f2b2f;
+
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 1px rgba(0, 0, 0, 0.3);
+    --shadow-2: 0 12px 32px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.4);
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0c1416;
+  --surface: #121b1e;
+  --surface-2: #192427;
+  --ink: #e7ecec;
+  --ink-2: #bdc8ca;
+  --muted: #8a9a9e;
+  --line: #243136;
+  --line-2: #34454b;
+
+  --accent: #3fb1b9;
+  --accent-ink: #06191b;
+  --accent-hover: #5bc2c9;
+
+  --r5: #35a98f;
+  --r4: #62bdb3;
+  --r3: #94aaad;
+  --r2: #d99a52;
+  --r1: #d1705a;
+  --na: #8c999d;
+
+  --up: #35a98f;
+  --down: #d1705a;
+  --success: #35a98f;
+  --warn: #d4a83c;
+  --danger: #d1705a;
+  --info: #5f9fc4;
+
+  --series-self: #94aaad;
+  --series-previous: #34454b;
+  --chart-grid: #1f2b2f;
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 1px rgba(0, 0, 0, 0.3);
+  --shadow-2: 0 12px 32px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.4);
+}

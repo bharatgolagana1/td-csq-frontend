@@ -1,0 +1,120 @@
+.root {
+  display: flex;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+.step {
+  position: relative;
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+}
+.step::after {
+  content: '';
+  position: absolute;
+  top: 13px;
+  left: calc(100% - 4px);
+  width: calc(var(--space-2) + 8px);
+  height: 2px;
+  background: var(--line);
+}
+.step:last-child::after {
+  display: none;
+}
+.done::after {
+  background: var(--accent);
+}
+.button,
+.static {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  color: inherit;
+  border-radius: var(--radius);
+}
+.button {
+  cursor: pointer;
+}
+.button:hover .label {
+  color: var(--accent);
+}
+.button:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+.marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1.5px solid var(--line-2);
+  background: var(--surface);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.number {
+  line-height: 1;
+}
+.done .marker {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+.current .marker {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  padding-top: 4px;
+}
+.label {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.current .label {
+  color: var(--ink);
+}
+.done .label {
+  color: var(--ink-2);
+}
+.description {
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+@media (max-width: 760px) {
+  .root {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .step::after {
+    display: none;
+  }
+}

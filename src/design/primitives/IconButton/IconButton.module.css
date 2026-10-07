@@ -1,0 +1,50 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-h);
+  height: var(--control-h);
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink-2);
+  transition:
+    background-color var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease);
+}
+.root:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+.root:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.sm {
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
+}
+.ghost:not(:disabled):hover,
+.active.ghost {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+.secondary {
+  background: var(--surface);
+  border-color: var(--line-2);
+  box-shadow: var(--shadow-1);
+  color: var(--ink);
+}
+.secondary:not(:disabled):hover {
+  background: var(--surface-2);
+}
+.primary {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+.primary:not(:disabled):hover {
+  background: var(--accent-hover);
+}
+.active {
+  color: var(--accent);
+}

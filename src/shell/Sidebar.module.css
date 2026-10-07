@@ -1,0 +1,142 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-height: 100%;
+  padding: 12px 12px 24px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 6px 14px;
+  border-bottom: 1px solid var(--line);
+}
+.mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--font-display);
+  font-variation-settings:
+    'wdth' 112,
+    'wght' 800;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+.brandText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.brandName {
+  font-family: var(--font-display);
+  font-variation-settings:
+    'wdth' 108,
+    'wght' 700;
+  font-size: 13px;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.brandOrg {
+  font-size: var(--text-xs);
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sectionLabel {
+  padding: 4px 10px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  padding: 0 10px;
+  border-radius: var(--radius);
+  color: var(--ink-2);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    background-color var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease);
+}
+.item:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+  text-decoration: none;
+}
+.item:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+.active,
+.active:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.icon {
+  flex-shrink: 0;
+}
+.label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 1100px) {
+  .root:not(.inDrawer) {
+    padding: 12px 10px;
+  }
+  .root:not(.inDrawer) .brandText,
+  .root:not(.inDrawer) .label,
+  .root:not(.inDrawer) .sectionLabel {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .root:not(.inDrawer) .brand {
+    justify-content: center;
+    padding: 4px 0 12px;
+  }
+  .root:not(.inDrawer) .item {
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    margin: 0 auto;
+  }
+  .root:not(.inDrawer) .section + .section {
+    border-top: 1px solid var(--line);
+    padding-top: 8px;
+  }
+}

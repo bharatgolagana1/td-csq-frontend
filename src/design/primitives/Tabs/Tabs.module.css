@@ -1,0 +1,57 @@
+.root {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  border-bottom: 1px solid var(--line);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.root::-webkit-scrollbar {
+  display: none;
+}
+.tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: var(--control-h);
+  padding: 0 12px;
+  margin-bottom: -1px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: var(--radius) var(--radius) 0 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  text-decoration: none;
+  transition:
+    color var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease);
+}
+.sm .tab {
+  height: var(--control-h-sm);
+  padding: 0 10px;
+  font-size: 13px;
+}
+.tab:hover {
+  color: var(--ink);
+  text-decoration: none;
+}
+.tab:focus-visible {
+  box-shadow: var(--focus-ring);
+  z-index: 1;
+}
+.tab:disabled,
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.active {
+  color: var(--ink);
+  border-bottom-color: var(--accent);
+}
+.label {
+  display: inline-block;
+}

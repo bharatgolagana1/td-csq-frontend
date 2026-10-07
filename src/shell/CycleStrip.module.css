@@ -1,0 +1,113 @@
+.root {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  min-height: 48px;
+  padding: 6px var(--content-pad);
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+.cycle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.icon {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.name {
+  font-family: var(--font-display);
+  font-variation-settings:
+    'wdth' 108,
+    'wght' 700;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.code {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+.deadline {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.deadlineLabel {
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+.countdown {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+}
+.counter {
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-rows: auto auto;
+  column-gap: 8px;
+  row-gap: 4px;
+  align-items: baseline;
+  min-width: 160px;
+}
+.count {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--warn);
+}
+.met {
+  color: var(--up);
+}
+.counterLabel {
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+.bar {
+  grid-column: 1 / -1;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.fill {
+  display: block;
+  height: 100%;
+  background: var(--warn);
+  transition: width var(--dur-3) var(--ease);
+}
+.fillMet {
+  background: var(--up);
+}
+.action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--accent);
+  white-space: nowrap;
+}
+@media (max-width: 760px) {
+  .root {
+    padding: 8px var(--gutter);
+    gap: var(--space-3);
+  }
+  .deadline {
+    order: 3;
+  }
+  .action {
+    flex-basis: 100%;
+    margin-left: 0;
+  }
+}

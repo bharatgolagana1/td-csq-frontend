@@ -1,0 +1,35 @@
+.root {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+.skeleton {
+  width: 100%;
+  padding: 4px 0;
+}
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.plot {
+  width: 100%;
+}
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  padding-top: 8px;
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.legendDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}

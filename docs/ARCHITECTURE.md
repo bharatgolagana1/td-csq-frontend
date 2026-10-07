@@ -167,3 +167,58 @@ bands + NA, count and %) · Category ratings with delta chips vs previous ·
 Assessor stats (total / completed / in progress / yet to start, click-through)
 · FF vs CB split · All-India table (airport, rating, rank; own airport
 highlighted). Airport and national reports reuse the same primitives.
+
+## 8. Implementation notes and deviations (foundation, Oct 2026)
+
+Recorded by the foundation build so later agents know where the code departs
+from the sections above and why.
+
+- **`api.list<T>()` in addition to `api.get<T>()`.** §5 names only
+  `get/post/patch/put/delete<T>`. `get<T>` returns the unwrapped `data`;
+  `[list]` endpoints need `meta` too, so `api.list<T>(path, query)` returns the
+  `{ data, meta }` envelope. One extra method keeps every call site typed
+  without a second generic.
+- **`api/selectedOrg.ts` and `api/organisations.ts`.** The `x-csq-org` accessor
+  lives in `api/` (not `auth/`) so `client.ts` never imports the session. A
+  minimal `useOperators` list hook exists because the invite-user drawer needs
+  organisation options; the operators feature extends that file.
+- **`design/hooks/`, `design/patterns/`, `design/primitives/Field`.** Not listed
+  in §2. `hooks/` holds the focus-trap, scroll-lock, outside-click and
+  reduced-motion hooks shared by Dialog/Drawer/Menu/charts; `patterns/` holds
+  `BeingBuilt` (PageHeader + EmptyState) used by every placeholder page;
+  `Field` is the label/hint/error wrapper behind Input, Select, Textarea and
+  DateTimeInput.
+- **Session shape.** `useSession()` exposes `{ user, org, role, tasks,
+  memberships, switchOrg, signOut }` as in §2 and additionally `scope` (from
+  `GET /me active.scope`) and `hasTask(code | code[])`. `role` is
+  `{ code, scope }` because `/me` carries only the role code.
+- **Default route uses `scope.kind`, not role codes** (§4 says "by role").
+  PLATFORM → `/overview`, ACO → `/dashboard`, AIRPORT → `/reports/airport`,
+  falling back to the first visible sidebar item when the preferred task is not
+  held. Admin-added roles therefore work without a code list.
+- **`/reports` is one sidebar entry** (per §4) that redirects to `national`
+  when `reports.national` is held, else `airport`.
+- **`PageHeader` publishes the title** to a tiny store (`pageTitle.ts`) that
+  the Topbar mirrors; it also sets `document.title`. Pages and the shell stay
+  decoupled.
+- **CycleStrip is props-driven** and rendered by `AppShell` when `cycle` is
+  given. `AppLayout` passes `null` until the sampling/dashboard agent wires
+  `GET /cycles/current`; the dev shell shows it with sample data.
+- **Route tabs in features use route-relative links** (`usersTabs.ts`) so the
+  same pages mount under `/dev/design/shell/*` without knowing the prefix. The
+  shell's own links resolve through `ShellContext` (`basePath`).
+- **Dev gallery** (`/dev/design`, `/dev/design/shell`) is registered only when
+  `import.meta.env.DEV` is true, through dynamic imports, so `src/dev/` is
+  tree-shaken from production. The mocked shell patches `fetch` for the API
+  base (`src/dev/mockApi.ts`).
+- **SUPER_ADMIN column is locked** in the Role → Task matrix (seeded owner of
+  every task, §4). The API does not forbid editing it; the UI does, to avoid
+  locking the platform out.
+- **Chart palette.** Series colours come from the tokens (customer = `--accent`,
+  self = `--r3` grey, previous = `--line-2`). The dataviz validator flags the
+  deliberately muted chroma and the grey's contrast; both are relieved by direct
+  value labels and legends on every chart, which §3/§7 require anyway. The
+  six-band ramp is ordinal, not categorical, and carries count + % labels.
+- **Fonts.** `@fontsource-variable/archivo` (`wdth.css`, both axes) instead
+  of static `@fontsource/archivo`, so `font-variation-settings: 'wdth' 110`
+  works; Lato 400/700 and IBM Plex Mono 400/500 are loaded as static faces.
