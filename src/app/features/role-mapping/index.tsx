@@ -1,1 +1,0 @@
-export {default as RoleMapping} from '../role-mapping/components/role-mapping/RoleMapping';
