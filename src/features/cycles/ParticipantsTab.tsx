@@ -42,7 +42,7 @@ export function ParticipantsTab({ cycle }: { cycle: CycleDetail }) {
   const [pageSize, setPageSize] = useState(25);
   const [unlocking, setUnlocking] = useState<CycleParticipant | null>(null);
 
-  const query = useCycleParticipants(cycle.id, { page, pageSize, samplingStatus: samplingStatus || undefined, airportId: airportId || undefined, sort: 'operator.name' }, cycle.status !== 'DRAFT');
+  const query = useCycleParticipants(cycle.id, { page, pageSize, samplingStatus: samplingStatus || undefined, airportId: airportId || undefined }, cycle.status !== 'DRAFT');
   const rows = query.data?.data ?? [];
   const total = query.data?.meta.total ?? 0;
 
