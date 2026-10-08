@@ -222,3 +222,12 @@ from the sections above and why.
 - **Fonts.** `@fontsource-variable/archivo` (`wdth.css`, both axes) instead
   of static `@fontsource/archivo`, so `font-variation-settings: 'wdth' 110`
   works; Lato 400/700 and IBM Plex Mono 400/500 are loaded as static faces.
+- **Base path (`VITE_BASE_PATH`).** Production serves the app under
+  `https://dev.csq.aero/app/` beside the landing site (`/`) and the API
+  (`/api/v1`). The value is Vite's `base` and the data router's `basename`
+  (`lib/basePath.ts`, `app/router.tsx`); routes, `nav.ts`, `<Link>` and
+  `navigate()` stay prefix-free, and only the Keycloak sign-out redirect
+  builds a full URL (`appRootUrl()`). Local dev keeps `/`. The public links
+  the API e-mails (`/assess/:token`, `/register/:token`,
+  `/registrations/:id`) are built by the backend from `PUBLIC_WEB_URL`,
+  which carries the same base path.

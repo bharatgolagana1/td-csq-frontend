@@ -3,6 +3,7 @@ import { createBrowserRouter, type RouteObject } from 'react-router-dom';
 
 import { type TaskCode } from '@/api/types';
 import { NoAccessPage, RequireTask } from '@/auth/RequireTask';
+import { routerBasename } from '@/lib/basePath';
 
 import { AppLayout } from './AppLayout';
 import { IndexRedirect, ReportsIndexRedirect } from './IndexRedirect';
@@ -154,6 +155,15 @@ export function createRoutes(): RouteObject[] {
   ];
 }
 
-export function createAppRouter() {
-  return createBrowserRouter(createRoutes(), { future: { v7_relativeSplatPath: true } });
+export type AppRouterOptions = {
+  /** Defaults to the Vite base (VITE_BASE_PATH): '/' locally, '/app' in the production image. */
+  basename?: string;
+};
+
+/**
+ * The data router. `basename` makes every <Link to="/x"> and navigate('/x')
+ * resolve under the base path, so routes and pages never mention it.
+ */
+export function createAppRouter({ basename = routerBasename() }: AppRouterOptions = {}) {
+  return createBrowserRouter(createRoutes(), { basename, future: { v7_relativeSplatPath: true } });
 }

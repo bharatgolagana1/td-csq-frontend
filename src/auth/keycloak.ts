@@ -1,8 +1,12 @@
 import Keycloak from 'keycloak-js';
 
+import { appRootUrl } from '@/lib/basePath';
+
 /* One instance from VITE_KEYCLOAK_*; PKCE (S256), login-required.
    Nothing here touches the network until `initKeycloak()` is called, so the
-   dev gallery and tests can import the module safely. */
+   dev gallery and tests can import the module safely. Sign-in returns to the
+   page that asked (keycloak-js defaults redirectUri to location.href, which
+   already carries the base path); sign-out lands on the app root. */
 
 export const keycloak = new Keycloak({
   url: import.meta.env.VITE_KEYCLOAK_URL,
@@ -45,8 +49,9 @@ export async function forceRefreshToken(): Promise<boolean> {
   }
 }
 
+/** Ends the Keycloak session and returns to the app root (https://host/app/ under VITE_BASE_PATH=/app/). */
 export function signOutKeycloak(): Promise<void> {
-  return keycloak.logout({ redirectUri: window.location.origin });
+  return keycloak.logout({ redirectUri: appRootUrl() });
 }
 
 /** Keeps the token fresh in the background; returns a stop function. */

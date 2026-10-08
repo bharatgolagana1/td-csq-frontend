@@ -4,7 +4,10 @@ The web app for the Cargo Service Quality survey platform. Architecture and
 design system: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) (binding). API
 contract: `../td-csq-backend/docs/ARCHITECTURE.md` §6.
 
-`landing/` is the static marketing site and is deployed separately.
+`landing/` is the static marketing site. In production both live on one
+host: the landing at `https://dev.csq.aero/`, this app at
+`https://dev.csq.aero/app/` and the API at `https://dev.csq.aero/api/v1`
+(`../td-csq-backend/deploy/README.md`).
 
 ## Run
 
@@ -28,8 +31,20 @@ Node ≥ 22 (26 on the dev machine), npm.
 | `VITE_KEYCLOAK_REALM`     | `csq`                            |
 | `VITE_KEYCLOAK_CLIENT_ID` | `csq-frontend`                   |
 | `VITE_API_BASE_URL`       | `http://localhost:4000/api/v1`   |
+| `VITE_BASE_PATH`          | `/` (local) · `/app/` (image)    |
 
 `.env.example` is committed; `.env` is local.
+
+`VITE_BASE_PATH` is the public path the bundle is served under. It becomes
+Vite's `base` (asset URLs, `import.meta.env.BASE_URL`) and the data router's
+`basename` (`src/app/router.tsx`, via `src/lib/basePath.ts`), so pages keep
+writing `<Link to="/cycles">` and `navigate('/')` and never mention it; the
+only code that builds a full URL is the Keycloak sign-out redirect. Leave it
+at `/` for `npm run dev`. The Dockerfile builds with `/app/` (the host nginx
+keeps `/` for the landing site and `/api/` for the API) and its
+`deploy/nginx/nginx.conf` serves exactly that path. To try the base path
+locally, `VITE_BASE_PATH=/app/ npm run dev` and open
+http://localhost:5173/app/ (the gallery is then at `/app/dev/design`).
 
 ## The design gallery (dev only)
 

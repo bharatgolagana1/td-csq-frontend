@@ -279,7 +279,8 @@ footer{border-top:1px solid var(--line);padding:38px 0 52px;background:var(--bg)
       <a href="#method">Method</a>
       <a href="#instrument">Instrument</a>
       <a href="#cycle">Cycle</a>
-      <a class="btn btn-fill" href="#cta">Request access</a>
+      <a class="btn btn-line" href="/app/">Sign in</a>
+      <a class="btn btn-fill" href="mailto:ops@csq.aero?subject=CSQ%20access">Request access</a>
     </div>
   </div>
 </nav>
@@ -304,7 +305,8 @@ footer{border-top:1px solid var(--line);padding:38px 0 52px;background:var(--bg)
         <div class="ro"><div class="k">Scale</div><div class="v"><span data-count="5">0</span><small> + NA</small></div></div>
       </div>
       <div class="rv" style="display:flex;gap:14px;flex-wrap:wrap;margin-top:28px">
-        <a class="btn btn-fill btn-lg" href="#cta">Request access</a>
+        <a class="btn btn-fill btn-lg" href="mailto:ops@csq.aero?subject=CSQ%20access">Request access</a>
+        <a class="btn btn-line btn-lg" href="/app/">Sign in</a>
         <a class="btn btn-line btn-lg" href="#method">See the method</a>
       </div>
     </div></div>
@@ -555,7 +557,7 @@ footer{border-top:1px solid var(--line);padding:38px 0 52px;background:var(--bg)
         <h2 class="sen" data-split style="max-width:15ch">Find out what they actually think.</h2>
         <p class="bdy rv" style="margin-top:28px">Tell us the airport and the terminal. We set up the cycle, the sampling window and the question bank, and walk you through a complete return before anything goes live.</p>
       </div>
-      <a class="btn btn-fill btn-lg rv" href="#cta">Request access</a>
+      <a class="btn btn-fill btn-lg rv" href="mailto:ops@csq.aero?subject=CSQ%20access">Request access</a>
     </div>
   </section>
 </main>
@@ -771,7 +773,10 @@ document.addEventListener('DOMContentLoaded',function(){
     i = (i + 1) % seq.length;
   }, HOLD * 1000);
 
-  // an aircraft crosses on the glideslope, high and slow, on a long loop
+  // an aircraft crosses on the glideslope, high and slow, on a long loop.
+  // The hero markup carries no such element yet, so this resolves to null and
+  // the block is skipped; it used to throw a ReferenceError here instead.
+  var app = document.querySelector('.heroSeq .app');
   if (app) {
     gsap.timeline({repeat:-1, repeatDelay:9})
       .fromTo(app, {opacity:0, x:1760, y:78,  scale:.82, rotation:-4.5},
