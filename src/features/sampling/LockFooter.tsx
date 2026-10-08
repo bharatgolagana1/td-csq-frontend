@@ -38,7 +38,7 @@ export function LockFooter({ state, tz, canLock, canUnlock, onLock, onUnlock, lo
         <span className={styles.lockedNote}>
           <span>
             <strong>Sample locked</strong>
-            {participant.sampling.lockedBy ? ` by ${participant.sampling.lockedBy}` : ''}
+            {participant.sampling.lockedByUser ? ` by ${participant.sampling.lockedByUser.name}` : ''}
           </span>
           <span className={styles.lockedWhen}>{formatDateTime(participant.sampling.lockedAt, tz)}</span>
         </span>

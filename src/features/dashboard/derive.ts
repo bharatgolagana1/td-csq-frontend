@@ -1,5 +1,5 @@
 import { deltaOf } from '@/api/reports';
-import { type CategoryReport, type FeedbackBucket, type LevelFigures, type NationalTableRow, type OperatorReport, type SurveyNode } from '@/api/reports.types';
+import { type AssessmentCounts, type CategoryReport, type FeedbackBucket, type LevelFigures, type NationalTableRow, type OperatorReport, type SurveyNode } from '@/api/reports.types';
 import { type BandSegment, type GroupedBarSeries, type PairedBarRow, type RankRow } from '@/design/charts';
 import { formatInt, formatRating } from '@/lib/format';
 
@@ -71,10 +71,9 @@ export function answersTotal(buckets: readonly FeedbackBucket[]): number {
   return buckets.reduce((sum, b) => sum + b.count, 0);
 }
 
-/** The national table as rank rows; `rankOf` is the number of ranked airports. */
+/** The national table as rank rows; `rankOf` (airports with a figure) comes from the API. */
 export function nationalRows(table: readonly NationalTableRow[]): RankRow[] {
-  const rankOf = table.filter((r) => r.rank !== null).length;
-  return table.map((r) => ({ id: r.airportIata, label: r.airportName, sublabel: r.airportIata, rating: r.rating, rank: r.rank, rankOf }));
+  return table.map((r) => ({ id: r.airportIata, label: r.airportName, sublabel: r.airportIata, rating: r.rating, rank: r.rank, rankOf: r.rankOf }));
 }
 
 /** Ranked airports for the table, by rank; the rest (no rating yet) for the footnote. */
@@ -100,7 +99,7 @@ export function pendingFootnote(pending: readonly NationalTableRow[], unlisted =
 
 /** Airports live under Phase I that the national table does not list at all. */
 export function unlistedAirports(report: Pick<OperatorReport, 'nationalTable' | 'airportsTotal'>): number {
-  return report.airportsTotal === undefined ? 0 : Math.max(0, report.airportsTotal - report.nationalTable.length);
+  return Math.max(0, report.airportsTotal - report.nationalTable.length);
 }
 
 export function heroDelta(report: OperatorReport): number | null {
@@ -112,7 +111,7 @@ export function heroDelta(report: OperatorReport): number | null {
  * "129 assessments · 1 self · 128 customer" from the API's submitted counts; an
  * older payload without them falls back to the customer count and the self mean.
  */
-export function heroCounts(report: OperatorReport): string {
+export function heroCounts(report: Pick<OperatorReport, 'overall'> & { assessments?: AssessmentCounts }): string {
   const counts = report.assessments;
   if (counts) {
     return `${formatInt(counts.total)} ${counts.total === 1 ? 'assessment' : 'assessments'} · ${formatInt(counts.self)} self · ${formatInt(counts.customer)} customer`;

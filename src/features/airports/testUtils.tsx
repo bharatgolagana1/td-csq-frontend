@@ -76,8 +76,8 @@ export function renderPage(ui: ReactNode, { session = PLATFORM_SESSION, route = 
 
 const AT = '2026-09-01T06:00:00.000Z';
 
-export const DEL: Airport = { id: 'ap-del', iata: 'DEL', icao: 'VIDP', name: 'Indira Gandhi International Airport', city: 'New Delhi', state: 'Delhi', region: 'North', country: 'IN', lat: 28.5562, lng: 77.1, active: true, createdAt: AT, updatedAt: AT };
-export const BOM: Airport = { id: 'ap-bom', iata: 'BOM', icao: 'VABB', name: 'Chhatrapati Shivaji Maharaj International Airport', city: 'Mumbai', state: 'Maharashtra', region: 'West', country: 'IN', lat: 19.0896, lng: 72.8656, active: false, createdAt: AT, updatedAt: AT };
+export const DEL: Airport = { id: 'ap-del', iata: 'DEL', icao: 'VIDP', name: 'Indira Gandhi International Airport', city: 'New Delhi', state: 'Delhi', region: 'North', country: 'IN', lat: 28.5562, lng: 77.1, active: true, operatorCount: 2, createdAt: AT, updatedAt: AT };
+export const BOM: Airport = { id: 'ap-bom', iata: 'BOM', icao: 'VABB', name: 'Chhatrapati Shivaji Maharaj International Airport', city: 'Mumbai', state: 'Maharashtra', region: 'West', country: 'IN', lat: 19.0896, lng: 72.8656, active: false, operatorCount: 0, createdAt: AT, updatedAt: AT };
 
 export const CSC: Operator = {
   id: 'org-csc',

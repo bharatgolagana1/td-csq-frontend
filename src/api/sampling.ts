@@ -26,7 +26,7 @@ export const samplingKeys = {
   state: (cycleId: string, acoId: string) => ['sampling', 'cycles', cycleId, acoId] as const,
   audit: (cycleId: string, acoId: string, query: ListQuery) => ['sampling', 'cycles', cycleId, 'audit', acoId, query] as const,
   /** Under the customers root so customer mutations invalidate the eligible table too. */
-  eligible: (acoId: string) => ['customers', 'eligible', acoId] as const,
+  eligible: (acoId: string, cycleId: string) => ['customers', 'eligible', acoId, cycleId] as const,
 };
 
 /** `GET /cycles/current` is specified as "the cycle(s)"; one object or a list both become a list. */
@@ -70,32 +70,33 @@ export function useSamplingAudit(cycleId: string, acoId: string, query: ListQuer
 }
 
 // --- eligible customers ---------------------------------------------------------
-// There is no eligibility endpoint: the page reads the operator's ACTIVE directory
-// and expands it with the same rules as the backend (sampling/domain/eligibility.ts).
+// `GET /customers/eligible?cycleId=` expands the operator's ACTIVE directory into
+// (customer, surveyType) entries with the backend's own rule and paginates them;
+// the page reads every page so the table can filter and sort locally.
 
 const ELIGIBLE_PAGE_SIZE = 200;
-const ELIGIBLE_MAX_PAGES = 25; // 5 000 customers, the CSV import ceiling
+const ELIGIBLE_MAX_PAGES = 50; // 10 000 entries: 5 000 customers (the CSV import ceiling) × up to two survey types
 
-async function fetchActiveCustomers(acoId: string, signal?: AbortSignal): Promise<Customer[]> {
-  const rows: Customer[] = [];
+async function fetchEligibleEntries(cycleId: string, acoId: string, signal?: AbortSignal): Promise<EligibleEntry[]> {
+  const rows: EligibleEntry[] = [];
   for (let page = 1; page <= ELIGIBLE_MAX_PAGES; page += 1) {
-    const res = await api.list<Customer>('/customers', { status: 'ACTIVE', page, pageSize: ELIGIBLE_PAGE_SIZE, sort: 'name', acoId: acoId || undefined }, { signal });
+    const res = await api.list<EligibleEntry>('/customers/eligible', { cycleId, page, pageSize: ELIGIBLE_PAGE_SIZE, acoId: acoId || undefined }, { signal });
     rows.push(...res.data);
     if (res.data.length === 0 || rows.length >= res.meta.total) break;
   }
   return rows;
 }
 
-/** Every ACTIVE customer of the operator (all pages), for the eligible table. */
-export function useEligibleCustomers(acoId: string, enabled = true) {
+/** Every eligible (customer, surveyType) entry of the operator for the cycle (all pages), for the eligible table. */
+export function useEligibleCustomers(acoId: string, cycleId: string, enabled = true) {
   return useQuery({
-    queryKey: samplingKeys.eligible(acoId),
-    queryFn: ({ signal }) => fetchActiveCustomers(acoId, signal),
-    enabled,
+    queryKey: samplingKeys.eligible(acoId, cycleId),
+    queryFn: ({ signal }) => fetchEligibleEntries(cycleId, acoId, signal),
+    enabled: enabled && cycleId !== '',
   });
 }
 
-// --- pure rules (mirrors of the backend's sampling/domain, for the optimistic update) ---
+// --- pure rules (mirrors of the backend's sampling/domain, for the optimistic update and fixtures) ---
 
 export const selectionKey = (item: SelectionItem): string => `${item.customerId}:${item.surveyType}`;
 

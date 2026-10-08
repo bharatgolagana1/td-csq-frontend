@@ -24,7 +24,7 @@ function submittedPill(submitted: boolean | null) {
 
 /** Read-only detail with the participation history (§6 GET /customers/:id/participation). */
 export function CustomerDetailDrawer({ customer, onClose, canManage, onEdit }: CustomerDetailDrawerProps) {
-  const participation = useCustomerParticipation(customer.id);
+  const participation = useCustomerParticipation(customer.id, customer.acoId);
   const rows = participation.data?.cycles ?? [];
 
   return (

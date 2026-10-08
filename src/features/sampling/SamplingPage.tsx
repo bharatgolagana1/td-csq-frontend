@@ -4,7 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import { errorMessage, errorRequestId } from '@/api/client';
 import { useAcoScope } from '@/api/customers';
 import { useOperators } from '@/api/organisations';
-import { eligibleEntries, useCurrentCycles, useEligibleCustomers, useLockSample, useSamplingState, useUnlockSample } from '@/api/sampling';
+import { useCurrentCycles, useEligibleCustomers, useLockSample, useSamplingState, useUnlockSample } from '@/api/sampling';
 import { useSession } from '@/auth/session';
 import { Banner, EmptyState, PageHeader, Select, Skeleton, type TabItem, TabPanel, Tabs, useToast } from '@/design/primitives';
 import { QueryError } from '@/design/primitives/QueryError/QueryError';
@@ -44,18 +44,14 @@ export default function SamplingPage() {
   const tz = picked?.cycle.tz ?? DEFAULT_TZ;
 
   const state = useSamplingState(cycleId, scope.acoId, scope.ready && cycleId !== '');
-  const eligible = useEligibleCustomers(scope.acoId, scope.ready && cycleId !== '');
+  const eligible = useEligibleCustomers(scope.acoId, cycleId, scope.ready && cycleId !== '');
   const lock = useLockSample();
   const unlock = useUnlockSample();
 
-  const nameOf = useCallback((customerId: string) => eligible.data?.find((c) => c.id === customerId)?.name, [eligible.data]);
+  const nameOf = useCallback((customerId: string) => eligible.data?.find((e) => e.customer.id === customerId)?.customer.name, [eligible.data]);
   const actions = useSelectionActions(cycleId, scope.acoId, nameOf);
 
-  const rows = useMemo(() => {
-    if (!state.data) return [];
-    const entries = eligibleEntries(eligible.data ?? [], state.data.cycle.type, state.data.participant.surveyTypes);
-    return buildRows(entries, state.data.selection);
-  }, [state.data, eligible.data]);
+  const rows = useMemo(() => (state.data ? buildRows(eligible.data ?? [], state.data.selection) : []), [state.data, eligible.data]);
 
   const setParam = (key: string, value: string) =>
     setParams(
@@ -158,7 +154,7 @@ export default function SamplingPage() {
           <SamplingHeader state={data} current={picked} tz={tz} canManage={canManage} onSelectAll={actions.selectAllEligible} selectAllPending={actions.selectAllPending} />
 
           {locked ? (
-            <Banner tone="success" icon="lock" title={`Sample locked ${data.participant.sampling.lockedAt ? `on ${formatDateTime(data.participant.sampling.lockedAt, tz)}` : ''}${data.participant.sampling.lockedBy ? ` by ${data.participant.sampling.lockedBy}` : ''}`}>
+            <Banner tone="success" icon="lock" title={`Sample locked ${data.participant.sampling.lockedAt ? `on ${formatDateTime(data.participant.sampling.lockedAt, tz)}` : ''}${data.participant.sampling.lockedByUser ? ` by ${data.participant.sampling.lockedByUser.name}` : ''}`}>
               {canUnlock ? 'The selection is read-only. Unlock it with a reason if the operator needs to change it.' : 'The selection is read-only. To change the sample, ask ACFI to unlock it.'}
             </Banner>
           ) : null}

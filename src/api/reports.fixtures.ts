@@ -61,21 +61,22 @@ export const AIRPORT_OPTIONS: AirportOption[] = [
 const DEL = { id: 'ap-del', iata: 'DEL', name: 'Delhi' };
 const CSC = { id: 'org-csc', code: 'CSC-DEL', name: 'Cargo Service Center', airport: DEL };
 
+/** `rankOf` = airports with a figure (12); `isOwn` marks the operator's airport (DEL). */
 const NATIONAL_TABLE: OperatorReport['nationalTable'] = [
-  { airportIata: 'BOM', airportName: 'Mumbai', rating: 4.42, rank: 1 },
-  { airportIata: 'BLR', airportName: 'Bengaluru', rating: 4.31, rank: 2 },
-  { airportIata: 'DEL', airportName: 'Delhi', rating: 4.08, rank: 3 },
-  { airportIata: 'HYD', airportName: 'Hyderabad', rating: 3.98, rank: 4 },
-  { airportIata: 'MAA', airportName: 'Chennai', rating: 3.91, rank: 5 },
-  { airportIata: 'AMD', airportName: 'Ahmedabad', rating: 3.86, rank: 6 },
-  { airportIata: 'COK', airportName: 'Kochi', rating: 3.8, rank: 7 },
-  { airportIata: 'PNQ', airportName: 'Pune', rating: 3.74, rank: 8 },
-  { airportIata: 'GOI', airportName: 'Goa', rating: 3.66, rank: 9 },
-  { airportIata: 'ATQ', airportName: 'Amritsar', rating: 3.61, rank: 10 },
-  { airportIata: 'LKO', airportName: 'Lucknow', rating: 3.52, rank: 11 },
-  { airportIata: 'JAI', airportName: 'Jaipur', rating: 3.4, rank: 12 },
-  { airportIata: 'CCU', airportName: 'Kolkata', rating: null, rank: null },
-  { airportIata: 'NAG', airportName: 'Nagpur', rating: null, rank: null },
+  { airportIata: 'BOM', airportName: 'Mumbai', rating: 4.42, rank: 1, rankOf: 12, isOwn: false },
+  { airportIata: 'BLR', airportName: 'Bengaluru', rating: 4.31, rank: 2, rankOf: 12, isOwn: false },
+  { airportIata: 'DEL', airportName: 'Delhi', rating: 4.08, rank: 3, rankOf: 12, isOwn: true },
+  { airportIata: 'HYD', airportName: 'Hyderabad', rating: 3.98, rank: 4, rankOf: 12, isOwn: false },
+  { airportIata: 'MAA', airportName: 'Chennai', rating: 3.91, rank: 5, rankOf: 12, isOwn: false },
+  { airportIata: 'AMD', airportName: 'Ahmedabad', rating: 3.86, rank: 6, rankOf: 12, isOwn: false },
+  { airportIata: 'COK', airportName: 'Kochi', rating: 3.8, rank: 7, rankOf: 12, isOwn: false },
+  { airportIata: 'PNQ', airportName: 'Pune', rating: 3.74, rank: 8, rankOf: 12, isOwn: false },
+  { airportIata: 'GOI', airportName: 'Goa', rating: 3.66, rank: 9, rankOf: 12, isOwn: false },
+  { airportIata: 'ATQ', airportName: 'Amritsar', rating: 3.61, rank: 10, rankOf: 12, isOwn: false },
+  { airportIata: 'LKO', airportName: 'Lucknow', rating: 3.52, rank: 11, rankOf: 12, isOwn: false },
+  { airportIata: 'JAI', airportName: 'Jaipur', rating: 3.4, rank: 12, rankOf: 12, isOwn: false },
+  { airportIata: 'CCU', airportName: 'Kolkata', rating: null, rank: null, rankOf: 12, isOwn: false },
+  { airportIata: 'NAG', airportName: 'Nagpur', rating: null, rank: null, rankOf: 12, isOwn: false },
 ];
 
 function category(code: string, name: string, customer: number, n: number, self: number | null, previous: number | null, subs: [string, string, number, number | null, number | null][]): CategoryReport {
@@ -152,7 +153,7 @@ export const OPERATOR_REPORT: OperatorReport = {
   },
   feedbackDistribution: [
     { rating: 5, label: 'Excellent', count: 1040, pct: 32.0 },
-    { rating: 4, label: 'Very good', count: 1312, pct: 40.37 },
+    { rating: 4, label: 'Very Good', count: 1312, pct: 40.37 },
     { rating: 3, label: 'Good', count: 530, pct: 16.31 },
     { rating: 2, label: 'Fair', count: 228, pct: 7.02 },
     { rating: 1, label: 'Poor', count: 76, pct: 2.34 },

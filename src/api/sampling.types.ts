@@ -47,13 +47,22 @@ export type ParticipantSampling = {
   unlockReason: string | null;
 };
 
+/** Who locked / unlocked, resolved through identity; `lockedBy` / `unlockedBy` keep the bare ids. */
+export type UserRef = { id: string; name: string };
+
+/** The sampling payload's participant resolves the lock / unlock actors (the cycles module's `participantResponse` does not). */
+export type SamplingParticipantSampling = ParticipantSampling & {
+  lockedByUser: UserRef | null;
+  unlockedByUser: UserRef | null;
+};
+
 export type ParticipantSummary = {
   cycleId: string;
   acoId: string;
   airportId: string | null;
   surveyTypes: SurveyType[];
   requiredSampleSize: number;
-  sampling: ParticipantSampling;
+  sampling: SamplingParticipantSampling;
 };
 
 export type SelectionItem = { customerId: string; surveyType: SurveyType };

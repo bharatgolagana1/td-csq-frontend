@@ -97,7 +97,7 @@ const SHARE: MarketShare = {
   total: 100,
   frozen: false,
 };
-const DETAIL: AirportDetail = { id: 'ap-del', iata: 'DEL', icao: 'VIDP', name: 'Indira Gandhi International Airport', city: 'New Delhi', state: 'Delhi', region: 'North', country: 'IN', lat: 28.5, lng: 77.1, active: true, createdAt: AT, updatedAt: AT, operators: [CSC, CLB, NEW], marketShare: SHARE };
+const DETAIL: AirportDetail = { id: 'ap-del', iata: 'DEL', icao: 'VIDP', name: 'Indira Gandhi International Airport', city: 'New Delhi', state: 'Delhi', region: 'North', country: 'IN', lat: 28.5, lng: 77.1, active: true, operatorCount: 3, createdAt: AT, updatedAt: AT, operators: [CSC, CLB, NEW], marketShare: SHARE };
 const CYCLE = { id: 'cy-26h1', code: 'CSQ-26H1', name: 'CSQ 2026 H1', status: 'SCORED' };
 
 const reads = (share: MarketShare = SHARE): Route[] => [

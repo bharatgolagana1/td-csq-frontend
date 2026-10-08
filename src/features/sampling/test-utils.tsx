@@ -6,6 +6,7 @@ import { vi } from 'vitest';
 
 import { type Customer } from '@/api/customers.types';
 import { type Invitation } from '@/api/invitations.types';
+import { eligibleEntries } from '@/api/sampling';
 import { type CurrentCycle, type ParticipantSummary, type SamplingAuditEntry, type SelectionRow, type SelectionState } from '@/api/sampling.types';
 import { AuthProvider, type Session } from '@/auth/session';
 import { ToastProvider } from '@/design/primitives';
@@ -96,7 +97,7 @@ export const PARTICIPANT: ParticipantSummary = {
   airportId: 'ap-del',
   surveyTypes: ['DOMESTIC', 'INTERNATIONAL'],
   requiredSampleSize: 50,
-  sampling: { status: 'IN_PROGRESS', selectedCount: 37, lockedAt: null, lockedBy: null, unlockedAt: null, unlockedBy: null, unlockReason: null },
+  sampling: { status: 'IN_PROGRESS', selectedCount: 37, lockedAt: null, lockedBy: null, lockedByUser: null, unlockedAt: null, unlockedBy: null, unlockedByUser: null, unlockReason: null },
 };
 
 export const CURRENT: CurrentCycle = {
@@ -182,7 +183,7 @@ export const LOCKED = samplingState({
   progress: '50 / 50',
   progressPct: 100,
   editable: false,
-  participant: { ...PARTICIPANT, sampling: { status: 'LOCKED', selectedCount: 50, lockedAt: iso(-3_600_000), lockedBy: 'u2', unlockedAt: null, unlockedBy: null, unlockReason: null } },
+  participant: { ...PARTICIPANT, sampling: { status: 'LOCKED', selectedCount: 50, lockedAt: iso(-3_600_000), lockedBy: 'u2', lockedByUser: { id: 'u2', name: 'Priya Nair' }, unlockedAt: null, unlockedBy: null, unlockedByUser: null, unlockReason: null } },
   selection: SELECTION.map((r) => ({ ...r, state: 'LOCKED' as const })),
 });
 
@@ -202,7 +203,7 @@ export function samplingRoutes(state: SelectionState, extra: MockRoute[] = []): 
   return [
     { method: 'GET', path: /^\/cycles\/current$/, reply: () => data([CURRENT]) },
     { method: 'GET', path: /^\/sampling\/cycles\/cy-26h2$/, reply: () => data(state) },
-    { method: 'GET', path: /^\/customers$/, reply: () => list(ACTIVE_CUSTOMERS) },
+    { method: 'GET', path: /^\/customers\/eligible$/, reply: () => list(eligibleEntries(ACTIVE_CUSTOMERS, 'BOTH')) },
     { method: 'GET', path: /^\/sampling\/cycles\/cy-26h2\/audit$/, reply: () => list(AUDIT) },
     { method: 'GET', path: /^\/invitations$/, reply: () => list(INVITATIONS) },
     { method: 'GET', path: /^\/operators$/, reply: () => list([{ id: 'org-csc', code: 'CSC-DEL', name: 'Cargo Service Center', airport: { id: 'ap-del', iata: 'DEL', name: 'Delhi' }, operations: { domestic: true, international: true }, status: 'ACTIVE', memberCount: 6, customerCount: 212 }]) },

@@ -1,0 +1,24 @@
+# The build needs package manifests, the Vite/TS config, index.html, src/,
+# types/ and deploy/. Everything else stays out of the context.
+.git
+.github
+node_modules
+dist
+dist-ssr
+coverage
+*.log
+
+# Vite reads .env files at build time: keep them out so the only VITE_*
+# values are the --build-arg ones.
+.env
+.env.*
+*.local
+
+# separate static site with its own Dockerfile
+landing
+
+docs
+*.md
+.vscode
+.idea
+.DS_Store

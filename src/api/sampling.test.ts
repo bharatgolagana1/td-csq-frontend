@@ -53,7 +53,7 @@ describe('eligibility', () => {
 describe('applySelectionChange (optimistic update)', () => {
   const base: SelectionState = {
     cycle: { id: 'cy', code: 'C', name: 'Cycle', type: 'BOTH', status: 'SAMPLING_OPEN', samplingStart: null, samplingEnd: null },
-    participant: { cycleId: 'cy', acoId: 'org', airportId: null, surveyTypes: ['DOMESTIC', 'INTERNATIONAL'], requiredSampleSize: 3, sampling: { status: 'IN_PROGRESS', selectedCount: 2, lockedAt: null, lockedBy: null, unlockedAt: null, unlockedBy: null, unlockReason: null } },
+    participant: { cycleId: 'cy', acoId: 'org', airportId: null, surveyTypes: ['DOMESTIC', 'INTERNATIONAL'], requiredSampleSize: 3, sampling: { status: 'IN_PROGRESS', selectedCount: 2, lockedAt: null, lockedBy: null, lockedByUser: null, unlockedAt: null, unlockedBy: null, unlockedByUser: null, unlockReason: null } },
     required: 3,
     selectedCount: 2,
     eligibleCount: 10,

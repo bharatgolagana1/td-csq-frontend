@@ -8,7 +8,6 @@ import { nationalSplit, pendingFootnote, unlistedAirports } from './derive';
 
 /** All-India: airports by weighted rating, rank and rating in mono, the operator's own airport highlighted (§7). */
 export function NationalCard({ report }: { report: OperatorReport }) {
-  const own = report.operator.airport?.iata;
   const { ranked, pending } = nationalSplit(report.nationalTable);
   const footnote = pendingFootnote(pending, unlistedAirports(report));
   return (
@@ -44,7 +43,7 @@ export function NationalCard({ report }: { report: OperatorReport }) {
           </thead>
           <tbody>
             {ranked.map((r) => {
-              const mine = r.airportIata === own;
+              const mine = r.isOwn;
               return (
                 <tr key={r.airportIata} className={cn(mine && styles.highlight)} aria-current={mine ? 'true' : undefined}>
                   <td className={styles.rankCell}>{r.rank ?? '—'}</td>

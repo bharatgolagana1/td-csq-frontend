@@ -14,15 +14,13 @@ export type AirportsTableProps = {
   sort: SortState;
   onSortChange: (s: SortState) => void;
   canManage: boolean;
-  /** Operators per airport id; undefined while unknown (shows "—"). */
-  operatorCounts?: Map<string, number>;
   onEdit: (airport: Airport) => void;
   onToggleActive: (airport: Airport) => void;
   emptyAction?: ReactNode;
 };
 
 /** IATA · name · city · state · region · active · operators; row opens the detail. */
-export function AirportsTable({ rows, loading, sort, onSortChange, canManage, operatorCounts, onEdit, onToggleActive, emptyAction }: AirportsTableProps) {
+export function AirportsTable({ rows, loading, sort, onSortChange, canManage, onEdit, onToggleActive, emptyAction }: AirportsTableProps) {
   const navigate = useNavigate();
 
   const columns: Column<Airport>[] = [
@@ -50,7 +48,7 @@ export function AirportsTable({ rows, loading, sort, onSortChange, canManage, op
       width: 110,
       align: 'right',
       mono: true,
-      cell: (a) => (operatorCounts ? formatInt(operatorCounts.get(a.id) ?? 0) : <span className={styles.muted}>—</span>),
+      cell: (a) => formatInt(a.operatorCount),
     },
   ];
 

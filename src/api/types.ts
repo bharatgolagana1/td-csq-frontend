@@ -60,7 +60,7 @@ export type User = {
   id: string;
   email: string;
   name: string;
-  phone?: string;
+  phone?: string | null;
   status: UserStatus;
   lastLoginAt?: string | null;
   createdAt?: string;

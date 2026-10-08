@@ -129,8 +129,8 @@ export const SETTINGS: Settings = {
 };
 
 export const AIRPORTS = [
-  { id: 'ap-del', iata: 'DEL', icao: 'VIDP', name: 'Delhi', city: 'New Delhi', state: 'Delhi', region: 'North', country: 'IN', lat: 28.5, lng: 77.1, active: true, createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' },
-  { id: 'ap-bom', iata: 'BOM', icao: 'VABB', name: 'Mumbai', city: 'Mumbai', state: 'Maharashtra', region: 'West', country: 'IN', lat: 19.1, lng: 72.9, active: true, createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' },
+  { id: 'ap-del', iata: 'DEL', icao: 'VIDP', name: 'Delhi', city: 'New Delhi', state: 'Delhi', region: 'North', country: 'IN', lat: 28.5, lng: 77.1, active: true, operatorCount: 2, createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' },
+  { id: 'ap-bom', iata: 'BOM', icao: 'VABB', name: 'Mumbai', city: 'Mumbai', state: 'Maharashtra', region: 'West', country: 'IN', lat: 19.1, lng: 72.9, active: true, operatorCount: 1, createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' },
 ];
 
 const OPERATOR_BASE = {

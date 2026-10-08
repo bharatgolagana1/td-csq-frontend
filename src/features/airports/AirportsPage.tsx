@@ -1,9 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 
 import { useAirports, useUpdateAirport } from '@/api/airports';
 import { type Airport, type Region } from '@/api/airports.types';
 import { errorMessage, errorRequestId } from '@/api/client';
-import { useOperators } from '@/api/organisations';
 import { useSession } from '@/auth/session';
 import { Icon } from '@/design/icons';
 import { Button, PageHeader, Pagination, SearchInput, Select, type SortState, Toolbar, ToolbarCount, useToast } from '@/design/primitives';
@@ -40,14 +39,6 @@ export default function AirportsPage() {
     pageSize,
     sort: `${sort.dir === 'desc' ? '-' : ''}${sort.id}`,
   });
-  // GET /airports rows carry no operator count; derive it from the operator list when the caller may see it.
-  const operators = useOperators({ pageSize: 500 }, hasTask('operators.view'));
-  const operatorCounts = useMemo(() => {
-    if (!operators.data) return undefined;
-    const counts = new Map<string, number>();
-    operators.data.data.forEach((o) => counts.set(o.airport.id, (counts.get(o.airport.id) ?? 0) + 1));
-    return counts;
-  }, [operators.data]);
 
   const rows = query.data?.data ?? [];
   const total = query.data?.meta.total ?? 0;
@@ -126,7 +117,6 @@ export default function AirportsPage() {
             sort={sort}
             onSortChange={setSort}
             canManage={canManage}
-            operatorCounts={operatorCounts}
             onEdit={(airport) => setForm({ mode: 'edit', airport })}
             onToggleActive={toggleActive}
             emptyAction={

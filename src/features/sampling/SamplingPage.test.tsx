@@ -105,7 +105,7 @@ describe('SamplingPage', () => {
   it('renders the locked state read-only for operators with the request-unlock copy', async () => {
     mockApi(samplingRoutes(LOCKED));
     renderPage(<SamplingPage />, { session: OPERATOR_SESSION });
-    expect(await screen.findByText(/^Sample locked on .* by u2$/)).toBeInTheDocument();
+    expect(await screen.findByText(/^Sample locked on .* by Priya Nair$/)).toBeInTheDocument();
     expect(screen.getByText('The selection is read-only. To change the sample, ask ACFI to unlock it.')).toBeInTheDocument();
     expect(within(footer()).queryByRole('button', { name: 'Lock sample' })).toBeNull();
     expect(within(footer()).queryByRole('button', { name: 'Unlock' })).toBeNull();

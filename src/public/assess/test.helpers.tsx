@@ -23,7 +23,8 @@ export const invitation: PublicInvitation = {
   expiresAt: '2026-10-31T18:29:59.000Z',
 };
 
-export const session = { sessionToken: 'jwt_session', expiresAt: '2026-10-07T22:00:00.000Z', assessmentId: 'asg_1' };
+// Relative to now: a fixed instant silently expires and turns a resume test into an OTP test.
+export const session = { sessionToken: 'jwt_session', expiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString(), assessmentId: 'asg_1' };
 
 const q = (id: string, text: string, commentMode: 'OPTIONAL' | 'REQUIRED' | 'REQUIRED_ON_LOW' | 'NONE' = 'OPTIONAL', followUp: string[] | null = null) => ({
   id,

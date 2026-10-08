@@ -71,7 +71,7 @@ const AT = '2026-09-01T06:00:00.000Z';
 const SOON = new Date(Date.now() + 10 * 86_400_000).toISOString();
 const AIRPORT = { id: 'ap-del', iata: 'DEL', name: 'Indira Gandhi International Airport' };
 
-export const DEL: Airport = { ...AIRPORT, icao: 'VIDP', city: 'New Delhi', state: 'Delhi', region: 'North', country: 'IN', lat: 28.5562, lng: 77.1, active: true, createdAt: AT, updatedAt: AT };
+export const DEL: Airport = { ...AIRPORT, icao: 'VIDP', city: 'New Delhi', state: 'Delhi', region: 'North', country: 'IN', lat: 28.5562, lng: 77.1, active: true, operatorCount: 1, createdAt: AT, updatedAt: AT };
 
 export const OPEN_LINK: OnboardingLink = {
   id: 'lnk-1',

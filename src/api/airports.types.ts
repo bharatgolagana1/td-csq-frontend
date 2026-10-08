@@ -19,6 +19,8 @@ export type Airport = {
   lat: number;
   lng: number;
   active: boolean;
+  /** ACTIVE operator (ACO) organisations at the airport. */
+  operatorCount: number;
   createdAt: string;
   updatedAt: string;
 };

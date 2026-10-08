@@ -70,10 +70,11 @@ export function useCustomer(id: string | null) {
   });
 }
 
-export function useCustomerParticipation(id: string | null) {
+/** `?acoId=` names the customer's operator: PLATFORM users must send it; an ACO user may name its own. */
+export function useCustomerParticipation(id: string | null, acoId?: string) {
   return useQuery({
     queryKey: customerKeys.participation(id ?? ''),
-    queryFn: ({ signal }) => api.get<Participation>(`/customers/${id}/participation`, { signal }),
+    queryFn: ({ signal }) => api.get<Participation>(`/customers/${id}/participation`, { query: { acoId: acoId || undefined }, signal }),
     enabled: id !== null,
   });
 }
