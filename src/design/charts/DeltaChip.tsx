@@ -29,7 +29,8 @@ export function DeltaChip({ value, invert, digits = 1, flatBelow = 0.05, size = 
   }
   const dir: 'up' | 'down' | 'flat' = Math.abs(value) < flatBelow ? 'flat' : value > 0 ? 'up' : 'down';
   const good = dir === 'flat' ? null : (dir === 'up') !== Boolean(invert);
-  const text = `${value > 0 ? '+' : value < 0 ? '−' : ''}${Math.abs(value).toFixed(digits)}`;
+  // A flat change carries no sign, so −0.04 reads "0.0" rather than "−0.0".
+  const text = `${dir === 'up' ? '+' : dir === 'down' ? '−' : ''}${Math.abs(value).toFixed(digits)}`;
   return (
     <span className={cn(styles.root, styles[size], good === true && styles.good, good === false && styles.bad, className)} title={title} aria-label={`${text} ${title}`}>
       <Icon name={dir === 'up' ? 'arrow-up' : dir === 'down' ? 'arrow-down' : 'minus'} size={16} />
