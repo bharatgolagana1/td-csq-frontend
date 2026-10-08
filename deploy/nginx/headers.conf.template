@@ -10,9 +10,10 @@
 #   __FORM_ACTION__  'self' and Keycloak (keycloak-js can POST the logout)
 #
 # style-src keeps 'unsafe-inline': ECharts and the primitives set inline
-# styles. Fonts are bundled (@fontsource), so font-src is 'self'. img-src
+# styles. Fonts are bundled (@fontsource); Vite inlines the small subsets as
+# data: URIs, so font-src allows data: as well as 'self'. img-src
 # allows data:/blob: for chart exports and inline SVG.
-add_header Content-Security-Policy "default-src 'self'; script-src __SCRIPT_SRC__; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src __CONNECT_SRC__; frame-src __FRAME_SRC__; form-action __FORM_ACTION__; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; manifest-src 'self'" always;
+add_header Content-Security-Policy "default-src 'self'; script-src __SCRIPT_SRC__; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src __CONNECT_SRC__; frame-src __FRAME_SRC__; form-action __FORM_ACTION__; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; manifest-src 'self'" always;
 add_header X-Content-Type-Options "nosniff"                        always;
 add_header Referrer-Policy        "strict-origin-when-cross-origin" always;
 add_header Permissions-Policy     "geolocation=(), microphone=(), camera=()" always;
