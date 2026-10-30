@@ -34,6 +34,22 @@ export type AnswerInput = {
   followUp?: string[];
 };
 
+export type SectionRemark = {
+  categoryId: string;
+  remark: string;
+};
+
+// NEW: Request body for saving section remarks.
+export type PatchSectionRemarksInput = {
+  sectionRemarks: SectionRemark[];
+};
+
+// NEW: Response returned after saving section remarks.
+export type PatchSectionRemarksResult = {
+  sectionRemarks: SectionRemark[];
+  lastSavedAt: string;
+};
+
 export type FormFollowUp = { prompt: string; options: string[] };
 
 export type FormQuestion = {
@@ -99,6 +115,7 @@ export type Draft = {
   id: string;
   status: AssessmentStatus;
   answers: Answer[];
+  sectionRemarks?: SectionRemark[];
   progress: Progress;
   lastSavedAt: string | null;
   submittedAt: string | null;
@@ -113,7 +130,7 @@ export type PatchAnswersResult = Progress & { lastSavedAt: string | null };
 export type Readiness = { answered: number; total: number; missing: string[]; complete: boolean };
 
 /** `GET /assessments/self/:cycleId/:surveyType`: the form and the saved answers in one payload. */
-export type SelfAssessment = AssessmentFormResponse & { answers: Answer[] };
+export type SelfAssessment = AssessmentFormResponse & { answers: Answer[]; sectionRemarks?: SectionRemark[]; };
 
 export type AssessorView = { name: string | null; email: string | null; revealed: boolean };
 

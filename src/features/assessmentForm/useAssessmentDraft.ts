@@ -4,7 +4,7 @@ import { type Answer, type AnswerInput, type AssessmentForm, type Progress } fro
 import { errorMessage, errorRequestId, NetworkError } from '@/api/client';
 
 import { answersToMap, emptyAnswer, formSteps, isSendable, progressOf, readinessOf, stepQuestions, toAnswerInput } from './rules';
-import { type AnswerPatch, type FormStep, type LocalAnswer, type SaveStatus, type StepReadiness } from './types';
+import { type AnswerPatch, type FormStep, type LocalAnswer, type SaveStatus, type StepReadiness, type SectionRemarks, } from './types';
 
 /* Local answer state with debounced, batched autosave (ARCHITECTURE §6: "Saved ·
    12:04 / Saving… / Offline — kept on this device" and a localStorage replay
@@ -30,6 +30,7 @@ export type UseAssessmentDraftOptions = {
   form: AssessmentForm;
   /** The answers saved on the server when the form was loaded. Read once; remount to reload. */
   draft: readonly Answer[];
+  initialSectionRemarks?: readonly {categoryId: string; remark: string;}[];
   /** Merge-saves a batch of changed answers; may resolve to a `SaveResult`. Throw to signal failure (NetworkError ⇒ offline). */
   save: (answers: AnswerInput[]) => Promise<unknown>;
   /** localStorage key of the replay queue. Omit to keep unsaved answers in memory only. */
@@ -44,6 +45,8 @@ export type UseAssessmentDraftResult = {
   answers: ReadonlyMap<string, LocalAnswer>;
   answerFor: (questionId: string) => LocalAnswer | undefined;
   setAnswer: (questionId: string, patch: AnswerPatch) => void;
+  sectionRemarks: SectionRemarks;
+  setSectionRemark: (sectionId: string, remark: string) => void;
   status: SaveStatus;
   /** Changed answers not yet confirmed by the server (sendable or not). */
   pending: number;
@@ -90,7 +93,7 @@ function writeQueue(key: string | undefined, answers: Record<string, LocalAnswer
   }
 }
 
-export function useAssessmentDraft({ form, draft, save, storageKey, debounceMs = 800, readOnly = false }: UseAssessmentDraftOptions): UseAssessmentDraftResult {
+export function useAssessmentDraft({ form, draft, save, storageKey, debounceMs = 800, readOnly = false, initialSectionRemarks = [], }: UseAssessmentDraftOptions): UseAssessmentDraftResult {
   const steps = useMemo(() => formSteps(form), [form]);
   const allQuestions = useMemo(() => stepQuestions(steps), [steps]);
   const questionById = useMemo(() => new Map(allQuestions.map((q) => [q.question.id, q.question])), [allQuestions]);
@@ -103,6 +106,24 @@ export function useAssessmentDraft({ form, draft, save, storageKey, debounceMs =
   });
 
   const [answers, setAnswers] = useState<Map<string, LocalAnswer>>(initial.map);
+  const [sectionRemarks, setSectionRemarks] = useState<SectionRemarks>(  () =>
+    Object.fromEntries(
+      initialSectionRemarks.map(({ categoryId, remark }) => [
+        categoryId,
+        remark,
+      ]),
+    ),);
+  const setSectionRemark = useCallback(
+    (sectionId: string, remark: string) => {
+      if (readOnly) return;
+
+      setSectionRemarks((previous) => ({
+        ...previous,
+        [sectionId]: remark,
+      }));
+    },
+    [readOnly],
+  );
   const answersRef = useRef(initial.map);
   const dirtyRef = useRef<Map<string, number>>(new Map());
   const versionRef = useRef(0);
@@ -265,5 +286,5 @@ export function useAssessmentDraft({ form, draft, save, storageKey, debounceMs =
 
   const answerFor = useCallback((questionId: string) => answers.get(questionId), [answers]);
 
-  return { answers, answerFor, setAnswer, status, pending, progress, steps, readiness, readinessFor, flush, retry };
+  return { answers, answerFor, setAnswer, sectionRemarks, setSectionRemark, status, pending, progress, steps, readiness, readinessFor, flush, retry };
 }

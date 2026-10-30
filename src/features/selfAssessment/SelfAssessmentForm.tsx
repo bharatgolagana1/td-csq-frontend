@@ -1,4 +1,4 @@
-import { useSaveSelfAnswers, useSelfAssessment, useSubmitSelfAssessment } from '@/api/assessments';
+import { useSaveSelfAnswers, useSaveSelfSectionRemarks, useSelfAssessment, useSubmitSelfAssessment } from '@/api/assessments';
 import { type SurveyType } from '@/api/assessments.types';
 import { type CurrentCycleSummary } from '@/api/sampling.types';
 import { useSession } from '@/auth/session';
@@ -40,6 +40,7 @@ export function SelfAssessmentForm({ cycle, surveyType }: SelfAssessmentFormProp
   const toast = useToast();
   const query = useSelfAssessment(cycle.id, surveyType);
   const save = useSaveSelfAnswers(cycle.id, surveyType);
+  const saveRemarks = useSaveSelfSectionRemarks(cycle.id, surveyType);
   const submit = useSubmitSelfAssessment(cycle.id, surveyType);
 
   if (query.isPending) return <FormSkeleton />;
@@ -63,7 +64,9 @@ export function SelfAssessmentForm({ cycle, surveyType }: SelfAssessmentFormProp
       <AssessmentStepper
         form={data}
         draft={data.answers}
+        initialSectionRemarks={data.sectionRemarks ?? []}
         onSave={(answers) => save.mutateAsync(answers)}
+        onSaveSectionRemarks={(sectionRemarks) => saveRemarks.mutateAsync({ sectionRemarks })}
         onSubmit={() => submit.mutateAsync()}
         storageKey={`csq.self.${org.id}.${cycle.id}.${surveyType}`}
         tz={cycle.tz}

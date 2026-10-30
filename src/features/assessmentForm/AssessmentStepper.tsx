@@ -2,7 +2,7 @@ import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 
 import { type Answer, type AnswerInput, type AssessmentForm, type Progress } from '@/api/assessments.types';
 import { Icon } from '@/design/icons';
-import { Button } from '@/design/primitives';
+import { Button, Textarea } from '@/design/primitives';
 import { cn } from '@/lib/cn';
 import { formatInt } from '@/lib/format';
 
@@ -22,8 +22,12 @@ export type AssessmentStepperProps = {
   form: AssessmentForm;
   /** Answers saved on the server when the form was loaded. */
   draft: readonly Answer[];
+  initialSectionRemarks?: { categoryId: string; remark: string }[];
   /** Merge-saves a batch of changed answers (the signed-in or the link-token PATCH); may resolve to a `SaveResult` (`{ lastSavedAt }`). */
   onSave: (answers: AnswerInput[]) => Promise<unknown>;
+  onSaveSectionRemarks?: (
+  sectionRemarks: { categoryId: string; remark: string }[]
+) => Promise<unknown>;
   /** Submits the assessment; rejects with the ApiError to show (412 lists `missing`). */
   onSubmit: () => Promise<unknown>;
   /** localStorage key of the offline replay queue. */
@@ -55,8 +59,24 @@ function focusQuestionCard(questionId: string): boolean {
  * on; the review step lists what is missing with jump links; Submit is enabled
  * only when the whole form is complete, flushes the draft, then confirms.
  */
-export function AssessmentStepper({ form, draft, onSave, onSubmit, storageKey, tz, readOnly = false, initialStep = 0, submitNote, onProgress, onStatus, onSubmitted, className }: AssessmentStepperProps) {
-  const d = useAssessmentDraft({ form, draft, save: onSave, storageKey, readOnly });
+export function AssessmentStepper({
+  form,
+  draft,
+  initialSectionRemarks,
+  onSave,
+  onSaveSectionRemarks,
+  onSubmit,
+  storageKey,
+  tz,
+  readOnly = false,
+  initialStep = 0,
+  submitNote,
+  onProgress,
+  onStatus,
+  onSubmitted,
+  className,
+}: AssessmentStepperProps) {
+  const d = useAssessmentDraft({ form, draft, save: onSave, storageKey, readOnly, initialSectionRemarks });
   const stepCount = d.steps.length;
   const reviewIndex = stepCount;
   const [step, setStep] = useState(() => Math.min(Math.max(0, initialStep), reviewIndex));
@@ -69,6 +89,63 @@ export function AssessmentStepper({ form, draft, onSave, onSubmit, storageKey, t
   const navigated = useRef(false);
   /** Question to land on after the next step change (a jump from the review list). */
   const pendingFocus = useRef<string | null>(null);
+  
+  const latestRemarksRef = useRef(d.sectionRemarks);
+  latestRemarksRef.current = d.sectionRemarks;
+
+  const saveRemarksRef = useRef(onSaveSectionRemarks);
+  saveRemarksRef.current = onSaveSectionRemarks;
+
+  const lastSavedRemarksRef = useRef(
+    JSON.stringify(initialSectionRemarks ?? []),
+  );
+
+  // Serialize requests so older saves cannot overwrite newer remarks.
+  const remarksQueueRef = useRef<Promise<void>>(Promise.resolve());
+
+  const flushSectionRemarks = useCallback(async (): Promise<boolean> => {
+    const saveRemarks = saveRemarksRef.current;
+    if (!saveRemarks || readOnly) return true;
+
+    const allRemarks = Object.entries(latestRemarksRef.current).map(
+      ([categoryId, remark]) => ({ categoryId, remark }),
+    );
+
+    const snapshot = JSON.stringify(allRemarks);
+
+    if (snapshot !== lastSavedRemarksRef.current) {
+      const pending = remarksQueueRef.current
+        .catch(() => undefined)
+        .then(async () => {
+          if (snapshot === lastSavedRemarksRef.current) return;
+          await saveRemarks(allRemarks);
+          lastSavedRemarksRef.current = snapshot;
+        });
+
+      remarksQueueRef.current = pending;
+    }
+
+    try {
+      await remarksQueueRef.current;
+      return true;
+    } catch {
+      setBlocked(
+        'Your section remarks could not be saved. Check your connection and try again.',
+      );
+      return false;
+    }
+  }, [readOnly]);
+
+  // Debounce Remarks saving without changing the existing answer autosave.
+  useEffect(() => {
+    if (!onSaveSectionRemarks || readOnly) return;
+
+    const timer = setTimeout(() => {
+      void flushSectionRemarks();
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [d.sectionRemarks, flushSectionRemarks, onSaveSectionRemarks, readOnly]);
 
   useEffect(() => onProgress?.(d.progress), [d.progress, onProgress]);
   useEffect(() => onStatus?.(d.status), [d.status, onStatus]);
@@ -93,16 +170,40 @@ export function AssessmentStepper({ form, draft, onSave, onSubmit, storageKey, t
     sectionRef.current?.focus({ preventScroll: true });
   }, [step]);
 
-  const go = useCallback(
-    (next: number) => {
-      const target = Math.min(Math.max(0, next), reviewIndex);
-      if (step < reviewIndex && !d.readinessFor(step).complete) setValidated((v) => new Set(v).add(step));
-      navigated.current = true;
-      setBlocked(null);
-      setStep(target);
-    },
-    [d, reviewIndex, step],
-  );
+  
+const go = useCallback(
+  (next: number) => {
+    const target = Math.min(Math.max(0, next), reviewIndex);
+
+    // NEW: Do not move forward when any preceding section
+    // has missing or empty Remarks.
+    // Applies to forms with the Remarks-saving API connected.
+    if (!readOnly && onSaveSectionRemarks && target > step) {
+      const missingSection = d.steps
+        .slice(0, target)
+        .find(
+          (section) =>
+            !(d.sectionRemarks[section.id] ?? '').trim(),
+        );
+
+      if (missingSection) {
+        setBlocked(
+          `Please enter Remarks for "${missingSection.label}" before continuing.`,
+        );
+        return;
+      }
+    }
+
+    // EXISTING CODE — unchanged
+    if (step < reviewIndex && !d.readinessFor(step).complete)
+      setValidated((v) => new Set(v).add(step));
+
+    navigated.current = true;
+    setBlocked(null);
+    setStep(target);
+  },
+  [d, reviewIndex, step, readOnly, onSaveSectionRemarks],
+);
 
   const jump = (item: ReviewItem) => {
     setValidated((v) => new Set(v).add(item.stepIndex));
@@ -121,6 +222,8 @@ export function AssessmentStepper({ form, draft, onSave, onSubmit, storageKey, t
       setBlocked('Your latest answers have not reached the server yet. Check your connection and try again.');
       return;
     }
+    const remarksFlushed = await flushSectionRemarks();
+    if (!remarksFlushed) return;
     setBlocked(null);
     setConfirmOpen(true);
   };
@@ -184,6 +287,19 @@ export function AssessmentStepper({ form, draft, onSave, onSubmit, storageKey, t
                     readOnly={readOnly}
                   />
                 ))}
+                <Textarea
+                  id={`section-remarks-${current.id}`}
+                  label="Remarks"
+                  required
+                  rows={4}
+                  maxLength={2000}
+                  placeholder="Enter remarks for this section..."
+                  value={d.sectionRemarks[current.id] ?? ''}
+                  disabled={readOnly}
+                  onChange={(e) =>
+                    d.setSectionRemark(current.id, e.target.value)
+                  }
+                />
               </div>
             </>
           ) : null}

@@ -70,3 +70,4 @@ export type AnswerGroupItem = {
 };
 
 export type AnswerGroup = { id: string; name: string; items: AnswerGroupItem[] };
+export type SectionRemarks = Record<string, string>;

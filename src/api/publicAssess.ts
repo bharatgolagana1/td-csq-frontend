@@ -2,6 +2,10 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { api, isApiError } from './client';
 import {
+  type PatchSectionRemarksInput,
+  type PatchSectionRemarksResult,
+} from './assessments.types';
+import {
   type Answer,
   type AnswerInput,
   type AssessmentFormResponse,
@@ -47,6 +51,18 @@ export const publicAssessApi = {
   draft: async (token: string, linkToken: string, signal?: AbortSignal) => normaliseDraft(await api.get<unknown>(`${base(token)}/draft`, { linkToken, signal })),
   saveAnswers: (token: string, linkToken: string, answers: AnswerInput[]) =>
     api.patch<PatchAnswersResult>(`${base(token)}/answers`, { body: { answers }, linkToken }),
+  saveSectionRemarks: (
+    token: string,
+    linkToken: string,
+    input: PatchSectionRemarksInput,
+  ) =>
+    api.patch<PatchSectionRemarksResult>(
+      `${base(token)}/remarks`,
+      {
+        body: input,
+        linkToken,
+      },
+    ),
   readiness: (token: string, linkToken: string, signal?: AbortSignal) => api.get<Readiness>(`${base(token)}/readiness`, { linkToken, signal }),
   submit: (token: string, linkToken: string) => api.post<SubmitResult | undefined>(`${base(token)}/submit`, { body: {}, linkToken }),
 };
