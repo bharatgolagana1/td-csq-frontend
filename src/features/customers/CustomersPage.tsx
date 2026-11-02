@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { errorMessage, errorRequestId } from '@/api/client';
-import { useAcoScope, useCustomers, useSetCustomerStatus } from '@/api/customers';
+import { useAcoScope, useCustomers, useSetCustomerStatus, useDeleteCustomer,} from '@/api/customers';
 import { type Customer, type CustomerStatus, type CustomerSurveyType, type CustomerType } from '@/api/customers.types';
 import { useSession } from '@/auth/session';
 import { Icon } from '@/design/icons';
@@ -22,6 +22,7 @@ type FormState = { mode: 'closed' } | { mode: 'add' } | { mode: 'edit'; customer
 export default function CustomersPage() {
   const { hasTask, org } = useSession();
   const canManage = hasTask('customers.manage');
+  const canDelete = hasTask('customers.delete');
   const toast = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -40,6 +41,7 @@ export default function CustomersPage() {
   const [detail, setDetail] = useState<Customer | null>(null);
   const setStatusMutation = useSetCustomerStatus();
   const [bulkPending, setBulkPending] = useState(false);
+  const deleteMutation = useDeleteCustomer();
 
   const filtered = Boolean(q || type || surveyType || status || tag);
   const query = useCustomers(
@@ -91,6 +93,57 @@ export default function CustomersPage() {
   };
 
   const selectedCount = rows.filter((c) => selected.has(c.id)).length;
+
+   const deleteSelected = async () => {
+    if (!canDelete || bulkPending) return;
+
+    const targets = rows.filter((c) => selected.has(c.id));
+
+    if (targets.length === 0) return;
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${targets.length} ${
+        targets.length === 1 ? 'customer' : 'customers'
+      }?\n\nThe selected customers will be removed from the directory.`
+    );
+
+    if (!confirmed) return;
+
+    setBulkPending(true);
+
+    try {
+      const results = await Promise.allSettled(
+        targets.map((customer) =>
+          deleteMutation.mutateAsync(customer.id)
+        )
+      );
+
+      const failedIds = new Set(
+        targets
+          .filter((_, index) => results[index]?.status === 'rejected')
+          .map((customer) => customer.id)
+      );
+
+      const successCount = targets.length - failedIds.size;
+
+      if (failedIds.size === 0) {
+        toast.success(
+          `${successCount} ${
+            successCount === 1 ? 'customer' : 'customers'
+          } deleted successfully`
+        );
+      } else {
+        toast.error(
+          `${successCount} deleted, ${failedIds.size} failed`
+        );
+      }
+
+      // Keep failed customers selected so the CTO can retry.
+      setSelected(failedIds);
+    } finally {
+      setBulkPending(false);
+    }
+  };
 
   return (
     <>
@@ -191,6 +244,19 @@ export default function CustomersPage() {
                 <Button size="sm" variant="danger" onClick={() => void bulk('INACTIVE')} loading={bulkPending}>
                   Deactivate
                 </Button>
+
+                {canDelete && (
+                  <Button
+                  size="sm"
+                  variant="danger"
+                  icon={<Icon name="trash" size={16} />}
+                  onClick={() => void deleteSelected()}
+                  disabled={bulkPending}
+                  >
+                    Delete
+                    </Button>
+                  )}
+
                 <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())} disabled={bulkPending}>
                   Clear
                 </Button>

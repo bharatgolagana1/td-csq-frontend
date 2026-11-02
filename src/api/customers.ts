@@ -104,6 +104,21 @@ export function useSetCustomerStatus() {
     onSettled: () => qc.invalidateQueries({ queryKey: customerKeys.all }),
   });
 }
+export function useDeleteCustomer() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) =>
+      api.delete<{ id: string; deletedAt: string }>(
+        `/customers/${id}`,
+      ),
+
+    onSuccess: () =>
+      qc.invalidateQueries({
+        queryKey: customerKeys.all,
+      }),
+  });
+}
 
 // --- CSV import ---------------------------------------------------------------
 // The CSV goes up as multipart and the template comes down as a file, so these
