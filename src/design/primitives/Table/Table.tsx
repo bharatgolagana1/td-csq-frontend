@@ -40,6 +40,7 @@ export type TableProps<T> = {
   empty?: ReactNode;
   stickyHeader?: boolean;
   onRowClick?: (row: T) => void;
+  isRowClickable?: (row: T) => boolean;
   rowClassName?: (row: T) => string | undefined;
   caption?: string;
   dense?: boolean;
@@ -67,6 +68,7 @@ export function Table<T>({
   empty,
   stickyHeader = true,
   onRowClick,
+  isRowClickable,
   rowClassName,
   caption,
   dense,
@@ -163,12 +165,24 @@ export function Table<T>({
             ? rows.map((row, i) => {
                 const key = keys[i] ?? String(i);
                 const isSelected = selected?.has(key) ?? false;
+                const clickable =
+                  Boolean(onRowClick) &&
+                  (isRowClickable?.(row) ?? true);
                 return (
                   <tr
                     key={key}
-                    className={cn(styles.tr, isSelected && styles.selected, onRowClick && styles.clickable, rowClassName?.(row))}
-                    aria-selected={selectable ? isSelected : undefined}
-                    onClick={onRowClick ? () => onRowClick(row) : undefined}
+                    className={cn(
+                    styles.tr,
+                    isSelected && styles.selected,
+                    clickable && styles.clickable,
+                    rowClassName?.(row),
+              )}
+                  aria-selected={selectable ? isSelected : undefined}
+                  onClick={
+                   clickable && onRowClick
+                    ? () => onRowClick(row)
+                    : undefined
+                } 
                   >
                     {selectable ? (
                       <td className={cn(styles.td, styles.selectCol)} onClick={(e) => e.stopPropagation()}>

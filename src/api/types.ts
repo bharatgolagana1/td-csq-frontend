@@ -32,6 +32,8 @@ export type TaskCode =
   | 'sampling.unlock'
   | 'assessments.self'
   | 'assessments.view'
+  | 'assessments.scores'
+  | 'assessments.details'
   | 'reports.operator'
   | 'reports.airport'
   | 'reports.national'

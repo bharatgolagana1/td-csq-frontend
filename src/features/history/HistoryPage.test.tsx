@@ -32,7 +32,7 @@ const SESSION: Session = {
   org: { id: 'org-csc', name: 'Cargo Service Center', type: 'ACO', airportId: 'ap-del' },
   role: { code: 'ACO_ADMIN', scope: 'ACO' },
   scope: { kind: 'ACO', acoId: 'org-csc' },
-  tasks: new Set(['assessments.view', 'cycles.view']),
+  tasks: new Set(['assessments.view', 'assessments.scores', 'assessments.details','cycles.view']),
   memberships: [],
 };
 
@@ -78,13 +78,13 @@ function Detail() {
   return <p>detail {id}</p>;
 }
 
-function mount(path = '/history') {
+function mount(path = '/history', session: Session = SESSION) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={qc}>
       <ToastProvider>
         <MemoryRouter initialEntries={[path]} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-          <AuthProvider session={SESSION}>
+          <AuthProvider session={session}>
             <Routes>
               <Route path="/history" element={<HistoryPage />} />
               <Route path="/history/:id" element={<Detail />} />
@@ -151,4 +151,62 @@ describe('HistoryPage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Try again' }));
     expect(refetch).toHaveBeenCalled();
   });
+
+  it('hides customer details and scores for a restricted CTO', async () => {
+  list.mockReturnValue({
+    isPending: false,
+    isError: false,
+    data: {
+      data: ROWS,
+      meta: { page: 1, pageSize: 25, total: 2 },
+    },
+  } as unknown as ReturnType<typeof useAssessments>);
+
+  const restrictedSession: Session = {
+    ...SESSION,
+    tasks: new Set([
+      'assessments.view',
+      'cycles.view',
+    ]),
+  };
+
+  mount('/history', restrictedSession);
+
+  // Restricted CTO cannot see assessment scores.
+  expect(
+    screen.queryByRole('columnheader', { name: 'Score' }),
+  ).not.toBeInTheDocument();
+
+  // Customer identity is hidden.
+  expect(
+    screen.getByText('Anonymous customer'),
+  ).toBeInTheDocument();
+
+  expect(
+    screen.queryByText('a***@delcargo.test'),
+  ).not.toBeInTheDocument();
+
+  // Export action is restricted to self-assessments.
+  expect(
+    screen.getByRole('button', { name: 'Export self CSV' }),
+  ).toBeInTheDocument();
+
+  // Restricted customer rows do not navigate.
+  const customerRow = screen.getByRole('row', {
+    name: /Anonymous customer/,
+  });
+
+  await userEvent.click(customerRow);
+
+  expect(
+    screen.queryByText('detail a1'),
+  ).not.toBeInTheDocument();
+
+  // Existing self-assessment access remains available.
+  await userEvent.click(screen.getByText('Priya Natarajan'));
+
+  expect(
+    await screen.findByText('detail a2'),
+  ).toBeInTheDocument();
+ });
 });

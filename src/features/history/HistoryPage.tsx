@@ -37,6 +37,8 @@ const SURVEY_OPTIONS = [
 /** /history — every assessment the caller may see; row → read-only return; CSV export per cycle (assessments.view). */
 export default function HistoryPage() {
   const { hasTask, scope, org } = useSession();
+  const canViewScores = hasTask('assessments.scores');
+  const canViewDetails = hasTask('assessments.details');
   const navigate = useNavigate();
   const toast = useToast();
   const state = useHistoryQuery();
@@ -61,13 +63,16 @@ export default function HistoryPage() {
 
   const selectedCycle = state.filters.cycleId;
   const onExport = () => {
-    if (!selectedCycle) return;
+    if (
+      !selectedCycle ||
+      (!canViewDetails && state.filters.kind === 'CUSTOMER')
+    ) return;
     const code = cycleOptions.find((o) => o.value === selectedCycle)?.label.split(' · ')[0] ?? selectedCycle;
     exportCsv.mutate(
       {
         query: {
           cycleId: selectedCycle,
-          ...(state.filters.kind ? { kind: state.filters.kind as 'CUSTOMER' | 'SELF' } : {}),
+          ...(!canViewDetails ? { kind: 'SELF' as const } : state.filters.kind ? { kind: state.filters.kind as 'CUSTOMER' | 'SELF' } : {}),
           ...(state.filters.status ? { status: state.filters.status as 'DRAFT' | 'SUBMITTED' } : {}),
         },
         fileName: `assessments-${code}.csv`,
@@ -83,8 +88,24 @@ export default function HistoryPage() {
         title="History"
         context={scope.kind === 'ACO' ? `Every assessment of ${org.name}: customer returns and your self-assessments.` : 'Every assessment across operators; assessor identity is masked for operator users.'}
         actions={
-          <Button variant="secondary" icon={<Icon name="download" size={18} />} disabled={!selectedCycle} loading={exportCsv.isPending} onClick={onExport} title={selectedCycle ? undefined : 'Choose a cycle to export'}>
-            Export CSV
+                    <Button
+            variant="secondary"
+            icon={<Icon name="download" size={18} />}
+            disabled={
+              !selectedCycle ||
+              (!canViewDetails && state.filters.kind === 'CUSTOMER')
+            }
+            loading={exportCsv.isPending}
+            onClick={onExport}
+            title={
+              !selectedCycle
+                ? 'Choose a cycle to export'
+                : !canViewDetails && state.filters.kind === 'CUSTOMER'
+                  ? 'Customer assessment export requires permission'
+                  : undefined
+            }
+          >
+            {canViewDetails ? 'Export CSV' : 'Export self CSV'}
           </Button>
         }
       />
@@ -101,7 +122,23 @@ export default function HistoryPage() {
         <QueryError error={list.error} title="Could not load assessments" onRetry={() => void list.refetch()} />
       ) : (
         <>
-          <HistoryTable rows={rows} loading={list.isPending} sort={state.sort} onSortChange={state.setSort} onOpen={(row) => navigate(row.id)} tzOf={tzOf} filtered={state.filtered} onClearFilters={state.clearFilters} />
+          
+          <HistoryTable
+            rows={rows}
+            loading={list.isPending}
+            sort={state.sort}
+            onSortChange={state.setSort}
+            canViewScores={canViewScores}
+            canViewDetails={canViewDetails}
+            onOpen={(row) => {
+              if (row.kind === 'SELF' || canViewDetails) {
+                navigate(row.id);
+              }
+            }}
+            tzOf={tzOf}
+            filtered={state.filtered}
+            onClearFilters={state.clearFilters}
+          />
           <Pagination page={state.page} pageSize={state.pageSize} total={total} onPageChange={state.setPage} onPageSizeChange={state.setPageSize} />
         </>
       )}

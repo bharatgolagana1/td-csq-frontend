@@ -10,6 +10,8 @@ import { useMediaQuery } from './useMediaQuery';
 
 export type HistoryTableProps = {
   rows: HistoryRow[];
+  canViewScores: boolean;
+  canViewDetails: boolean;
   loading: boolean;
   sort: SortState;
   onSortChange: (sort: SortState) => void;
@@ -43,8 +45,10 @@ function Empty({ filtered, onClearFilters }: { filtered: boolean; onClearFilters
 }
 
 /** Cycle · kind · customer type · assessor (masked e-mail) · status · submitted · score. Cards under 760px. */
-export function HistoryTable({ rows, loading, sort, onSortChange, onOpen, tzOf, filtered, onClearFilters }: HistoryTableProps) {
+export function HistoryTable({ rows, loading, sort, onSortChange, onOpen, tzOf, filtered, onClearFilters,  canViewScores, canViewDetails, }: HistoryTableProps) {
   const phone = useMediaQuery('(max-width: 760px)');
+  const canOpen = (row: HistoryRow) =>
+    row.kind === 'SELF' || canViewDetails;
 
   if (phone) {
     if (loading) {
@@ -63,15 +67,37 @@ export function HistoryTable({ rows, loading, sort, onSortChange, onOpen, tzOf, 
           const tz = tzOf(row.cycle.id);
           return (
             <li key={row.id}>
-              <button type="button" className={styles.card} onClick={() => onOpen(row)}>
+              
+              <button
+                type="button"
+                className={styles.card}
+                onClick={() => onOpen(row)}
+                disabled={!canOpen(row)}
+                title={
+                  !canOpen(row)
+                    ? 'Customer assessment details are restricted'
+                    : undefined
+                }
+              >
                 <span className={styles.cardTop}>
                   <span className={styles.cardCycle}>{row.cycle.code}</span>
                   <Pill variant={statusPillVariant(row.status)} size="sm">
                     {STATUS_LABELS[row.status]}
                   </Pill>
                 </span>
-                <span className={styles.cardName}>{assessorLabel(row)}</span>
-                {row.assessorEmailMasked ? <span className={styles.cardEmail}>{row.assessorEmailMasked}</span> : null}
+                
+                <span className={styles.cardName}>
+                  {!canViewDetails && row.kind === 'CUSTOMER'
+                    ? 'Anonymous customer'
+                    : assessorLabel(row)}
+                </span>
+                
+                {(canViewDetails || row.kind === 'SELF') &&
+                row.assessorEmailMasked ? (
+                  <span className={styles.cardEmail}>
+                    {row.assessorEmailMasked}
+                  </span>
+                ) : null}
                 <span className={styles.cardMeta}>
                   <Pill variant={kindVariant(row.kind)} dot={false} size="sm">
                     {KIND_LABELS[row.kind]}
@@ -81,7 +107,12 @@ export function HistoryTable({ rows, loading, sort, onSortChange, onOpen, tzOf, 
                       {row.customerType}
                     </Pill>
                   ) : null}
-                  <span className={styles.cardScore}>{formatRating(row.score)}</span>
+                  
+                  {canViewScores ? (
+                    <span className={styles.cardScore}>
+                      {formatRating(row.score)}
+                    </span>
+                  ) : null}
                 </span>
                 <span className={styles.cardSubmitted}>{row.submittedAt ? `Submitted ${submittedLabel(row, tz)}` : `${row.progress.answered} of ${row.progress.total} answered`}</span>
               </button>
@@ -134,8 +165,17 @@ export function HistoryTable({ rows, loading, sort, onSortChange, onOpen, tzOf, 
       header: 'Assessor',
       cell: (r) => (
         <span className={styles.assessor}>
-          <span className={styles.assessorName}>{assessorLabel(r)}</span>
-          {r.assessorEmailMasked ? <span className={styles.assessorEmail}>{r.assessorEmailMasked}</span> : null}
+          <span className={styles.assessorName}>
+            {!canViewDetails && r.kind === 'CUSTOMER'
+              ? 'Anonymous customer'
+              : assessorLabel(r)}
+          </span>
+          {(canViewDetails || r.kind === 'SELF') &&
+          r.assessorEmailMasked ? (
+            <span className={styles.assessorEmail}>
+              {r.assessorEmailMasked}
+            </span>
+          ) : null}
         </span>
       ),
     },
@@ -151,12 +191,23 @@ export function HistoryTable({ rows, loading, sort, onSortChange, onOpen, tzOf, 
       ),
     },
     { id: 'submittedAt', header: 'Submitted', width: 190, sortable: true, mono: true, hideBelow: 'md', cell: (r) => submittedLabel(r, tzOf(r.cycle.id)) },
-    { id: 'score', header: 'Score', width: 80, align: 'right', mono: true, cell: (r) => formatRating(r.score) },
   ];
+
+  if (canViewScores) {
+    columns.push({
+      id: 'score',
+      header: 'Score',
+      width: 80,
+      align: 'right',
+      mono: true,
+      cell: (r) => formatRating(r.score),
+    });
+  }
 
   return (
     <Table
       columns={columns}
+      isRowClickable={canOpen}
       rows={rows}
       rowKey={(r) => r.id}
       sort={sort}

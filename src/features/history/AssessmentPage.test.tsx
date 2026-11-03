@@ -26,7 +26,7 @@ const SESSION: Session = {
   org: { id: 'org-acfi', name: 'Air Cargo Forum India', type: 'ACFI' },
   role: { code: 'SUPER_ADMIN', scope: 'PLATFORM' },
   scope: { kind: 'PLATFORM' },
-  tasks: new Set(['assessments.view', 'cycles.view']),
+  tasks: new Set(['assessments.view', 'assessments.scores', 'assessments.details', 'cycles.view']),
   memberships: [],
 };
 

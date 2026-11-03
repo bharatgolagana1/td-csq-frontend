@@ -30,6 +30,9 @@ export default function AssessmentPage() {
   const { hasTask } = useSession();
   const query = useAssessment(id);
   const data = query.data;
+  const customerDetailsRestricted =
+    data?.kind === 'CUSTOMER' &&
+    !hasTask('assessments.details');
   // The cycle carries the zone; readable only with cycles.view, else the default zone.
   const cycle = useCycle(data?.cycle.id, hasTask('cycles.view'));
   const tz = cycle.data?.tz ?? DEFAULT_TZ;
@@ -55,6 +58,13 @@ export default function AssessmentPage() {
         <DetailSkeleton />
       ) : query.isError ? (
         <QueryError error={query.error} title="Could not load this assessment" onRetry={() => void query.refetch()} />
+      ) : customerDetailsRestricted ? (
+        <Card>
+          <p>
+            You do not have permission to view individual
+            customer assessment details.
+          </p>
+        </Card>
       ) : !data ? null : (
         <div className={styles.detail}>
           <Card>
@@ -94,7 +104,13 @@ export default function AssessmentPage() {
                 { key: 'Started', value: `${formatDateTime(data.startedAt, tz)} ${zone}`, mono: true },
                 { key: 'Submitted', value: data.submittedAt ? `${formatDateTime(data.submittedAt, tz)} ${zone}` : '—', mono: true },
                 { key: 'Answered', value: `${formatInt(data.progress.answered)} of ${formatInt(data.progress.total)}`, mono: true },
-                { key: 'Score', value: formatRating(data.score), mono: true },
+                  {
+                  key: 'Score',
+                  value: hasTask('assessments.scores')
+                    ? formatRating(data.score)
+                    : 'Hidden',
+                  mono: true,
+                },
               ]}
             />
             {data.kind === 'SELF' ? <p className={styles.selfNote}>Self scores are reported beside customer scores and never enter the published rating.</p> : null}

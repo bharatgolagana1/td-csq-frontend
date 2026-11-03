@@ -157,3 +157,14 @@
   color: var(--muted);
   font-size: var(--text-sm);
 }
+
+.card:disabled {
+  opacity: 1;
+  cursor: default;
+}
+
+.card:disabled:hover {
+  background: var(--surface);
+  border-color: var(--line);
+}
+
