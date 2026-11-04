@@ -25,6 +25,24 @@ function submittedLabel(row: HistoryRow, tz: string): string {
   return `${formatDateTime(row.submittedAt, tz)} ${zoneAbbr(tz, new Date(row.submittedAt))}`;
 }
 
+const IDENTITY_MASK = '********';
+
+function displayAssessorName(row: HistoryRow): string {
+  if (row.kind === 'CUSTOMER' && !row.assessor.revealed) {
+    return IDENTITY_MASK;
+  }
+
+  return assessorLabel(row);
+}
+
+function displayAssessorEmail(row: HistoryRow): string | null {
+  if (row.kind === 'CUSTOMER' && !row.assessor.revealed) {
+    return IDENTITY_MASK;
+  }
+
+  return row.assessorEmailMasked ?? null;
+}
+
 function Empty({ filtered, onClearFilters }: { filtered: boolean; onClearFilters: () => void }): ReactNode {
   return filtered ? (
     <EmptyState
@@ -70,8 +88,8 @@ export function HistoryTable({ rows, loading, sort, onSortChange, onOpen, tzOf, 
                     {STATUS_LABELS[row.status]}
                   </Pill>
                 </span>
-                <span className={styles.cardName}>{assessorLabel(row)}</span>
-                {row.assessorEmailMasked ? <span className={styles.cardEmail}>{row.assessorEmailMasked}</span> : null}
+                <span className={styles.cardName}>{displayAssessorName(row)} </span>
+                {displayAssessorEmail(row) ? (<span className={styles.cardEmail}>{displayAssessorEmail(row)}</span>) : null}
                 <span className={styles.cardMeta}>
                   <Pill variant={kindVariant(row.kind)} dot={false} size="sm">
                     {KIND_LABELS[row.kind]}
@@ -134,8 +152,15 @@ export function HistoryTable({ rows, loading, sort, onSortChange, onOpen, tzOf, 
       header: 'Assessor',
       cell: (r) => (
         <span className={styles.assessor}>
-          <span className={styles.assessorName}>{assessorLabel(r)}</span>
-          {r.assessorEmailMasked ? <span className={styles.assessorEmail}>{r.assessorEmailMasked}</span> : null}
+          <span className={styles.assessorName}>
+            {displayAssessorName(r)}
+          </span>
+
+          {displayAssessorEmail(r) ? (
+            <span className={styles.assessorEmail}>
+              {displayAssessorEmail(r)}
+            </span>
+          ) : null}
         </span>
       ),
     },
