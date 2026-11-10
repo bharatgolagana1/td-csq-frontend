@@ -22,6 +22,12 @@ export type QuestionCardProps = {
   showValidation?: boolean;
   readOnly?: boolean;
   className?: string;
+  /** Reuse only the rating, follow-up and comment controls. */
+  controlsOnly?: boolean;
+  /** Unique radio name for Import and Export. */
+  ratingGroupName?: string;
+  /** Accessible question and accordion labels. */
+  controlsLabelledBy?: string;
 };
 
 /**
@@ -30,7 +36,7 @@ export type QuestionCardProps = {
  * Validation is inline: the rating error appears when asked for; the comment
  * error as soon as the rule applies and the field was left or asked for.
  */
-export function QuestionCard({ question, index, answer, onChange, section, showValidation = false, readOnly = false, className }: QuestionCardProps) {
+export function QuestionCard({ question, index, answer, onChange, section, showValidation = false, readOnly = false, controlsOnly = false, ratingGroupName, controlsLabelledBy, className }: QuestionCardProps) {
   const id = useId();
   const textId = `${id}-text`;
   const helpId = `${id}-help`;
@@ -56,7 +62,15 @@ export function QuestionCard({ question, index, answer, onChange, section, showV
   };
 
   return (
-    <article id={questionDomId(question.id)} tabIndex={-1} aria-labelledby={textId} className={cn(styles.card, className)} data-question-id={question.id}>
+    <article 
+      id={controlsOnly ? undefined : questionDomId(question.id)}
+      tabIndex={controlsOnly ? undefined : -1}
+      aria-labelledby={controlsOnly ? controlsLabelledBy : textId}
+      className={cn(styles.card, className)}
+      data-question-id={question.id}
+    >
+    {!controlsOnly ? (
+    <>
       <p className={styles.eyebrow}>
         <span className="num">Q{index}</span>
         {section ? <span className={styles.eyebrowSection}> · {section}</span> : null}
@@ -77,19 +91,22 @@ export function QuestionCard({ question, index, answer, onChange, section, showV
             className={styles.helpButton}
           />
         ) : null}
+      
       </div>
       {question.help && helpOpen ? (
         <p id={helpId} className={styles.help}>
           {question.help}
         </p>
       ) : null}
+      </>
+  ) : null}
 
       <RatingScale
-        name={`rating-${question.id}`}
+        name={ratingGroupName ?? `rating-${question.id}`}
         value={value}
         onChange={onRating}
         disabled={readOnly}
-        labelledBy={textId}
+        labelledBy={controlsOnly ? (controlsLabelledBy ?? textId) : textId}
         describedBy={ratingIssue ? ratingErrorId : undefined}
         invalid={Boolean(ratingIssue)}
       />

@@ -44,5 +44,7 @@ describe('reports selection helpers', () => {
   it('names export files from the query', () => {
     expect(exportFileName({ scope: 'operator', cycleId: 'c1', surveyType: 'DOMESTIC' }, 'CSQ-26H1')).toBe('csq-operator-CSQ-26H1-domestic.csv');
     expect(exportFileName({ scope: 'national' })).toBe('csq-national-current.csv');
+    expect(exportFileName({ scope: 'operator', cycleId: 'c1', surveyType: 'DOMESTIC', direction: 'IMPORT' })).toBe('csq-operator-c1-domestic-import.csv');
+    expect(exportFileName({ scope: 'operator', cycleId: 'c1', surveyType: 'DOMESTIC', direction: 'EXPORT' })).toBe('csq-operator-c1-domestic-export.csv');
   });
 });

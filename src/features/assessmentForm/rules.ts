@@ -1,6 +1,6 @@
-import { type Answer, type AnswerInput, type AssessmentForm, type DetailAnswer, type FormQuestion, type Progress, type Rating } from '@/api/assessments.types';
+import { type AnswerMode, type Answer, type AnswerDirection, type AnswerInput, type AssessmentForm, type DetailAnswer, type FormQuestion, type Progress, type Rating } from '@/api/assessments.types';
 
-import { type AnswerGroup, type AnswerIssue, type FormStep, type FormStepQuestion, type LocalAnswer, type ReviewItem, type StepReadiness } from './types';
+import { type AnswerGroup, type AnswerGroupItem, type AnswerIssue, type FormStep, type FormStepQuestion, type LocalAnswer, type ReviewItem, type StepReadiness } from './types';
 
 /* Form rules (backend ARCHITECTURE §7 "Form rules"), mirrored client-side so the
    form validates inline and never sends an answer the server would refuse:
@@ -27,16 +27,49 @@ export function isLowRating(rating: Rating | null | undefined): boolean {
   return rating !== null && rating !== undefined && rating <= LOW_RATING_MAX;
 }
 
-export function emptyAnswer(questionId: string): LocalAnswer {
-  return { questionId, rating: null, na: false, comment: '', followUp: [] };
+export function answerKey(
+  questionId: string,
+  direction?: AnswerDirection | null,
+): string {
+  return direction
+    ? JSON.stringify([questionId, direction])
+    : questionId;
+}
+
+export function emptyAnswer(
+  questionId: string,
+  direction?: AnswerDirection,
+): LocalAnswer {
+  return {
+    questionId,
+    ...(direction ? { direction } : {}),
+    rating: null,
+    na: false,
+    comment: '',
+    followUp: [],
+  };
 }
 
 export function fromAnswer(answer: Answer): LocalAnswer {
-  return { questionId: answer.questionId, rating: answer.rating, na: answer.na, comment: answer.comment ?? '', followUp: [...answer.followUp] };
+  return {
+    questionId: answer.questionId,
+    ...(answer.direction ? { direction: answer.direction } : {}),
+    rating: answer.rating,
+    na: answer.na,
+    comment: answer.comment ?? '',
+    followUp: [...answer.followUp],
+  };
 }
 
-export function answersToMap(answers: readonly Answer[]): Map<string, LocalAnswer> {
-  return new Map(answers.map((a) => [a.questionId, fromAnswer(a)]));
+export function answersToMap(
+  answers: readonly Answer[],
+): Map<string, LocalAnswer> {
+  return new Map(
+    answers.map((answer) => [
+      answerKey(answer.questionId, answer.direction),
+      fromAnswer(answer),
+    ]),
+  );
 }
 
 export function isAnswered(answer: LocalAnswer | undefined): boolean {
@@ -80,7 +113,15 @@ export function toAnswerInput(question: FormQuestion, answer: LocalAnswer): Answ
   const comment = question.commentMode === 'NONE' ? null : answer.comment.trim() || null;
   const listed = new Set(question.followUp?.options ?? []);
   const followUp = isLowRating(answer.rating) ? Array.from(new Set(answer.followUp.filter((o) => listed.has(o)))) : [];
-  return { questionId: answer.questionId, rating: answer.na ? null : answer.rating, na: answer.na, comment, followUp };
+return {
+  questionId: answer.questionId,
+  ...(answer.direction ? { direction: answer.direction } : {}),
+  rating: answer.na ? null : answer.rating,
+  na: answer.na,
+  comment,
+  followUp,
+};
+
 }
 
 /** One step per category; questions in display order (subcategories first, then direct questions), numbered across the form. */
@@ -101,34 +142,94 @@ export function stepQuestions(steps: readonly FormStep[]): FormStepQuestion[] {
   return steps.flatMap((s) => s.questions);
 }
 
-/** Readiness of a list of questions against the local answers (§7: every question answered; rules satisfied). */
-export function readinessOf(questions: readonly FormStepQuestion[], answers: ReadonlyMap<string, LocalAnswer>): StepReadiness {
+export function readinessOf(
+  questions: readonly FormStepQuestion[],
+  answers: ReadonlyMap<string, LocalAnswer>,
+  answerMode: AnswerMode = 'SINGLE',
+): StepReadiness {
   const missing: string[] = [];
   const invalid: string[] = [];
+
+  const directions: (AnswerDirection | null)[] =
+    answerMode === 'IMPORT_EXPORT'
+      ? ['IMPORT', 'EXPORT']
+      : [null];
+
   questions.forEach(({ question }) => {
-    const answer = answers.get(question.id);
-    if (!isAnswered(answer)) missing.push(question.id);
-    else if (answerIssues(question, answer).length > 0) invalid.push(question.id);
+    directions.forEach((direction) => {
+      const key = answerKey(question.id, direction);
+      const answer = answers.get(key);
+
+      const slotId = direction
+        ? `${question.id}:${direction}`
+        : question.id;
+
+      if (!isAnswered(answer)) {
+        missing.push(slotId);
+      } else if (answerIssues(question, answer).length > 0) {
+        invalid.push(slotId);
+      }
+    });
   });
-  return { answered: questions.length - missing.length, total: questions.length, missing, invalid, complete: missing.length === 0 && invalid.length === 0 };
+
+  const total = questions.length * directions.length;
+
+  return {
+    answered: total - missing.length,
+    total,
+    missing,
+    invalid,
+    complete: missing.length === 0 && invalid.length === 0,
+  };
 }
 
 export function progressOf(answered: number, total: number): Progress {
   return { answered, total, pct: total === 0 ? 0 : Math.round((answered / total) * 100) };
 }
 
-/** Everything the review step lists: unanswered questions and required comments left empty, in form order. */
-export function reviewItems(steps: readonly FormStep[], answers: ReadonlyMap<string, LocalAnswer>): ReviewItem[] {
+export function reviewItems(
+  steps: readonly FormStep[],
+  answers: ReadonlyMap<string, LocalAnswer>,
+  answerMode: AnswerMode = 'SINGLE',
+): ReviewItem[] {
   const items: ReviewItem[] = [];
+
+  const directions: readonly (AnswerDirection | null)[] =
+    answerMode === 'IMPORT_EXPORT'
+      ? ['IMPORT', 'EXPORT']
+      : [null];
+
   steps.forEach((step, stepIndex) => {
     step.questions.forEach(({ question, index }) => {
-      const answer = answers.get(question.id);
-      const issues = answerIssues(question, answer);
-      if (issues.length === 0) return;
-      const reason = issues.some((i) => i.field === 'rating') ? 'missing' : 'comment';
-      items.push({ questionId: question.id, code: question.code, text: question.text, index, stepIndex, stepLabel: step.label, reason });
+      directions.forEach((direction) => {
+        const answer = answers.get(
+          answerKey(question.id, direction),
+        );
+
+        const issues = answerIssues(question, answer);
+
+        if (issues.length === 0) return;
+
+        const reason = issues.some(
+          (issue) => issue.field === 'rating',
+        )
+          ? 'missing'
+          : 'comment';
+
+        items.push({
+          questionId: question.id,
+          ...(direction ? { direction } : {}),
+          code: question.code,
+          text: question.text,
+          index,
+          stepIndex,
+          stepLabel: step.label,
+          reason,
+        });
+      });
     });
   });
+
   return items;
 }
 
@@ -162,23 +263,64 @@ export function groupsFromForm(form: AssessmentForm, answers: readonly Answer[])
   }));
 }
 
-/** Read-only groups from a `GET /assessments/:id` return (every form question with its answer, in form order). */
+/** Read-only groups from a GET /assessments/:id return. */
 export function groupsFromDetail(answers: readonly DetailAnswer[]): AnswerGroup[] {
   const groups: AnswerGroup[] = [];
   const byCategory = new Map<string, AnswerGroup>();
+  const byQuestion = new Map<string, AnswerGroupItem>();
+
   answers.forEach((a) => {
     let group = byCategory.get(a.category.id);
+
     if (!group) {
-      group = { id: a.category.id, name: a.category.name, items: [] };
+      group = {
+        id: a.category.id,
+        name: a.category.name,
+        items: [],
+      };
+
       byCategory.set(a.category.id, group);
       groups.push(group);
     }
-    group.items.push({
-      question: { id: a.questionId, code: a.code, text: a.text },
-      subcategory: a.subcategory?.name ?? null,
-      answer: a.rating !== null || a.na ? { rating: a.rating, na: a.na, comment: a.comment, followUp: a.followUp } : null,
-    });
+
+    const questionKey = JSON.stringify([a.category.id, a.questionId]);
+    let item = byQuestion.get(questionKey);
+
+    if (!item) {
+      item = {
+        question: {
+          id: a.questionId,
+          code: a.code,
+          text: a.text,
+        },
+        subcategory: a.subcategory?.name ?? null,
+        answer: null,
+      };
+
+      byQuestion.set(questionKey, item);
+      group.items.push(item);
+    }
+
+    const answer =
+      a.rating !== null || a.na
+        ? {
+            rating: a.rating,
+            na: a.na,
+            comment: a.comment,
+            followUp: a.followUp,
+          }
+        : null;
+
+    if (a.direction === 'IMPORT') {
+      item.importAnswer = answer;
+    } else if (a.direction === 'EXPORT') {
+      item.exportAnswer = answer;
+    } else {
+      // Preserve historical SINGLE assessments.
+      item.answer = answer;
+    }
   });
+
   return groups;
 }
 

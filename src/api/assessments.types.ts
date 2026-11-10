@@ -7,6 +7,8 @@
 export type SurveyType = 'DOMESTIC' | 'INTERNATIONAL';
 export type AssessmentKind = 'CUSTOMER' | 'SELF';
 export type AssessmentStatus = 'DRAFT' | 'SUBMITTED';
+export type AnswerDirection = 'IMPORT' | 'EXPORT';
+export type AnswerMode = 'SINGLE' | 'IMPORT_EXPORT';
 export type CustomerType = 'FF' | 'CB';
 
 /** Poor = 1 … Excellent = 5. */
@@ -19,6 +21,7 @@ export type Progress = { answered: number; total: number; pct: number };
 /** A saved answer as the API returns it. */
 export type Answer = {
   questionId: string;
+  direction?: AnswerDirection | null;
   rating: Rating | null;
   na: boolean;
   comment: string | null;
@@ -28,6 +31,7 @@ export type Answer = {
 /** One entry of a merge `PATCH …/answers`; it replaces the stored answer for its question. */
 export type AnswerInput = {
   questionId: string;
+  direction?: AnswerDirection;
   rating?: Rating | null;
   na?: boolean;
   comment?: string | null;
@@ -81,6 +85,7 @@ export type AssessmentSummary = {
   surveyId: string;
   surveyType: SurveyType;
   kind: AssessmentKind;
+  answerMode?: AnswerMode;
   customerType: CustomerType | null;
   invitationId: string | null;
   userId: string | null;
@@ -135,6 +140,8 @@ export type HistoryRow = {
   submittedAt: string | null;
   /** The assessment's own NA-excluding mean rating, 1 dp; null until something is rated. */
   score: number | null;
+  importScore: number | null;
+  exportScore: number | null;
 };
 
 export type DetailAnswer = Answer & {
@@ -145,7 +152,7 @@ export type DetailAnswer = Answer & {
 };
 
 /** `GET /assessments/:id`: the read-only return. */
-export type AssessmentDetail = HistoryRow & { survey: FormSurvey; answers: DetailAnswer[] };
+export type AssessmentDetail = HistoryRow & { survey: FormSurvey; answers: DetailAnswer[], answerMode?: AnswerMode; };
 
 export type AssessmentListQuery = {
   page?: number;

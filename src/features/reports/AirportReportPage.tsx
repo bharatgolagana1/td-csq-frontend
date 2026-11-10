@@ -128,6 +128,8 @@ export default function AirportReportPage() {
         selection={cycle.selection}
         onCycle={cycle.setCycle}
         onSurveyType={cycle.setSurveyType}
+        direction={cycle.direction}
+        onDirection={cycle.setDirection}
       />
       {body}
     </>

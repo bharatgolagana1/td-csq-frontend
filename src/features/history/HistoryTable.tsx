@@ -82,7 +82,9 @@ export function HistoryTable({ rows, loading, sort, onSortChange, onOpen, tzOf, 
                       {row.customerType}
                     </Pill>
                   ) : null}
-                  <span className={styles.cardScore}>{formatRating(row.score)}</span>
+                  <span className={styles.cardScore}>
+                    Import: {formatRating(row.importScore)} · Export: {formatRating(row.exportScore)}
+                  </span>
                 </span>
                 <span className={styles.cardSubmitted}>{row.submittedAt ? `Submitted ${submittedLabel(row, tz)}` : `${row.progress.answered} of ${row.progress.total} answered`}</span>
               </button>
@@ -152,7 +154,8 @@ export function HistoryTable({ rows, loading, sort, onSortChange, onOpen, tzOf, 
       ),
     },
     { id: 'submittedAt', header: 'Submitted', width: 190, sortable: true, mono: true, hideBelow: 'md', cell: (r) => submittedLabel(r, tzOf(r.cycle.id)) },
-    { id: 'score', header: 'Score', width: 80, align: 'right', mono: true, cell: (r) => formatRating(r.score) },
+    { id: 'importScore', header: 'Import', width: 80, align: 'right', mono: true, cell: (r) => formatRating(r.importScore) },
+    { id: 'exportScore', header: 'Export', width: 80, align: 'right', mono: true, cell: (r) => formatRating(r.exportScore) },
   ];
 
   return (

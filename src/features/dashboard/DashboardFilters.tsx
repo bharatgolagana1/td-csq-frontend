@@ -1,4 +1,5 @@
 import { cycleSelectOptions, SURVEY_TYPE_LABELS } from '@/api/reports';
+import { type ScoreDirection } from '@/api/reports.types';
 import { Segmented } from '@/design/charts';
 import { Select } from '@/design/primitives';
 import { cn } from '@/lib/cn';
@@ -12,7 +13,7 @@ import { type DashboardSelection } from './useDashboardSelection';
  * One filter row above everything it scopes.
  */
 export function DashboardFilters({ selection }: { selection: DashboardSelection }) {
-  const { scope, cycles, cyclesLoading, selection: sel, setCycle, setSurveyType } = selection;
+  const { scope, cycles, cyclesLoading, selection: sel, setCycle, setSurveyType, direction, setDirection } = selection;
   const cycleOptions = cycleSelectOptions(cycles);
   return (
     <div className={cn(styles.strip, styles.inverse)} role="region" aria-label="Dashboard scope">
@@ -45,6 +46,17 @@ export function DashboardFilters({ selection }: { selection: DashboardSelection 
           placeholder={cyclesLoading ? 'Loading cycles…' : cycleOptions.length === 0 ? 'No cycle yet' : undefined}
           disabled={cyclesLoading || cycleOptions.length === 0}
           onChange={(e) => setCycle(e.target.value)}
+        />
+        <Select
+          aria-label="Score direction"
+          size="sm"
+          wrapperClassName={styles.pillSelect}
+          options={[
+            { value: 'IMPORT', label: 'Import' },
+            { value: 'EXPORT', label: 'Export' },
+          ]}
+          value={direction}
+          onChange={(event) => setDirection(event.target.value as ScoreDirection)}
         />
         {sel.surveyTypes.length > 1 && sel.surveyType ? (
           <Segmented aria-label="Survey type" tone="inverse" value={sel.surveyType} onChange={setSurveyType} options={sel.surveyTypes.map((t) => ({ value: t, label: SURVEY_TYPE_LABELS[t] }))} />

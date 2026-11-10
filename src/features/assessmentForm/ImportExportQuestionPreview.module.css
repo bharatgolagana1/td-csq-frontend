@@ -1,0 +1,72 @@
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.accordion {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.heading {
+  margin: 0;
+}
+
+.trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 16px;
+
+  border: 0;
+  background: var(--surface-2);
+  color: var(--ink);
+
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.trigger:hover {
+  background: var(--surface);
+}
+
+.trigger:focus-visible {
+  box-shadow: var(--focus-ring);
+  outline: none;
+}
+
+.chevron {
+  display: inline-flex;
+  transition: transform var(--dur-1) var(--ease);
+}
+
+.trigger[aria-expanded='true'] .chevron {
+  transform: rotate(180deg);
+}
+
+.panel {
+  padding: 14px 16px 16px;
+  border-top: 1px solid var(--line);
+}
+
+.panel[hidden] {
+  display: none;
+}
+
+/* Remove the extra card frame while preserving
+   the existing rating, follow-up and comment styles. */
+.panel .controls {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}

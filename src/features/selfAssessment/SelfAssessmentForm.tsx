@@ -53,7 +53,10 @@ export function SelfAssessmentForm({ cycle, surveyType }: SelfAssessmentFormProp
         <Banner tone="success" title={`Submitted${at ? ` on ${formatDateTime(at, cycle.tz)} ${describeTimeZone(cycle.tz)}` : ''}`}>
           Your answers are locked. {SELF_NOTE}
         </Banner>
-        <AnswerSummary groups={groupsFromForm(data, data.answers)} />
+        <AnswerSummary
+        groups={groupsFromForm(data, data.answers)}
+        answerMode={data.assessment.answerMode ?? 'SINGLE'}
+        />
       </div>
     );
   }
@@ -62,6 +65,7 @@ export function SelfAssessmentForm({ cycle, surveyType }: SelfAssessmentFormProp
     <div className={styles.form}>
       <AssessmentStepper
         form={data}
+        answerMode={data.assessment.answerMode ?? 'SINGLE'}
         draft={data.answers}
         onSave={(answers) => save.mutateAsync(answers)}
         onSubmit={() => submit.mutateAsync()}
@@ -69,6 +73,7 @@ export function SelfAssessmentForm({ cycle, surveyType }: SelfAssessmentFormProp
         tz={cycle.tz}
         submitNote={SELF_NOTE}
         onSubmitted={() => toast.success('Self-assessment submitted', { description: 'Your answers are now locked.' })}
+        previewImportExport={false}
       />
     </div>
   );
