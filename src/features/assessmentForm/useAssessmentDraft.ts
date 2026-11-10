@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { type Answer, type AnswerInput, type AssessmentForm, type Progress } from '@/api/assessments.types';
+import { type AnswerMode, type Answer, type AnswerDirection, type AnswerInput, type AssessmentForm, type Progress } from '@/api/assessments.types';
 import { errorMessage, errorRequestId, NetworkError } from '@/api/client';
 
-import { answersToMap, emptyAnswer, formSteps, isSendable, progressOf, readinessOf, stepQuestions, toAnswerInput } from './rules';
+import { answerKey, answersToMap, emptyAnswer, formSteps, isSendable, progressOf, readinessOf, stepQuestions, toAnswerInput } from './rules';
 import { type AnswerPatch, type FormStep, type LocalAnswer, type SaveStatus, type StepReadiness } from './types';
 
 /* Local answer state with debounced, batched autosave (ARCHITECTURE §6: "Saved ·
@@ -38,12 +38,21 @@ export type UseAssessmentDraftOptions = {
   debounceMs?: number;
   /** Submitted forms: no local changes, no saves. */
   readOnly?: boolean;
+  answerMode?: AnswerMode;
 };
 
 export type UseAssessmentDraftResult = {
   answers: ReadonlyMap<string, LocalAnswer>;
-  answerFor: (questionId: string) => LocalAnswer | undefined;
-  setAnswer: (questionId: string, patch: AnswerPatch) => void;
+  answerFor: (
+  questionId: string,
+  direction?: AnswerDirection,
+) => LocalAnswer | undefined;
+
+setAnswer: (
+  questionId: string,
+  patch: AnswerPatch,
+  direction?: AnswerDirection,
+) => void;
   status: SaveStatus;
   /** Changed answers not yet confirmed by the server (sendable or not). */
   pending: number;
@@ -69,9 +78,23 @@ function readQueue(key: string | undefined): Record<string, LocalAnswer> {
     const parsed = JSON.parse(raw) as Partial<Queue>;
     if (parsed.v !== QUEUE_VERSION || !parsed.answers || typeof parsed.answers !== 'object') return {};
     const out: Record<string, LocalAnswer> = {};
-    Object.entries(parsed.answers).forEach(([id, a]) => {
+    Object.entries(parsed.answers).forEach(([, a]) => {
       if (a && typeof a === 'object' && typeof a.questionId === 'string') {
-        out[id] = { questionId: a.questionId, rating: a.rating ?? null, na: Boolean(a.na), comment: typeof a.comment === 'string' ? a.comment : '', followUp: Array.isArray(a.followUp) ? a.followUp : [] };
+        
+    const direction =
+      a.direction === 'IMPORT' || a.direction === 'EXPORT'
+        ? a.direction
+        : undefined;
+
+    out[answerKey(a.questionId, direction)] = {
+      questionId: a.questionId,
+      ...(direction ? { direction } : {}),
+      rating: a.rating ?? null,
+      na: Boolean(a.na),
+      comment: typeof a.comment === 'string' ? a.comment : '',
+      followUp: Array.isArray(a.followUp) ? a.followUp : [],
+   };
+
       }
     });
     return out;
@@ -90,7 +113,7 @@ function writeQueue(key: string | undefined, answers: Record<string, LocalAnswer
   }
 }
 
-export function useAssessmentDraft({ form, draft, save, storageKey, debounceMs = 800, readOnly = false }: UseAssessmentDraftOptions): UseAssessmentDraftResult {
+export function useAssessmentDraft({ form, draft, save, storageKey, debounceMs = 800, readOnly = false, answerMode = 'SINGLE', }: UseAssessmentDraftOptions): UseAssessmentDraftResult {
   const steps = useMemo(() => formSteps(form), [form]);
   const allQuestions = useMemo(() => stepQuestions(steps), [steps]);
   const questionById = useMemo(() => new Map(allQuestions.map((q) => [q.question.id, q.question])), [allQuestions]);
@@ -98,7 +121,7 @@ export function useAssessmentDraft({ form, draft, save, storageKey, debounceMs =
   const [initial] = useState(() => {
     const map = answersToMap(draft);
     const queued = readOnly ? {} : readQueue(storageKey);
-    Object.values(queued).forEach((a) => map.set(a.questionId, a));
+    Object.values(queued).forEach((a) => map.set(answerKey(a.questionId, a.direction), a));
     return { map, queued: Object.keys(queued) };
   });
 
@@ -135,8 +158,10 @@ export function useAssessmentDraft({ form, draft, save, storageKey, debounceMs =
 
     const batch: { id: string; version: number; input: AnswerInput }[] = [];
     dirtyRef.current.forEach((version, id) => {
-      const question = questionById.get(id);
       const answer = answersRef.current.get(id);
+      const question = answer
+        ? questionById.get(answer.questionId)
+        : undefined;
       if (!question || !answer) {
         dirtyRef.current.delete(id);
         return;
@@ -200,23 +225,43 @@ export function useAssessmentDraft({ form, draft, save, storageKey, debounceMs =
   );
 
   const setAnswer = useCallback(
-    (questionId: string, patch: AnswerPatch) => {
-      if (readOnly) return;
-      const current = answersRef.current.get(questionId) ?? emptyAnswer(questionId);
-      const merged: LocalAnswer = { ...current, ...patch };
-      if (patch.na === true) merged.rating = null;
-      if (patch.rating !== undefined && patch.rating !== null) merged.na = false;
-      const next = new Map(answersRef.current);
-      next.set(questionId, merged);
-      answersRef.current = next;
-      setAnswers(next);
-      dirtyRef.current.set(questionId, ++versionRef.current);
-      setPending(dirtyRef.current.size);
-      persistQueue();
-      schedule(debounceMs);
-    },
-    [debounceMs, persistQueue, readOnly, schedule],
-  );
+  (
+    questionId: string,
+    patch: AnswerPatch,
+    direction?: AnswerDirection,
+  ) => {
+    if (readOnly) return;
+
+    const key = answerKey(questionId, direction);
+
+    const current =
+      answersRef.current.get(key) ??
+      emptyAnswer(questionId, direction);
+
+    const merged: LocalAnswer = {
+      ...current,
+      ...patch,
+    };
+
+    if (patch.na === true) merged.rating = null;
+    if (patch.rating !== undefined && patch.rating !== null) {
+      merged.na = false;
+    }
+
+    const next = new Map(answersRef.current);
+    next.set(key, merged);
+
+    answersRef.current = next;
+    setAnswers(next);
+
+    dirtyRef.current.set(key, ++versionRef.current);
+    setPending(dirtyRef.current.size);
+
+    persistQueue();
+    schedule(debounceMs);
+  },
+  [debounceMs, persistQueue, readOnly, schedule],
+);
 
   const retry = useCallback(() => {
     void flush();
@@ -251,8 +296,15 @@ export function useAssessmentDraft({ form, draft, save, storageKey, debounceMs =
     };
   }, [flush]);
 
-  const stepReadiness = useMemo(() => steps.map((s) => readinessOf(s.questions, answers)), [steps, answers]);
-  const readiness = useMemo(() => readinessOf(allQuestions, answers), [allQuestions, answers]);
+  const stepReadiness = useMemo(
+    () => steps.map((s) => readinessOf(s.questions, answers, answerMode)),
+    [steps, answers, answerMode],
+  );
+
+  const readiness = useMemo(
+    () => readinessOf(allQuestions, answers, answerMode),
+    [allQuestions, answers, answerMode],
+  );
   const progress = useMemo(() => progressOf(readiness.answered, readiness.total), [readiness]);
 
   const readinessFor = useCallback(
@@ -263,7 +315,11 @@ export function useAssessmentDraft({ form, draft, save, storageKey, debounceMs =
     [stepReadiness, steps],
   );
 
-  const answerFor = useCallback((questionId: string) => answers.get(questionId), [answers]);
+  const answerFor = useCallback(
+  (questionId: string, direction?: AnswerDirection) =>
+    answers.get(answerKey(questionId, direction)),
+  [answers],
+  );
 
   return { answers, answerFor, setAnswer, status, pending, progress, steps, readiness, readinessFor, flush, retry };
 }

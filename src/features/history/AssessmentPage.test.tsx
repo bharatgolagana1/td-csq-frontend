@@ -46,6 +46,8 @@ const DETAIL: AssessmentDetail = {
   startedAt: '2026-10-02T04:00:00.000Z',
   submittedAt: '2026-10-05T06:34:00.000Z',
   score: 3,
+  importScore: null,
+  exportScore: null,
   survey: { id: 's1', code: 'DOMESTIC', name: 'Domestic survey', version: 3 },
   answers: [
     { questionId: 'q1', code: 'Q1', text: 'Shipment acceptance', category: { id: 'c1', code: 'H', name: 'Cargo handling' }, subcategory: { id: 's', code: 'S', name: 'Acceptance' }, rating: 2, na: false, comment: 'Queues at the gate', followUp: ['Queues'] },
@@ -86,7 +88,7 @@ describe('AssessmentPage', () => {
     expect(detail).toHaveBeenCalledWith('a1');
     expect(screen.getByRole('heading', { level: 1, name: 'Customer assessment' })).toBeInTheDocument();
     expect(screen.getByText('Identity masked')).toBeInTheDocument();
-    expect(screen.getByText('a***@delcargo.test')).toBeInTheDocument();
+    expect(screen.getAllByText('********')).toHaveLength(2);
     expect(screen.getByText('Customs broker')).toBeInTheDocument();
     expect(screen.getByText('5 Oct 2026, 12:04 IST (UTC+05:30)')).toBeInTheDocument();
     expect(screen.getByText('3.0')).toBeInTheDocument();

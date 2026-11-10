@@ -49,6 +49,8 @@ export default function ExportsPage() {
         selection={cycle.selection}
         onCycle={cycle.setCycle}
         onSurveyType={cycle.setSurveyType}
+        direction={cycle.direction}
+        onDirection={cycle.setDirection}
       />
       <Card title="Download" subtitle="The file carries the same confidentiality rules as the report on screen.">
         <div className={styles.exportForm}>
@@ -62,6 +64,7 @@ export default function ExportsPage() {
               { key: 'Cycle', value: cycle.selection.cycle?.name ?? '—' },
               { key: 'Survey type', value: cycle.selection.surveyType ? SURVEY_TYPE_LABELS[cycle.selection.surveyType] : '—' },
               { key: 'Format', value: 'CSV (UTF-8)', mono: true },
+              { key: 'Score direction', value: cycle.direction === 'IMPORT' ? 'Import' : 'Export' },
             ]}
           />
           <div>

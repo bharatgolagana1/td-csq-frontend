@@ -88,7 +88,7 @@ export default function ComparisonPage() {
   const secondWanted = params.cycles.find((id) => id !== first) ?? '';
   const second = candidates.some((c) => c.id === secondWanted) ? secondWanted : (candidates.find((c) => c.id !== first)?.id ?? '');
   const ids = useMemo(() => [first, second].filter(Boolean), [first, second]);
-  const report = useComparison(operator.acoId || undefined, cycle.ready ? ids : [], cycle.selection.surveyType);
+  const report = useComparison(operator.acoId || undefined, cycle.ready ? ids : [], cycle.selection.surveyType, cycle.direction);
   const data = report.data;
   const secondOptions = cycleSelectOptions(candidates.filter((c) => c.id !== first));
 
@@ -133,6 +133,8 @@ export default function ComparisonPage() {
         selection={cycle.selection}
         onCycle={cycle.setCycle}
         onSurveyType={cycle.setSurveyType}
+        direction={cycle.direction}
+        onDirection={cycle.setDirection}
         cycleLabel="First cycle"
       >
         <Select

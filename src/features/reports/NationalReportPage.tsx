@@ -115,7 +115,7 @@ export default function NationalReportPage() {
         }
         actions={<ExportButton query={{ scope: 'national', ...cycle.query }} cycleCode={current?.code} disabled={!data} />}
       />
-      <ReportFilters cycles={cycle.cycles} cyclesLoading={cycle.cyclesLoading} selection={cycle.selection} onCycle={cycle.setCycle} onSurveyType={cycle.setSurveyType} />
+      <ReportFilters cycles={cycle.cycles} cyclesLoading={cycle.cyclesLoading} selection={cycle.selection} onCycle={cycle.setCycle} onSurveyType={cycle.setSurveyType} direction={cycle.direction} onDirection={cycle.setDirection} />
       {body}
     </>
   );

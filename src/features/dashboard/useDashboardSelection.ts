@@ -20,6 +20,8 @@ export function useDashboardSelection(routeAcoId?: string) {
     search: cycle.search,
     setCycle: cycle.setCycle,
     setSurveyType: cycle.setSurveyType,
+    direction: cycle.direction,
+    setDirection: cycle.setDirection,
   };
 }
 

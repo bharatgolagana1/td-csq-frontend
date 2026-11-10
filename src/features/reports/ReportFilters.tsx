@@ -1,7 +1,7 @@
 import { type ReactNode } from 'react';
 
 import { cycleSelectOptions, type ReportSelection, type ScopeOption, SURVEY_TYPE_LABELS } from '@/api/reports';
-import { type CycleOption, type SurveyType } from '@/api/reports.types';
+import { type CycleOption, type ScoreDirection, type SurveyType } from '@/api/reports.types';
 import { Segmented } from '@/design/charts';
 import { Select, Toolbar } from '@/design/primitives';
 
@@ -23,13 +23,15 @@ export type ReportFiltersProps = {
   selection: ReportSelection;
   onCycle: (cycleId: string) => void;
   onSurveyType: (surveyType: SurveyType) => void;
+  direction: ScoreDirection;
+  onDirection: (direction: ScoreDirection) => void;
   /** Extra controls after the cycle (the comparison's second cycle). */
   children?: ReactNode;
   cycleLabel?: string;
 };
 
 /** One filter row above everything it scopes (dataviz: filters never live inside a chart card). */
-export function ReportFilters({ scope, cycles, cyclesLoading, selection, onCycle, onSurveyType, children, cycleLabel = 'Cycle' }: ReportFiltersProps) {
+export function ReportFilters({ scope, cycles, cyclesLoading, selection, onCycle, onSurveyType, direction, onDirection, children, cycleLabel = 'Cycle' }: ReportFiltersProps) {
   const cycleOptions = cycleSelectOptions(cycles);
   return (
     <Toolbar className={styles.filters}>
@@ -54,6 +56,17 @@ export function ReportFilters({ scope, cycles, cyclesLoading, selection, onCycle
         placeholder={cyclesLoading ? 'Loading cycles…' : cycleOptions.length === 0 ? 'No cycle yet' : undefined}
         disabled={cyclesLoading || cycleOptions.length === 0}
         onChange={(e) => onCycle(e.target.value)}
+      />
+      <Select
+        aria-label="Score direction"
+        size="sm"
+        wrapperClassName={styles.filterSelect}
+        options={[
+          { value: 'IMPORT', label: 'Import' },
+          { value: 'EXPORT', label: 'Export' },
+        ]}
+        value={direction}
+        onChange={(event) => onDirection(event.target.value as ScoreDirection)}
       />
       {children}
       {selection.surveyTypes.length > 1 && selection.surveyType ? (

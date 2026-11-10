@@ -181,13 +181,20 @@ export type ComparisonReport = {
   questions: ComparisonRow[];
 };
 
-export type ReportQuery = { cycleId?: string; surveyType?: SurveyType };
+export type ScoreDirection = 'IMPORT' | 'EXPORT';
+
+export type ReportQuery = {
+  cycleId?: string;
+  surveyType?: SurveyType;
+  direction?: ScoreDirection;
+};
 
 export type ExportScope = 'operator' | 'airport' | 'national';
 export type ExportQuery = {
   scope: ExportScope;
   cycleId?: string;
   surveyType?: SurveyType;
+  direction?: ScoreDirection;
   acoId?: string;
   airportId?: string;
   format?: 'csv';

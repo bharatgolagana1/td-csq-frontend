@@ -155,6 +155,7 @@ export function AssessForm({ token, session, invitation, resumed, actions, onPro
 
       <AssessmentStepper
         form={form.data}
+        answerMode={form.data.assessment.answerMode ?? 'SINGLE'}
         draft={draft.data.answers}
         onSave={save}
         onSubmit={submit}
@@ -164,6 +165,7 @@ export function AssessForm({ token, session, invitation, resumed, actions, onPro
         tz={cycleTz(invitation)}
         readOnly={draft.data.status === 'SUBMITTED'}
         submitNote={`Your answers reach ${invitation.operator.name} only in aggregate. Nobody there sees an individual response.`}
+        previewImportExport={import.meta.env.DEV}
       />
     </div>
   );

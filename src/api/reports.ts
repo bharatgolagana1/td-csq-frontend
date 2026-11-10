@@ -1,4 +1,4 @@
-import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
@@ -19,13 +19,14 @@ import {
   type OperatorQuestions,
   type OperatorReport,
   type ReportQuery,
+  type ScoreDirection,
   type SurveyType,
 } from './reports.types';
 import { readSelectedOrg } from './selectedOrg';
 
 /* reports module hooks (§6 "scoring and reports"). Keys: ['reports', ...].
-   Report queries keep the previous payload while a new selection loads so the
-   charts hold their frame (no skeleton flash on refetch). */
+   Selection changes load their own payload so scores from another direction
+   are never displayed while the selected direction loads. */
 
 export const reportKeys = {
   all: ['reports'] as const,
@@ -33,7 +34,7 @@ export const reportKeys = {
   questions: (acoId: string, query: ReportQuery) => ['reports', 'operator', acoId, 'questions', query] as const,
   airport: (airportId: string, query: ReportQuery) => ['reports', 'airport', airportId, query] as const,
   national: (query: ReportQuery) => ['reports', 'national', query] as const,
-  comparison: (acoId: string, cycleIds: string[], surveyType?: SurveyType) => ['reports', 'comparison', acoId, cycleIds, surveyType ?? null] as const,
+  comparison: (acoId: string, cycleIds: string[], surveyType?: SurveyType, direction: ScoreDirection = 'IMPORT') => ['reports', 'comparison', acoId, cycleIds, surveyType ?? null, direction] as const,
   cycles: ['reports', 'cycles'] as const,
   airports: ['reports', 'airports'] as const,
 };
@@ -43,7 +44,6 @@ export function useOperatorReport(acoId: string | undefined, query: ReportQuery 
     queryKey: reportKeys.operator(acoId ?? '', query),
     queryFn: ({ signal }) => api.get<OperatorReport>(`/reports/operator/${acoId}`, { query, signal }),
     enabled: enabled && Boolean(acoId),
-    placeholderData: keepPreviousData,
   });
 }
 
@@ -52,7 +52,6 @@ export function useOperatorQuestions(acoId: string | undefined, query: ReportQue
     queryKey: reportKeys.questions(acoId ?? '', query),
     queryFn: ({ signal }) => api.get<OperatorQuestions>(`/reports/operator/${acoId}/questions`, { query, signal }),
     enabled: enabled && Boolean(acoId),
-    placeholderData: keepPreviousData,
   });
 }
 
@@ -61,7 +60,6 @@ export function useAirportReport(airportId: string | undefined, query: ReportQue
     queryKey: reportKeys.airport(airportId ?? '', query),
     queryFn: ({ signal }) => api.get<AirportReport>(`/reports/airport/${airportId}`, { query, signal }),
     enabled: enabled && Boolean(airportId),
-    placeholderData: keepPreviousData,
   });
 }
 
@@ -70,17 +68,15 @@ export function useNationalReport(query: ReportQuery = {}, enabled = true) {
     queryKey: reportKeys.national(query),
     queryFn: ({ signal }) => api.get<NationalReport>('/reports/national', { query, signal }),
     enabled,
-    placeholderData: keepPreviousData,
   });
 }
 
-export function useComparison(acoId: string | undefined, cycleIds: string[], surveyType?: SurveyType) {
+export function useComparison(acoId: string | undefined, cycleIds: string[], surveyType?: SurveyType, direction: ScoreDirection = 'IMPORT') {
   const ids = cycleIds.filter(Boolean);
   return useQuery({
-    queryKey: reportKeys.comparison(acoId ?? '', ids, surveyType),
-    queryFn: ({ signal }) => api.get<ComparisonReport>('/reports/comparison', { query: { acoId, cycleIds: ids.join(','), surveyType }, signal }),
+    queryKey: reportKeys.comparison(acoId ?? '', ids, surveyType, direction),
+    queryFn: ({ signal }) => api.get<ComparisonReport>('/reports/comparison', { query: { acoId, cycleIds: ids.join(','), surveyType, direction }, signal }),
     enabled: Boolean(acoId) && ids.length >= 2,
-    placeholderData: keepPreviousData,
   });
 }
 
@@ -177,7 +173,7 @@ export function deltaOf(current: number | null | undefined, previous: number | n
 
 // --- selection state in the URL ---------------------------------------------
 
-export type ReportParamPatch = Partial<Record<'cycleId' | 'surveyType' | 'acoId' | 'airportId' | 'cycles' | 'level', string | undefined>>;
+export type ReportParamPatch = Partial<Record<'cycleId' | 'surveyType' | 'direction' | 'acoId' | 'airportId' | 'cycles' | 'level', string | undefined>>;
 
 /** The report selection lives in the search params so links (tabs, exports) carry it. */
 export function useReportParams() {
@@ -199,9 +195,11 @@ export function useReportParams() {
     [setParams],
   );
   const surveyType = params.get('surveyType');
+  const direction: ScoreDirection = params.get('direction') === 'EXPORT' ? 'EXPORT' : 'IMPORT';
   return {
     cycleId: params.get('cycleId') ?? '',
     surveyType: isSurveyType(surveyType) ? surveyType : undefined,
+    direction,
     acoId: params.get('acoId') ?? '',
     airportId: params.get('airportId') ?? '',
     cycles: (params.get('cycles') ?? '').split(',').filter(Boolean),
@@ -225,13 +223,17 @@ export function useCycleSelection() {
     [cycles.data, params.cycleId, params.surveyType],
   );
   const query = useMemo<ReportQuery>(
-    () => (cycles.isSuccess ? { cycleId: selection.cycle?.id, surveyType: selection.surveyType } : {}),
-    [cycles.isSuccess, selection.cycle?.id, selection.surveyType],
+    () => ({
+      ...(cycles.isSuccess ? { cycleId: selection.cycle?.id, surveyType: selection.surveyType } : {}),
+      direction: params.direction,
+    }),
+    [cycles.isSuccess, selection.cycle?.id, selection.surveyType, params.direction],
   );
   const noCycles = cycles.isSuccess && selection.cycle === null;
   const set = params.set;
   const setCycle = useCallback((cycleId: string) => set({ cycleId, surveyType: undefined }), [set]);
   const setSurveyType = useCallback((surveyType: SurveyType) => set({ surveyType }), [set]);
+  const setDirection = useCallback((direction: ScoreDirection) => set({ direction: direction === 'IMPORT' ? undefined : direction }), [set]);
   return {
     cycles: cycles.data ?? [],
     cyclesLoading: cycles.isPending,
@@ -242,6 +244,8 @@ export function useCycleSelection() {
     search: params.search,
     setCycle,
     setSurveyType,
+    direction: params.direction,
+    setDirection,
   };
 }
 
@@ -284,7 +288,7 @@ export function useAirportScope() {
 // --- exports -----------------------------------------------------------------
 
 export function exportFileName(query: ExportQuery, cycleCode?: string): string {
-  const parts = ['csq', query.scope, cycleCode ?? query.cycleId ?? 'current', query.surveyType?.toLowerCase()].filter(Boolean);
+  const parts = ['csq', query.scope, cycleCode ?? query.cycleId ?? 'current', query.surveyType?.toLowerCase(), query.direction?.toLowerCase()].filter(Boolean);
   return `${parts.join('-')}.${query.format ?? 'csv'}`;
 }
 

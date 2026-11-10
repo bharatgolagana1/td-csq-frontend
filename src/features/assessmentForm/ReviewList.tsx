@@ -31,12 +31,20 @@ export function ReviewList({ items, onJump, className }: ReviewListProps) {
       </p>
       <ul className={styles.reviewList}>
         {items.map((item) => (
-          <li key={item.questionId} className={styles.reviewItem}>
+          <li
+            key={`${item.questionId}:${item.direction ?? 'SINGLE'}`}
+            className={styles.reviewItem}
+          >
             <button type="button" className={styles.reviewJump} onClick={() => onJump(item)}>
               <span className={styles.reviewCode}>Q{item.index}</span>
               <span className={styles.reviewText}>
                 {item.text}
-                <span className={styles.reviewMeta}>{item.stepLabel}</span>
+                <span className={styles.reviewMeta}>
+                  {item.stepLabel}
+                  {item.direction
+                    ? ` · ${item.direction === 'IMPORT' ? 'Import' : 'Export'}`
+                    : ''}
+                </span>
               </span>
               <span className={styles.reviewReason}>{item.reason === 'missing' ? 'Not answered' : 'Comment needed'}</span>
             </button>

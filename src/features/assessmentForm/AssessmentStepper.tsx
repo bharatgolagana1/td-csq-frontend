@@ -1,6 +1,6 @@
 import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 
-import { type Answer, type AnswerInput, type AssessmentForm, type Progress } from '@/api/assessments.types';
+import { type AnswerMode, type Answer, type AnswerInput, type AssessmentForm, type Progress } from '@/api/assessments.types';
 import { Icon } from '@/design/icons';
 import { Button } from '@/design/primitives';
 import { cn } from '@/lib/cn';
@@ -17,6 +17,7 @@ import { StepList, type StepListItem } from './StepList';
 import { SubmitConfirm } from './SubmitConfirm';
 import { type ReviewItem, type SaveStatus as SaveStatusValue } from './types';
 import { useAssessmentDraft } from './useAssessmentDraft';
+import { ImportExportQuestionPreview } from './ImportExportQuestionPreview';
 
 export type AssessmentStepperProps = {
   form: AssessmentForm;
@@ -39,6 +40,9 @@ export type AssessmentStepperProps = {
   /** After a successful submit. */
   onSubmitted?: () => void;
   className?: string;
+  /** Development-only Import/Export UI; no saving or submission. */
+  previewImportExport?: boolean;
+  answerMode?: AnswerMode;
 };
 
 function focusQuestionCard(questionId: string): boolean {
@@ -55,8 +59,19 @@ function focusQuestionCard(questionId: string): boolean {
  * on; the review step lists what is missing with jump links; Submit is enabled
  * only when the whole form is complete, flushes the draft, then confirms.
  */
-export function AssessmentStepper({ form, draft, onSave, onSubmit, storageKey, tz, readOnly = false, initialStep = 0, submitNote, onProgress, onStatus, onSubmitted, className }: AssessmentStepperProps) {
-  const d = useAssessmentDraft({ form, draft, save: onSave, storageKey, readOnly });
+export function AssessmentStepper({ form, draft, onSave, onSubmit, storageKey, tz, readOnly = false, previewImportExport = false, answerMode = 'SINGLE', initialStep = 0, submitNote, onProgress, onStatus, onSubmitted, className }: AssessmentStepperProps) {
+  const isImportExport = answerMode === 'IMPORT_EXPORT';
+  const previewOnly = previewImportExport && !isImportExport;
+  const allowImportExportSubmit =
+  import.meta.env.VITE_CSQ_IMPORT_EXPORT_SUBMIT === 'true';
+  const d = useAssessmentDraft({
+  form,
+  draft,
+  save: onSave,
+  storageKey: previewOnly ? undefined : storageKey,
+  readOnly: readOnly || previewOnly,
+  answerMode,
+  });
   const stepCount = d.steps.length;
   const reviewIndex = stepCount;
   const [step, setStep] = useState(() => Math.min(Math.max(0, initialStep), reviewIndex));
@@ -148,7 +163,11 @@ export function AssessmentStepper({ form, draft, onSave, onSubmit, storageKey, t
   ];
   const current = d.steps[step];
   const review = step === reviewIndex;
-  const canSubmit = !readOnly && d.readiness.complete;
+  const canSubmit =
+  !previewOnly &&
+  !readOnly &&
+  d.readiness.complete &&
+  (!isImportExport || allowImportExportSubmit);
 
   return (
     <div className={cn(styles.root, className)}>
@@ -157,6 +176,13 @@ export function AssessmentStepper({ form, draft, onSave, onSubmit, storageKey, t
       </aside>
 
       <div className={styles.main}>
+        {previewOnly ? (
+          <p className={styles.blocked} role="status">
+             Import/Export design preview. Answers are temporary;
+             saving, scoring and submission are not enabled yet.
+             The existing progress counters do not include these preview answers.
+          </p>
+        ) : null}
         <div className={styles.sticky}>
           <ProgressBar answered={d.progress.answered} total={d.progress.total} className={styles.progress} />
           <SaveStatus status={d.status} onRetry={d.retry} tz={tz} />
@@ -165,25 +191,59 @@ export function AssessmentStepper({ form, draft, onSave, onSubmit, storageKey, t
         <section key={step} ref={sectionRef} tabIndex={-1} className={styles.section} aria-label={review ? 'Review and submit' : current?.label}>
           {review ? (
             <>
-              <StepHeader index={reviewIndex} count={stepCount + 1} title="Review and submit" description="Submitted answers are locked." />
-              <ReviewList items={reviewItems(d.steps, d.answers)} onJump={jump} />
+              <StepHeader index={reviewIndex} count={stepCount + 1} title="Review and submit" description={ isImportExport ? allowImportExportSubmit ? 'Review your Import and Export answers before submitting. Submitted answers cannot be edited.' : 'Review your Import and Export answers. Submission is not enabled yet.' : 'Submitted answers are locked.' } />
+              <ReviewList
+                items={reviewItems(d.steps, d.answers, answerMode)}
+                onJump={jump}
+              />
             </>
           ) : current ? (
             <>
-              <StepHeader index={step} count={stepCount + 1} title={current.label} description={`${formatInt(d.readinessFor(step).answered)} of ${formatInt(current.questions.length)} answered in this section`} />
+              <StepHeader
+                index={step}
+                count={stepCount + 1}
+                title={current.label}
+                description={
+                previewOnly
+                  ? 'Import and Export sections — UI preview'
+                  : `${formatInt(d.readinessFor(step).answered)} of ${formatInt(d.readinessFor(step).total)} answered in this section`
+                }
+              />
               <div className={styles.cards}>
-                {current.questions.map(({ question, subcategory, index }) => (
-                  <QuestionCard
+                 {current.questions.map(({ question, subcategory, index }) => (
+                    isImportExport ? (
+                    <ImportExportQuestionPreview
                     key={question.id}
                     question={question}
                     index={index}
                     section={subcategory?.name ?? null}
-                    answer={d.answerFor(question.id)}
-                    onChange={(patch) => d.setAnswer(question.id, patch)}
-                    showValidation={validated.has(step)}
                     readOnly={readOnly}
+                    answerFor={(direction) => d.answerFor(question.id, direction)}
+                     onAnswerChange={(direction, patch) =>
+                       d.setAnswer(question.id, patch, direction)
+                     }
                   />
-                ))}
+                ) : previewOnly ? (
+                <ImportExportQuestionPreview
+                  key={question.id}
+                  question={question}
+                  index={index}
+                  section={subcategory?.name ?? null}
+                  readOnly={readOnly}
+            />
+         ) : (
+               <QuestionCard
+                 key={question.id}
+                 question={question}
+                 index={index}
+                 section={subcategory?.name ?? null}
+                 answer={d.answerFor(question.id)}
+                 onChange={(patch) => d.setAnswer(question.id, patch)}
+                 showValidation={validated.has(step)}
+                 readOnly={readOnly}
+               />
+              )
+            ))}
               </div>
             </>
           ) : null}

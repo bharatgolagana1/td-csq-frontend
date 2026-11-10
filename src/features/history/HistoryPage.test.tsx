@@ -52,7 +52,9 @@ const ROWS: HistoryRow[] = [
     progress: { answered: 23, total: 23, pct: 100 },
     startedAt: '2026-10-02T04:00:00.000Z',
     submittedAt: '2026-10-05T06:34:00.000Z',
-    score: 4.25,
+    score: null,
+    importScore: 4.2,
+    exportScore: 3.8,
   },
   {
     id: 'a2',
@@ -70,6 +72,8 @@ const ROWS: HistoryRow[] = [
     startedAt: '2026-10-03T04:00:00.000Z',
     submittedAt: null,
     score: null,
+    importScore: null,
+    exportScore: null,
   },
 ];
 
@@ -125,20 +129,23 @@ describe('HistoryPage', () => {
     list.mockReturnValue({ isPending: false, isError: false, data: { data: ROWS, meta: { page: 1, pageSize: 25, total: 2 } } } as unknown as ReturnType<typeof useAssessments>);
     mount();
     expect(screen.getByText('2 assessments')).toBeInTheDocument();
-    const customerRow = screen.getByRole('row', { name: /A\*\*\* R\*\*\*/ });
-    expect(within(customerRow).getByText('a***@delcargo.test')).toBeInTheDocument();
-    expect(within(customerRow).getByText('4.3')).toBeInTheDocument();
+    const customerRow = screen.getByRole('row', {
+    name: /Customer FF \*{8} \*{8}/,
+    });
+    expect(within(customerRow).getAllByText('********')).toHaveLength(2);
+    expect(within(customerRow).getByText('4.2')).toBeInTheDocument();
+    expect(within(customerRow).getByText('3.8')).toBeInTheDocument();
     expect(within(customerRow).getByText('Submitted')).toBeInTheDocument();
     expect(within(customerRow).getByText('5 Oct 2026, 12:04 IST')).toBeInTheDocument();
     const selfRow = screen.getByRole('row', { name: /Priya Natarajan/ });
     expect(within(selfRow).getByText('Draft')).toBeInTheDocument();
     // No customer type, no submitted time, no score yet.
-    expect(within(selfRow).getAllByText('—')).toHaveLength(3);
+    expect(within(selfRow).getAllByText('—')).toHaveLength(4);
 
     await userEvent.selectOptions(screen.getByLabelText('Cycle'), 'cy1');
     expect(screen.getByRole('button', { name: 'Export CSV' })).toBeEnabled();
 
-    await userEvent.click(screen.getByText('A*** R***'));
+    await userEvent.click(customerRow);
     expect(await screen.findByText('detail a1')).toBeInTheDocument();
   });
 

@@ -1,17 +1,18 @@
-import { type FormCategory, type FormQuestion, type FormSubcategory, type Rating } from '@/api/assessments.types';
+import { type AnswerDirection, type FormCategory, type FormQuestion, type FormSubcategory, type Rating } from '@/api/assessments.types';
 
 /* Local (unsaved) shapes used by the question-form components and the draft hook. */
 
 /** An answer as the form holds it: `comment` is always a string so textareas stay controlled. */
 export type LocalAnswer = {
   questionId: string;
+  direction?: AnswerDirection;
   rating: Rating | null;
   na: boolean;
   comment: string;
   followUp: string[];
 };
 
-export type AnswerPatch = Partial<Omit<LocalAnswer, 'questionId'>>;
+export type AnswerPatch = Partial<Omit<LocalAnswer, 'questionId' | 'direction'>>;
 
 export type SaveStatus =
   | { kind: 'idle' }
@@ -54,6 +55,7 @@ export type ReviewReason = 'missing' | 'comment';
 
 export type ReviewItem = {
   questionId: string;
+  direction?: AnswerDirection;
   code: string;
   text: string;
   index: number;
@@ -62,11 +64,23 @@ export type ReviewItem = {
   reason: ReviewReason;
 };
 
-/** Read-only grouping for the answer summary (self-assessment done state, history return). */
+export type AnswerGroupAnswer = {
+  rating: Rating | null;
+  na: boolean;
+  comment: string | null;
+  followUp: string[];
+};
+
 export type AnswerGroupItem = {
   question: { id: string; code: string; text: string };
   subcategory: string | null;
-  answer: { rating: Rating | null; na: boolean; comment: string | null; followUp: string[] } | null;
+
+  // Existing single-answer assessments
+  answer: AnswerGroupAnswer | null;
+
+  // New Import/Export assessments
+  importAnswer?: AnswerGroupAnswer | null;
+  exportAnswer?: AnswerGroupAnswer | null;
 };
 
 export type AnswerGroup = { id: string; name: string; items: AnswerGroupItem[] };
