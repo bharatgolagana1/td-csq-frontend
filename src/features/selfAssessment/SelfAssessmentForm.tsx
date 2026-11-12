@@ -46,6 +46,7 @@ export function SelfAssessmentForm({ cycle, surveyType }: SelfAssessmentFormProp
   if (query.isError) return <QueryError error={query.error} title="Could not load the self-assessment" onRetry={() => void query.refetch()} />;
 
   const data = query.data;
+  const answerMode = data.assessment.answerMode ?? 'SINGLE';
   if (data.assessment.status === 'SUBMITTED') {
     const at = data.assessment.submittedAt;
     return (
@@ -53,10 +54,7 @@ export function SelfAssessmentForm({ cycle, surveyType }: SelfAssessmentFormProp
         <Banner tone="success" title={`Submitted${at ? ` on ${formatDateTime(at, cycle.tz)} ${describeTimeZone(cycle.tz)}` : ''}`}>
           Your answers are locked. {SELF_NOTE}
         </Banner>
-        <AnswerSummary
-        groups={groupsFromForm(data, data.answers)}
-        answerMode={data.assessment.answerMode ?? 'SINGLE'}
-        />
+        <AnswerSummary groups={groupsFromForm(data, data.answers, answerMode)} answerMode={answerMode} />
       </div>
     );
   }
@@ -65,15 +63,14 @@ export function SelfAssessmentForm({ cycle, surveyType }: SelfAssessmentFormProp
     <div className={styles.form}>
       <AssessmentStepper
         form={data}
-        answerMode={data.assessment.answerMode ?? 'SINGLE'}
         draft={data.answers}
+        answerMode={answerMode}
         onSave={(answers) => save.mutateAsync(answers)}
         onSubmit={() => submit.mutateAsync()}
         storageKey={`csq.self.${org.id}.${cycle.id}.${surveyType}`}
         tz={cycle.tz}
         submitNote={SELF_NOTE}
         onSubmitted={() => toast.success('Self-assessment submitted', { description: 'Your answers are now locked.' })}
-        previewImportExport={false}
       />
     </div>
   );

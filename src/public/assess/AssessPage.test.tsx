@@ -8,7 +8,7 @@ vi.mock('@/auth/keycloak', () => ({
   forceRefreshToken: vi.fn(async () => false),
 }));
 
-import { apiError, happyBackend, invitation, mockApi, renderAssess, session, TOKEN } from './test.helpers';
+import { apiError, happyBackend, importExportForm, invitation, mockApi, renderAssess, session, TOKEN } from './test.helpers';
 
 const base = `/public/assess/${TOKEN}`;
 
@@ -213,6 +213,39 @@ describe('/assess/:token state machine', () => {
     const submit = calls.find((c) => c.method === 'POST' && c.path === `${base}/submit`);
     expect(submit?.headers.get('x-csq-link-token')).toBe(session.sessionToken);
     expect(window.sessionStorage.getItem(`csq.assess.${TOKEN}`)).toBeNull();
+  });
+
+  it('IMPORT_EXPORT form → done: rates every question for import and export, saves each direction and submits', async () => {
+    const user = userEvent.setup();
+    window.sessionStorage.setItem(`csq.assess.${TOKEN}`, JSON.stringify(session));
+    const { calls } = mockApi(happyBackend({ form: importExportForm }));
+    renderAssess();
+    await screen.findByText('Domestic cargo service quality', { exact: false });
+    expect(screen.getByText('0 of 8 answered')).toBeInTheDocument();
+
+    // Step 1 · Operations (q1, q2): an Import and an Export rating each.
+    expect(screen.getByRole('radiogroup', { name: 'Speed of cargo acceptance — Import' })).toBeInTheDocument();
+    expect(screen.getByRole('radiogroup', { name: 'Speed of cargo acceptance — Export' })).toBeInTheDocument();
+    const step1 = screen.getAllByRole('radio', { name: 'Excellent' });
+    expect(step1).toHaveLength(4);
+    for (const radio of step1) await user.click(radio);
+    await user.click(screen.getByRole('button', { name: 'Next' }));
+    // Step 2 · Security (q3, q4): Import rated Very good, Export rated Fair (q3 asks for no comment on Fair: OPTIONAL).
+    for (const group of await screen.findAllByRole('radiogroup', { name: / — Import$/ })) await user.click(within(group).getByRole('radio', { name: 'Very good' }));
+    for (const group of screen.getAllByRole('radiogroup', { name: / — Export$/ })) await user.click(within(group).getByRole('radio', { name: 'Fair' }));
+    await user.click(screen.getByRole('button', { name: 'Review' }));
+
+    expect(await screen.findByText('Everything is answered')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Submit' }));
+    const dialog = await screen.findByRole('dialog');
+    expect(dialog).toHaveTextContent('8 of 8 questions answered');
+    await user.click(within(dialog).getByRole('button', { name: 'Submit' }));
+    expect(await screen.findByRole('heading', { name: 'Thank you' })).toBeInTheDocument();
+
+    const sent = calls.filter((c) => c.method === 'PATCH' && c.path === `${base}/answers`).flatMap((c) => (c.body as { answers: { questionId: string; direction?: string; rating: number }[] }).answers);
+    const last = new Map(sent.map((a) => [`${a.questionId}:${a.direction}`, a.rating]));
+    expect(Object.fromEntries(last)).toEqual({ 'q1:IMPORT': 5, 'q1:EXPORT': 5, 'q2:IMPORT': 5, 'q2:EXPORT': 5, 'q3:IMPORT': 4, 'q3:EXPORT': 2, 'q4:IMPORT': 4, 'q4:EXPORT': 2 });
+    expect(calls.some((c) => c.method === 'POST' && c.path === `${base}/submit`)).toBe(true);
   });
 
   it('a link that dies mid-form closes the page on the next save', async () => {

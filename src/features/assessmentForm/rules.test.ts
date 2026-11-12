@@ -43,6 +43,20 @@ describe('form rules', () => {
     expect(reviewItems(steps, answersToMap(COMPLETE))).toEqual([]);
   });
 
+  it('IMPORT_EXPORT: every question counts twice, keyed and reviewed per direction, and sends its direction', () => {
+    const steps = formSteps(FORM);
+    const answers = answersToMap([...COMPLETE.map((a) => ({ ...a, direction: 'IMPORT' as const })), answer('q1', { direction: 'EXPORT', rating: 2 }), answer('q2', { direction: 'EXPORT' })]);
+    expect(readinessOf(stepQuestions(steps), answers, 'IMPORT_EXPORT')).toEqual({ answered: 6, total: 8, missing: ['q3:EXPORT', 'q4:EXPORT'], invalid: ['q1:EXPORT'], complete: false });
+    expect(reviewItems(steps, answers, 'IMPORT_EXPORT').map((i) => [i.questionId, i.direction, i.reason])).toEqual([
+      ['q1', 'EXPORT', 'comment'],
+      ['q3', 'EXPORT', 'missing'],
+      ['q4', 'EXPORT', 'missing'],
+    ]);
+    // A SINGLE reading of the same answers finds none of them.
+    expect(readinessOf(stepQuestions(steps), answers).answered).toBe(0);
+    expect(toAnswerInput(Q2, { questionId: 'q2', direction: 'EXPORT', rating: 4, na: false, comment: '', followUp: [] })).toEqual({ questionId: 'q2', direction: 'EXPORT', rating: 4, na: false, comment: null, followUp: [] });
+  });
+
   it('scores the NA-excluding mean to 1 dp', () => {
     expect(ownScore(COMPLETE)).toBe(4);
     expect(ownScore([answer('a', { rating: 5 }), answer('b', { rating: 4 }), answer('c', { rating: null, na: true }), answer('d', { rating: 3 })])).toBe(4);
@@ -66,5 +80,19 @@ describe('form rules', () => {
     expect(fromDetail.map((g) => g.name)).toEqual(['Handling', 'Security']);
     expect(fromDetail[0]?.items[0]).toMatchObject({ subcategory: 'Acceptance', answer: { rating: 2, comment: 'Slow', followUp: ['Queues'] } });
     expect(fromDetail[1]?.items[0]?.answer).toBeNull();
+  });
+
+  it('groups import and export answers under one item per question', () => {
+    const fromForm = groupsFromForm(FORM, [answer('q1', { direction: 'IMPORT', rating: 5 }), answer('q1', { direction: 'EXPORT', rating: 2, comment: 'Slow' })], 'IMPORT_EXPORT');
+    expect(fromForm[0]?.items[0]).toMatchObject({ answer: null, importAnswer: { rating: 5 }, exportAnswer: { rating: 2, comment: 'Slow' } });
+    expect(fromForm[0]?.items[1]).toMatchObject({ importAnswer: null, exportAnswer: null });
+
+    const row = { code: 'Q1', text: 'One', category: { id: 'c1', code: 'H', name: 'Handling' }, subcategory: null };
+    const fromDetail = groupsFromDetail([
+      { ...answer('q1', { direction: 'IMPORT', rating: 4 }), ...row },
+      { ...answer('q1', { direction: 'EXPORT', rating: null }), ...row },
+    ]);
+    expect(fromDetail[0]?.items).toHaveLength(1);
+    expect(fromDetail[0]?.items[0]).toMatchObject({ answer: null, importAnswer: { rating: 4 }, exportAnswer: null });
   });
 });

@@ -2,7 +2,7 @@ import { type AnswerDirection, type FormCategory, type FormQuestion, type FormSu
 
 /* Local (unsaved) shapes used by the question-form components and the draft hook. */
 
-/** An answer as the form holds it: `comment` is always a string so textareas stay controlled. */
+/** An answer as the form holds it: `comment` is always a string so textareas stay controlled. IMPORT_EXPORT forms hold one per question and direction. */
 export type LocalAnswer = {
   questionId: string;
   direction?: AnswerDirection;
@@ -28,7 +28,7 @@ export type AnswerIssue = { field: AnswerIssueField; message: string };
 export type StepReadiness = {
   answered: number;
   total: number;
-  /** Unanswered question ids, in form order. */
+  /** Unanswered answer keys (`answerKey`: the question id, plus `:IMPORT` / `:EXPORT` per direction), in form order. */
   missing: string[];
   /** Answered but breaking a rule (a required comment left empty), in form order. */
   invalid: string[];
@@ -55,6 +55,7 @@ export type ReviewReason = 'missing' | 'comment';
 
 export type ReviewItem = {
   questionId: string;
+  /** The direction that needs attention (IMPORT_EXPORT forms). */
   direction?: AnswerDirection;
   code: string;
   text: string;
@@ -64,21 +65,13 @@ export type ReviewItem = {
   reason: ReviewReason;
 };
 
-export type AnswerGroupAnswer = {
-  rating: Rating | null;
-  na: boolean;
-  comment: string | null;
-  followUp: string[];
-};
+export type AnswerGroupAnswer = { rating: Rating | null; na: boolean; comment: string | null; followUp: string[] };
 
+/** Read-only grouping for the answer summary (self-assessment done state, history return). IMPORT_EXPORT returns fill `importAnswer` and `exportAnswer` instead of `answer`. */
 export type AnswerGroupItem = {
   question: { id: string; code: string; text: string };
   subcategory: string | null;
-
-  // Existing single-answer assessments
   answer: AnswerGroupAnswer | null;
-
-  // New Import/Export assessments
   importAnswer?: AnswerGroupAnswer | null;
   exportAnswer?: AnswerGroupAnswer | null;
 };

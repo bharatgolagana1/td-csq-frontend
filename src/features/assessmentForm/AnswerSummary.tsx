@@ -1,17 +1,19 @@
+import { type AnswerDirection, type AnswerMode } from '@/api/assessments.types';
 import { Pill, RatingPill, Tag } from '@/design/primitives';
 import { cn } from '@/lib/cn';
-import type { AnswerMode } from '@/api/assessments.types';
 
 import styles from './AnswerSummary.module.css';
-import { type AnswerGroup, type AnswerGroupItem } from './types';
+import { ANSWER_DIRECTIONS, DIRECTION_LABELS } from './rules';
+import { type AnswerGroup, type AnswerGroupAnswer, type AnswerGroupItem } from './types';
 
 export type AnswerSummaryProps = {
   groups: AnswerGroup[];
-  className?: string;
+  /** IMPORT_EXPORT shows each question's import and export answer side by side (default SINGLE). */
   answerMode?: AnswerMode;
+  className?: string;
 };
 
-function AnswerValue({ answer }: { answer: AnswerGroupItem['answer'] }) {
+function AnswerValue({ answer }: { answer: AnswerGroupAnswer | null }) {
   if (!answer) {
     return (
       <Pill variant="neutral" dot={false} size="sm">
@@ -29,11 +31,8 @@ function AnswerValue({ answer }: { answer: AnswerGroupItem['answer'] }) {
   return <RatingPill rating={answer.rating} size="sm" />;
 }
 
-function AnswerExtras({ answer }: { answer: AnswerGroupItem['answer'] }) {
-  if (!answer || (answer.followUp.length === 0 && !answer.comment)) {
-    return null;
-  }
-
+function AnswerExtras({ answer }: { answer: AnswerGroupAnswer | null }) {
+  if (!answer || (answer.followUp.length === 0 && !answer.comment)) return null;
   return (
     <div className={styles.itemExtra}>
       {answer.followUp.length > 0 ? (
@@ -45,102 +44,60 @@ function AnswerExtras({ answer }: { answer: AnswerGroupItem['answer'] }) {
           ))}
         </div>
       ) : null}
-
-      {answer.comment ? (
-        <blockquote className={styles.comment}>
-          {answer.comment}
-        </blockquote>
-      ) : null}
+      {answer.comment ? <blockquote className={styles.comment}>{answer.comment}</blockquote> : null}
     </div>
   );
 }
 
-export function AnswerSummary({
-  groups,
-  className,
-  answerMode = 'SINGLE',
-}: AnswerSummaryProps) {
-  const isImportExport = answerMode === 'IMPORT_EXPORT';
+function directionAnswer(item: AnswerGroupItem, direction: AnswerDirection): AnswerGroupAnswer | null {
+  return (direction === 'IMPORT' ? item.importAnswer : item.exportAnswer) ?? null;
+}
 
+/** Read-only answers by category: rating pills, follow-up tags and comments (self done state, history return). */
+export function AnswerSummary({ groups, answerMode = 'SINGLE', className }: AnswerSummaryProps) {
+  const directed = answerMode === 'IMPORT_EXPORT';
   return (
     <div className={cn(styles.root, className)}>
       {groups.map((group) => {
-        const answered = group.items.reduce(
-          (count, item) =>
-            count +
-            (isImportExport
-              ? Number(item.importAnswer != null) +
-                Number(item.exportAnswer != null)
-              : Number(item.answer != null)),
-          0,
-        );
-
-        const total = group.items.length * (isImportExport ? 2 : 1);
-
+        const answered = directed ? group.items.reduce((n, i) => n + ANSWER_DIRECTIONS.filter((d) => directionAnswer(i, d) !== null).length, 0) : group.items.filter((i) => i.answer !== null).length;
+        const total = group.items.length * (directed ? ANSWER_DIRECTIONS.length : 1);
         return (
-          <section
-            key={group.id}
-            className={styles.group}
-            aria-labelledby={`answers-${group.id}`}
-          >
+          <section key={group.id} className={styles.group} aria-labelledby={`answers-${group.id}`}>
             <header className={styles.groupHead}>
               <h3 id={`answers-${group.id}`} className={styles.groupTitle}>
                 {group.name}
               </h3>
-
               <span className={styles.groupCount}>
                 {answered}/{total}
               </span>
             </header>
-
             <ul className={styles.list}>
               {group.items.map((item) => (
                 <li key={item.question.id} className={styles.item}>
                   <div className={styles.itemMain}>
                     <p className={styles.itemEyebrow}>
                       <span className="num">{item.question.code}</span>
-                      {item.subcategory ? (
-                        <span> · {item.subcategory}</span>
-                      ) : null}
+                      {item.subcategory ? <span> · {item.subcategory}</span> : null}
                     </p>
-
-                    <p className={styles.itemText}>
-                      {item.question.text}
-                    </p>
+                    <p className={styles.itemText}>{item.question.text}</p>
                   </div>
-
-                  {isImportExport ? (
+                  {directed ? (
                     <div className={styles.directionList}>
-                      <section
-                        className={styles.directionPanel}
-                        aria-label="Import answer"
-                      >
-                        <div className={styles.directionHead}>
-                          <strong>Import</strong>
-                          <AnswerValue answer={item.importAnswer ?? null} />
-                        </div>
-
-                        <AnswerExtras answer={item.importAnswer ?? null} />
-                      </section>
-
-                      <section
-                        className={styles.directionPanel}
-                        aria-label="Export answer"
-                      >
-                        <div className={styles.directionHead}>
-                          <strong>Export</strong>
-                          <AnswerValue answer={item.exportAnswer ?? null} />
-                        </div>
-
-                        <AnswerExtras answer={item.exportAnswer ?? null} />
-                      </section>
+                      {ANSWER_DIRECTIONS.map((direction) => (
+                        <section key={direction} className={styles.directionPanel} aria-label={`${DIRECTION_LABELS[direction]} answer`}>
+                          <div className={styles.directionHead}>
+                            <strong>{DIRECTION_LABELS[direction]}</strong>
+                            <AnswerValue answer={directionAnswer(item, direction)} />
+                          </div>
+                          <AnswerExtras answer={directionAnswer(item, direction)} />
+                        </section>
+                      ))}
                     </div>
                   ) : (
                     <>
                       <div className={styles.itemAnswer}>
                         <AnswerValue answer={item.answer} />
                       </div>
-
                       <AnswerExtras answer={item.answer} />
                     </>
                   )}

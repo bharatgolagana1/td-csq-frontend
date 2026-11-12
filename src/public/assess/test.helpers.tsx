@@ -81,6 +81,13 @@ export const form: AssessmentFormResponse = {
   progress: { answered: 0, total: 4, pct: 0 },
 };
 
+/** The same questionnaire in an IMPORT_EXPORT cycle: every question is answered for import and for export (readiness total 4 × 2). */
+export const importExportForm: AssessmentFormResponse = {
+  ...form,
+  assessment: { ...form.assessment, answerMode: 'IMPORT_EXPORT', progress: { answered: 0, total: 8, pct: 0 } },
+  progress: { answered: 0, total: 8, pct: 0 },
+};
+
 export const emptyDraft: Draft = { id: 'asg_1', status: 'DRAFT', answers: [], progress: { answered: 0, total: 4, pct: 0 }, lastSavedAt: null, submittedAt: null };
 
 export type MockRequest = { method: string; path: string; body: unknown; headers: Headers };
@@ -121,9 +128,11 @@ export function mockApi(...handlers: MockHandler[]) {
   return { calls, fetchMock };
 }
 
-/** The happy-path backend: a SENT invitation, an OTP that is always 123456, the fixture form and an empty draft. */
-export function happyBackend(overrides: { invitation?: Partial<PublicInvitation>; draft?: Draft; devOtp?: string } = {}): MockHandler {
+/** The happy-path backend: a SENT invitation, an OTP that is always 123456, the fixture form (or `overrides.form`) and an empty draft. */
+export function happyBackend(overrides: { invitation?: Partial<PublicInvitation>; form?: AssessmentFormResponse; draft?: Draft; devOtp?: string } = {}): MockHandler {
   const inv = { ...invitation, ...overrides.invitation };
+  const served = overrides.form ?? form;
+  const total = served.progress.total;
   const base = `/public/assess/${TOKEN}`;
   return ({ method, path, body, headers }) => {
     if (method === 'GET' && path === base) return { body: inv };
@@ -133,14 +142,14 @@ export function happyBackend(overrides: { invitation?: Partial<PublicInvitation>
       return otp === '123456' ? { body: session } : apiError(400, 'OTP_INVALID', 'Invalid code');
     }
     if (headers.get('x-csq-link-token') !== session.sessionToken) return apiError(401, 'UNAUTHENTICATED', 'Missing x-csq-link-token header');
-    if (method === 'GET' && path === `${base}/form`) return { body: form };
+    if (method === 'GET' && path === `${base}/form`) return { body: served };
     if (method === 'GET' && path === `${base}/draft`) return { body: overrides.draft ?? emptyDraft };
     if (method === 'PATCH' && path === `${base}/answers`) {
       const answers = (body as { answers: unknown[] }).answers;
-      return { body: { answered: answers.length, total: 4, pct: Math.round((answers.length / 4) * 100), lastSavedAt: '2026-10-07T10:04:00.000Z' } };
+      return { body: { answered: answers.length, total, pct: Math.round((answers.length / total) * 100), lastSavedAt: '2026-10-07T10:04:00.000Z' } };
     }
-    if (method === 'GET' && path === `${base}/readiness`) return { body: { answered: 4, total: 4, missing: [], complete: true } };
-    if (method === 'POST' && path === `${base}/submit`) return { body: { ...form.assessment, status: 'SUBMITTED', submittedAt: '2026-10-07T10:05:00.000Z' } };
+    if (method === 'GET' && path === `${base}/readiness`) return { body: { answered: total, total, missing: [], complete: true } };
+    if (method === 'POST' && path === `${base}/submit`) return { body: { ...served.assessment, status: 'SUBMITTED', submittedAt: '2026-10-07T10:05:00.000Z' } };
     return undefined;
   };
 }

@@ -7,8 +7,9 @@
 export type SurveyType = 'DOMESTIC' | 'INTERNATIONAL';
 export type AssessmentKind = 'CUSTOMER' | 'SELF';
 export type AssessmentStatus = 'DRAFT' | 'SUBMITTED';
-export type AnswerDirection = 'IMPORT' | 'EXPORT';
+/** SINGLE: one rating per question. IMPORT_EXPORT: every question is rated separately for import and for export (the cycle's answer mode). */
 export type AnswerMode = 'SINGLE' | 'IMPORT_EXPORT';
+export type AnswerDirection = 'IMPORT' | 'EXPORT';
 export type CustomerType = 'FF' | 'CB';
 
 /** Poor = 1 … Excellent = 5. */
@@ -21,6 +22,7 @@ export type Progress = { answered: number; total: number; pct: number };
 /** A saved answer as the API returns it. */
 export type Answer = {
   questionId: string;
+  /** Set on IMPORT_EXPORT answers; absent (or null) on SINGLE ones. */
   direction?: AnswerDirection | null;
   rating: Rating | null;
   na: boolean;
@@ -28,9 +30,10 @@ export type Answer = {
   followUp: string[];
 };
 
-/** One entry of a merge `PATCH …/answers`; it replaces the stored answer for its question. */
+/** One entry of a merge `PATCH …/answers`; it replaces the stored answer for its question (and direction). */
 export type AnswerInput = {
   questionId: string;
+  /** Required by IMPORT_EXPORT assessments, never sent by SINGLE ones. */
   direction?: AnswerDirection;
   rating?: Rating | null;
   na?: boolean;
@@ -85,6 +88,7 @@ export type AssessmentSummary = {
   surveyId: string;
   surveyType: SurveyType;
   kind: AssessmentKind;
+  /** The cycle's answer mode; absent = SINGLE. Readiness counts questions × 2 under IMPORT_EXPORT. */
   answerMode?: AnswerMode;
   customerType: CustomerType | null;
   invitationId: string | null;
@@ -129,6 +133,8 @@ export type HistoryRow = {
   operator: { id: string; code: string; name: string };
   kind: AssessmentKind;
   surveyType: SurveyType;
+  /** Absent = SINGLE. */
+  answerMode?: AnswerMode;
   customerType: CustomerType | null;
   customerId: string | null;
   assessorName: string | null;
@@ -138,8 +144,9 @@ export type HistoryRow = {
   progress: Progress;
   startedAt: string;
   submittedAt: string | null;
-  /** The assessment's own NA-excluding mean rating, 1 dp; null until something is rated. */
+  /** The assessment's own NA-excluding mean rating, 1 dp; null until something is rated (SINGLE). */
   score: number | null;
+  /** The same mean over the import / the export answers (IMPORT_EXPORT); null otherwise. */
   importScore: number | null;
   exportScore: number | null;
 };
@@ -152,7 +159,7 @@ export type DetailAnswer = Answer & {
 };
 
 /** `GET /assessments/:id`: the read-only return. */
-export type AssessmentDetail = HistoryRow & { survey: FormSurvey; answers: DetailAnswer[], answerMode?: AnswerMode; };
+export type AssessmentDetail = HistoryRow & { survey: FormSurvey; answers: DetailAnswer[] };
 
 export type AssessmentListQuery = {
   page?: number;
