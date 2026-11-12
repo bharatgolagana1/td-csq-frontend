@@ -1,7 +1,7 @@
 import { useCycleSelection, useOperatorScope } from '@/api/reports';
 
 /**
- * One data concern: which operator, cycle and survey type the dashboard and
+ * One data concern: which operator, cycle, survey type and direction the dashboard and
  * its question table show. The operator comes from the session (ACO) or the
  * route / URL (platform and airport users); the cycle from the shared selection.
  */

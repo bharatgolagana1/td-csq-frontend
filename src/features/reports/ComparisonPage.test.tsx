@@ -1,8 +1,9 @@
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { COMPARISON_REPORT, CYCLE_OPTIONS } from '@/api/reports.fixtures';
+import { COMPARISON_REPORT, CYCLE_OPTIONS, CYCLE_OPTIONS_IMPORT_EXPORT } from '@/api/reports.fixtures';
+import { type ComparisonReport } from '@/api/reports.types';
 
 vi.mock('@/auth/keycloak', () => ({
   keycloak: { authenticated: false, tokenParsed: undefined },
@@ -52,6 +53,29 @@ describe('ComparisonPage', () => {
     const call = fetchMock.mock.calls.map(([input]) => String(input)).find((u) => u.includes('/reports/comparison'));
     expect(call).toContain('acoId=org-csc');
     expect(call).toContain('cycleIds=c-26h1%2Cc-25h2');
+    expect(call).not.toContain('direction=');
+    expect(screen.queryByRole('radiogroup', { name: 'Direction' })).toBeNull();
+  });
+
+  it('names the direction each cycle resolved to under its column, when it has one', async () => {
+    const withDirection = (direction: 'IMPORT' | 'EXPORT'): ComparisonReport => ({
+      ...COMPARISON_REPORT,
+      cycles: COMPARISON_REPORT.cycles.map((c) => (c.id === 'c-26h1' ? { ...c, answerMode: 'IMPORT_EXPORT', direction } : c)),
+    });
+    const fetchMock = mockApi({ '/cycles': CYCLE_OPTIONS_IMPORT_EXPORT, '/reports/comparison': (url: URL) => withDirection(url.searchParams.get('direction') === 'EXPORT' ? 'EXPORT' : 'IMPORT') });
+    renderPage(<ComparisonPage />, { session: ACO_SESSION, path: PATH });
+    const table = await screen.findByRole('table', { name: 'Comparison · categories' });
+    const columns = within(table).getAllByRole('columnheader').map((th) => th.textContent);
+    expect(columns).toContain('CSQ 2025 H2');
+    expect(columns).toContain('CSQ 2026 H1Import');
+
+    const switcher = screen.getByRole('radiogroup', { name: 'Direction' });
+    expect(within(switcher).getByRole('radio', { name: 'Import' })).toHaveAttribute('aria-checked', 'true');
+    await userEvent.click(within(switcher).getByRole('radio', { name: 'Export' }));
+    await waitFor(() => expect(within(screen.getByRole('table', { name: 'Comparison · categories' })).getAllByRole('columnheader').map((th) => th.textContent)).toContain('CSQ 2026 H1Export'));
+    const calls = fetchMock.mock.calls.map(([input]) => String(input)).filter((u) => u.includes('/reports/comparison'));
+    expect(calls[0]).not.toContain('direction=');
+    expect(calls.at(-1)).toContain('direction=EXPORT');
   });
 
   it('switches level to questions', async () => {

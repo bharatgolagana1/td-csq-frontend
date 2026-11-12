@@ -11,6 +11,7 @@ import { useOperators } from './organisations';
 import {
   type AirportOption,
   type AirportReport,
+  type AnswerMode,
   type ComparisonReport,
   type CycleOption,
   type CycleType,
@@ -18,15 +19,18 @@ import {
   type NationalReport,
   type OperatorQuestions,
   type OperatorReport,
+  type ReportDirection,
   type ReportQuery,
   type ScoreDirection,
   type SurveyType,
 } from './reports.types';
 import { readSelectedOrg } from './selectedOrg';
 
-/* reports module hooks (§6 "scoring and reports"). Keys: ['reports', ...].
-   Selection changes load their own payload so scores from another direction
-   are never displayed while the selected direction loads. */
+/* reports module hooks (§6 "scoring and reports"). Keys: ['reports', ...],
+   each report key ending with its query. Report queries keep the previous
+   payload while a new selection loads so the charts hold their frame (no
+   skeleton flash on refetch) — unless the direction changed: one direction's
+   figures never stand in for the other's while it loads. */
 
 export const reportKeys = {
   all: ['reports'] as const,
@@ -34,16 +38,27 @@ export const reportKeys = {
   questions: (acoId: string, query: ReportQuery) => ['reports', 'operator', acoId, 'questions', query] as const,
   airport: (airportId: string, query: ReportQuery) => ['reports', 'airport', airportId, query] as const,
   national: (query: ReportQuery) => ['reports', 'national', query] as const,
-  comparison: (acoId: string, cycleIds: string[], surveyType?: SurveyType, direction: ScoreDirection = 'IMPORT') => ['reports', 'comparison', acoId, cycleIds, surveyType ?? null, direction] as const,
+  comparison: (acoId: string, cycleIds: string[], query: Omit<ReportQuery, 'cycleId'>) => ['reports', 'comparison', acoId, cycleIds, query] as const,
   cycles: ['reports', 'cycles'] as const,
   airports: ['reports', 'airports'] as const,
 };
+
+function directionOfKey(key: readonly unknown[]): ScoreDirection | undefined {
+  const query = key[key.length - 1];
+  return query && typeof query === 'object' ? (query as ReportQuery).direction : undefined;
+}
+
+/** `placeholderData`: keepPreviousData, but only when the previous query asked for the same direction. */
+function keepWithinDirection(direction: ScoreDirection | undefined) {
+  return <T>(previous: T | undefined, previousQuery: { queryKey: readonly unknown[] } | undefined): T | undefined => (previousQuery && directionOfKey(previousQuery.queryKey) === direction ? previous : undefined);
+}
 
 export function useOperatorReport(acoId: string | undefined, query: ReportQuery = {}, enabled = true) {
   return useQuery({
     queryKey: reportKeys.operator(acoId ?? '', query),
     queryFn: ({ signal }) => api.get<OperatorReport>(`/reports/operator/${acoId}`, { query, signal }),
     enabled: enabled && Boolean(acoId),
+    placeholderData: keepWithinDirection(query.direction),
   });
 }
 
@@ -52,6 +67,7 @@ export function useOperatorQuestions(acoId: string | undefined, query: ReportQue
     queryKey: reportKeys.questions(acoId ?? '', query),
     queryFn: ({ signal }) => api.get<OperatorQuestions>(`/reports/operator/${acoId}/questions`, { query, signal }),
     enabled: enabled && Boolean(acoId),
+    placeholderData: keepWithinDirection(query.direction),
   });
 }
 
@@ -60,6 +76,7 @@ export function useAirportReport(airportId: string | undefined, query: ReportQue
     queryKey: reportKeys.airport(airportId ?? '', query),
     queryFn: ({ signal }) => api.get<AirportReport>(`/reports/airport/${airportId}`, { query, signal }),
     enabled: enabled && Boolean(airportId),
+    placeholderData: keepWithinDirection(query.direction),
   });
 }
 
@@ -68,15 +85,18 @@ export function useNationalReport(query: ReportQuery = {}, enabled = true) {
     queryKey: reportKeys.national(query),
     queryFn: ({ signal }) => api.get<NationalReport>('/reports/national', { query, signal }),
     enabled,
+    placeholderData: keepWithinDirection(query.direction),
   });
 }
 
-export function useComparison(acoId: string | undefined, cycleIds: string[], surveyType?: SurveyType, direction: ScoreDirection = 'IMPORT') {
+export function useComparison(acoId: string | undefined, cycleIds: string[], surveyType?: SurveyType, direction?: ScoreDirection) {
   const ids = cycleIds.filter(Boolean);
+  const query = { surveyType, ...(direction ? { direction } : {}) };
   return useQuery({
-    queryKey: reportKeys.comparison(acoId ?? '', ids, surveyType, direction),
-    queryFn: ({ signal }) => api.get<ComparisonReport>('/reports/comparison', { query: { acoId, cycleIds: ids.join(','), surveyType, direction }, signal }),
+    queryKey: reportKeys.comparison(acoId ?? '', ids, query),
+    queryFn: ({ signal }) => api.get<ComparisonReport>('/reports/comparison', { query: { acoId, cycleIds: ids.join(','), ...query }, signal }),
     enabled: Boolean(acoId) && ids.length >= 2,
+    placeholderData: keepWithinDirection(direction),
   });
 }
 
@@ -144,6 +164,34 @@ export function isSurveyType(value: string | null | undefined): value is SurveyT
   return value === 'DOMESTIC' || value === 'INTERNATIONAL';
 }
 
+export const DIRECTION_LABELS: Record<ScoreDirection, string> = { IMPORT: 'Import', EXPORT: 'Export' };
+
+/** The Import/Export switch's options, in display order. */
+export const DIRECTION_OPTIONS: { value: ScoreDirection; label: string }[] = [
+  { value: 'IMPORT', label: DIRECTION_LABELS.IMPORT },
+  { value: 'EXPORT', label: DIRECTION_LABELS.EXPORT },
+];
+
+export function isScoreDirection(value: string | null | undefined): value is ScoreDirection {
+  return value === 'IMPORT' || value === 'EXPORT';
+}
+
+/**
+ * The direction a loaded report shows, for its Import/Export switch and its
+ * labels: null for a SINGLE cycle (no switch, no label). Until the report is
+ * in (a direction change keeps no placeholder) the pick holds the switch.
+ */
+export function shownDirection(report: { cycle: { answerMode: AnswerMode }; direction: ReportDirection } | undefined, picked?: ScoreDirection): ScoreDirection | null {
+  if (!report) return picked ?? null;
+  return report.cycle.answerMode === 'IMPORT_EXPORT' && report.direction !== 'SINGLE' ? report.direction : null;
+}
+
+/** The same for a comparison, where each cycle resolves its own direction: the first IMPORT_EXPORT cycle's. */
+export function comparisonDirection(report: ComparisonReport | undefined, picked?: ScoreDirection): ScoreDirection | null {
+  if (!report) return picked ?? null;
+  return report.cycles.map((c) => shownDirection({ cycle: c, direction: c.direction })).find((d) => d !== null) ?? null;
+}
+
 export type ReportSelection = {
   cycle: CycleOption | null;
   surveyType: SurveyType | undefined;
@@ -195,11 +243,12 @@ export function useReportParams() {
     [setParams],
   );
   const surveyType = params.get('surveyType');
-  const direction: ScoreDirection = params.get('direction') === 'EXPORT' ? 'EXPORT' : 'IMPORT';
+  const direction = params.get('direction');
   return {
     cycleId: params.get('cycleId') ?? '',
     surveyType: isSurveyType(surveyType) ? surveyType : undefined,
-    direction,
+    /** Only when the user picked one; absent = the server's default (IMPORT for an IMPORT_EXPORT cycle). */
+    direction: isScoreDirection(direction) ? direction : undefined,
     acoId: params.get('acoId') ?? '',
     airportId: params.get('airportId') ?? '',
     cycles: (params.get('cycles') ?? '').split(',').filter(Boolean),
@@ -213,7 +262,8 @@ export function useReportParams() {
  * The cycle and survey type a report shows, resolved from the cycle list and
  * the URL. The report query waits for the list (`ready`) so the first fetch
  * already carries the selection; when the list cannot be read, the API's own
- * default (newest scored, else live) applies.
+ * default (newest scored, else live) applies. A direction is sent only once
+ * the user picked one, and never for a SINGLE cycle.
  */
 export function useCycleSelection() {
   const params = useReportParams();
@@ -222,18 +272,16 @@ export function useCycleSelection() {
     () => resolveReportSelection(cycles.data ?? [], { cycleId: params.cycleId, surveyType: params.surveyType }),
     [cycles.data, params.cycleId, params.surveyType],
   );
+  const direction = selection.cycle?.answerMode === 'SINGLE' ? undefined : params.direction;
   const query = useMemo<ReportQuery>(
-    () => ({
-      ...(cycles.isSuccess ? { cycleId: selection.cycle?.id, surveyType: selection.surveyType } : {}),
-      direction: params.direction,
-    }),
-    [cycles.isSuccess, selection.cycle?.id, selection.surveyType, params.direction],
+    () => ({ ...(cycles.isSuccess ? { cycleId: selection.cycle?.id, surveyType: selection.surveyType } : {}), ...(direction ? { direction } : {}) }),
+    [cycles.isSuccess, selection.cycle?.id, selection.surveyType, direction],
   );
   const noCycles = cycles.isSuccess && selection.cycle === null;
   const set = params.set;
   const setCycle = useCallback((cycleId: string) => set({ cycleId, surveyType: undefined }), [set]);
   const setSurveyType = useCallback((surveyType: SurveyType) => set({ surveyType }), [set]);
-  const setDirection = useCallback((direction: ScoreDirection) => set({ direction: direction === 'IMPORT' ? undefined : direction }), [set]);
+  const setDirection = useCallback((next: ScoreDirection) => set({ direction: next }), [set]);
   return {
     cycles: cycles.data ?? [],
     cyclesLoading: cycles.isPending,
@@ -244,7 +292,8 @@ export function useCycleSelection() {
     search: params.search,
     setCycle,
     setSurveyType,
-    direction: params.direction,
+    /** The picked direction (undefined = server default). */
+    direction,
     setDirection,
   };
 }

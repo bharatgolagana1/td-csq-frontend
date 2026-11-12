@@ -2,7 +2,7 @@ import { type ReactNode, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { isApiError } from '@/api/client';
-import { useOperatorQuestions } from '@/api/reports';
+import { shownDirection, useOperatorQuestions } from '@/api/reports';
 import { useSession } from '@/auth/session';
 import { EmptyState, PageHeader, Pill, SearchInput, Select, type SortState, statusVariant, Tag, Toolbar, ToolbarCount } from '@/design/primitives';
 import { QueryError } from '@/design/primitives/QueryError/QueryError';
@@ -30,6 +30,7 @@ export default function OperatorQuestionsPage() {
   const data = query.data;
   const cycle = data?.cycle ?? selection.selection.cycle;
   const provisional = data?.provisional ?? selection.selection.provisional;
+  const direction = shownDirection(data, selection.direction);
 
   const categoryOptions = useMemo(() => {
     const seen = new Map<string, string>();
@@ -76,7 +77,7 @@ export default function OperatorQuestionsPage() {
         actions={<ExportButton query={{ scope: 'operator', acoId: selection.acoId, ...selection.query }} cycleCode={cycle?.code} disabled={!data} />}
         tabs={{ tabs: dashboardTabs(href, selection.acoId, selection.search), 'aria-label': 'Dashboard views' }}
       />
-      <DashboardFilters selection={selection} />
+      <DashboardFilters selection={selection} direction={direction} />
       {body}
     </>
   );

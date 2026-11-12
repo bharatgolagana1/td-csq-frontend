@@ -1,7 +1,7 @@
 import { type ReactNode } from 'react';
 
 import { isApiError } from '@/api/client';
-import { SURVEY_TYPE_LABELS, useCycleSelection, useNationalReport } from '@/api/reports';
+import { DIRECTION_LABELS, shownDirection, SURVEY_TYPE_LABELS, useCycleSelection, useNationalReport } from '@/api/reports';
 import { type NationalReport } from '@/api/reports.types';
 import { HorizontalBar, RankTable } from '@/design/charts';
 import { Card, EmptyState, PageHeader, Pill, Progress, Skeleton, Stat, statusVariant, Tag } from '@/design/primitives';
@@ -71,6 +71,7 @@ export default function NationalReportPage() {
   const data = report.data;
   const current = data?.cycle ?? cycle.selection.cycle;
   const provisional = data?.provisional ?? cycle.selection.provisional;
+  const direction = shownDirection(data, cycle.direction);
 
   let body: ReactNode;
   if (cycle.noCycles) {
@@ -104,7 +105,7 @@ export default function NationalReportPage() {
       <PageHeader
         eyebrow="Reports"
         title="National report"
-        context={data ? `${data.cycle.name} · ${SURVEY_TYPE_LABELS[data.surveyType]} · every participating airport and operator across India.` : 'Every participating airport and operator across India.'}
+        context={data ? `${data.cycle.name} · ${SURVEY_TYPE_LABELS[data.surveyType]}${direction ? ` · ${DIRECTION_LABELS[direction]}` : ''} · every participating airport and operator across India.` : 'Every participating airport and operator across India.'}
         meta={
           current ? (
             <>
@@ -115,7 +116,7 @@ export default function NationalReportPage() {
         }
         actions={<ExportButton query={{ scope: 'national', ...cycle.query }} cycleCode={current?.code} disabled={!data} />}
       />
-      <ReportFilters cycles={cycle.cycles} cyclesLoading={cycle.cyclesLoading} selection={cycle.selection} onCycle={cycle.setCycle} onSurveyType={cycle.setSurveyType} direction={cycle.direction} onDirection={cycle.setDirection} />
+      <ReportFilters cycles={cycle.cycles} cyclesLoading={cycle.cyclesLoading} selection={cycle.selection} onCycle={cycle.setCycle} onSurveyType={cycle.setSurveyType} direction={direction} onDirection={cycle.setDirection} />
       {body}
     </>
   );

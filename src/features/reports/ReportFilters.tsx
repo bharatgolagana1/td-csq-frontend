@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react';
 
-import { cycleSelectOptions, type ReportSelection, type ScopeOption, SURVEY_TYPE_LABELS } from '@/api/reports';
+import { cycleSelectOptions, DIRECTION_OPTIONS, type ReportSelection, type ScopeOption, SURVEY_TYPE_LABELS } from '@/api/reports';
 import { type CycleOption, type ScoreDirection, type SurveyType } from '@/api/reports.types';
 import { Segmented } from '@/design/charts';
 import { Select, Toolbar } from '@/design/primitives';
@@ -23,8 +23,9 @@ export type ReportFiltersProps = {
   selection: ReportSelection;
   onCycle: (cycleId: string) => void;
   onSurveyType: (surveyType: SurveyType) => void;
-  direction: ScoreDirection;
-  onDirection: (direction: ScoreDirection) => void;
+  /** The direction shown (`shownDirection`); null hides the Import/Export switch (a SINGLE cycle). */
+  direction?: ScoreDirection | null;
+  onDirection?: (direction: ScoreDirection) => void;
   /** Extra controls after the cycle (the comparison's second cycle). */
   children?: ReactNode;
   cycleLabel?: string;
@@ -57,21 +58,11 @@ export function ReportFilters({ scope, cycles, cyclesLoading, selection, onCycle
         disabled={cyclesLoading || cycleOptions.length === 0}
         onChange={(e) => onCycle(e.target.value)}
       />
-      <Select
-        aria-label="Score direction"
-        size="sm"
-        wrapperClassName={styles.filterSelect}
-        options={[
-          { value: 'IMPORT', label: 'Import' },
-          { value: 'EXPORT', label: 'Export' },
-        ]}
-        value={direction}
-        onChange={(event) => onDirection(event.target.value as ScoreDirection)}
-      />
       {children}
       {selection.surveyTypes.length > 1 && selection.surveyType ? (
         <Segmented aria-label="Survey type" value={selection.surveyType} onChange={onSurveyType} options={selection.surveyTypes.map((t) => ({ value: t, label: SURVEY_TYPE_LABELS[t] }))} />
       ) : null}
+      {direction && onDirection ? <Segmented aria-label="Direction" value={direction} onChange={(d) => (d === direction ? undefined : onDirection(d))} options={DIRECTION_OPTIONS} /> : null}
     </Toolbar>
   );
 }

@@ -1,4 +1,4 @@
-import { cycleSelectOptions, SURVEY_TYPE_LABELS } from '@/api/reports';
+import { cycleSelectOptions, DIRECTION_OPTIONS, SURVEY_TYPE_LABELS } from '@/api/reports';
 import { type ScoreDirection } from '@/api/reports.types';
 import { Segmented } from '@/design/charts';
 import { Select } from '@/design/primitives';
@@ -7,13 +7,20 @@ import { cn } from '@/lib/cn';
 import styles from './dashboard.module.css';
 import { type DashboardSelection } from './useDashboardSelection';
 
+export type DashboardFiltersProps = {
+  selection: DashboardSelection;
+  /** The direction the report shows (`shownDirection`); null hides the Import/Export switch (a SINGLE cycle). */
+  direction?: ScoreDirection | null;
+};
+
 /**
  * The dark context strip above the cards: programme and scope on the left, the
- * operator (platform / airport users), cycle and survey type as pills on the right.
- * One filter row above everything it scopes.
+ * operator (platform / airport users), cycle, survey type and — for an
+ * IMPORT_EXPORT cycle — the direction as pills on the right. One filter row
+ * above everything it scopes.
  */
-export function DashboardFilters({ selection }: { selection: DashboardSelection }) {
-  const { scope, cycles, cyclesLoading, selection: sel, setCycle, setSurveyType, direction, setDirection } = selection;
+export function DashboardFilters({ selection, direction = null }: DashboardFiltersProps) {
+  const { scope, cycles, cyclesLoading, selection: sel, setCycle, setSurveyType, setDirection } = selection;
   const cycleOptions = cycleSelectOptions(cycles);
   return (
     <div className={cn(styles.strip, styles.inverse)} role="region" aria-label="Dashboard scope">
@@ -47,20 +54,10 @@ export function DashboardFilters({ selection }: { selection: DashboardSelection 
           disabled={cyclesLoading || cycleOptions.length === 0}
           onChange={(e) => setCycle(e.target.value)}
         />
-        <Select
-          aria-label="Score direction"
-          size="sm"
-          wrapperClassName={styles.pillSelect}
-          options={[
-            { value: 'IMPORT', label: 'Import' },
-            { value: 'EXPORT', label: 'Export' },
-          ]}
-          value={direction}
-          onChange={(event) => setDirection(event.target.value as ScoreDirection)}
-        />
         {sel.surveyTypes.length > 1 && sel.surveyType ? (
           <Segmented aria-label="Survey type" tone="inverse" value={sel.surveyType} onChange={setSurveyType} options={sel.surveyTypes.map((t) => ({ value: t, label: SURVEY_TYPE_LABELS[t] }))} />
         ) : null}
+        {direction ? <Segmented aria-label="Direction" tone="inverse" value={direction} onChange={(d) => (d === direction ? undefined : setDirection(d))} options={DIRECTION_OPTIONS} /> : null}
       </div>
     </div>
   );

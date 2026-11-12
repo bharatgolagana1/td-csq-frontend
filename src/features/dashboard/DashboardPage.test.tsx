@@ -2,7 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { CYCLE_OPTIONS, OPERATOR_REPORT, OPERATOR_REPORT_PROVISIONAL, OPERATOR_REPORT_SUPPRESSED } from '@/api/reports.fixtures';
+import { CYCLE_OPTIONS, CYCLE_OPTIONS_IMPORT_EXPORT, OPERATOR_REPORT, OPERATOR_REPORT_EXPORT, OPERATOR_REPORT_IMPORT, OPERATOR_REPORT_PROVISIONAL, OPERATOR_REPORT_SUPPRESSED } from '@/api/reports.fixtures';
 
 vi.mock('@/auth/keycloak', () => ({
   keycloak: { authenticated: false, tokenParsed: undefined },
@@ -102,6 +102,48 @@ describe('DashboardPage', () => {
     const reportCall = fetchMock.mock.calls.map(([input]) => String(input)).find((u) => u.includes('/reports/operator/org-csc'));
     expect(reportCall).toContain('cycleId=c-26h1');
     expect(reportCall).toContain('surveyType=DOMESTIC');
+    // A SINGLE cycle: no direction asked for, no switch, no direction label.
+    expect(reportCall).not.toContain('direction=');
+    expect(screen.queryByRole('radiogroup', { name: 'Direction' })).toBeNull();
+    expect(within(hero).getByText('Selected operator')).toBeInTheDocument();
+  });
+
+  it('IMPORT_EXPORT cycle: shows the server-resolved direction, asks for one only once picked, and never shows import figures while export loads', async () => {
+    let releaseExport: () => void = () => undefined;
+    const exportReady = new Promise<void>((resolve) => (releaseExport = resolve));
+    const fetchMock = mockApi({
+      '/cycles': CYCLE_OPTIONS_IMPORT_EXPORT,
+      '/settings': SETTINGS,
+      '/reports/operator/org-csc': async (url: URL) => {
+        if (url.searchParams.get('direction') !== 'EXPORT') return OPERATOR_REPORT_IMPORT;
+        await exportReady;
+        return OPERATOR_REPORT_EXPORT;
+      },
+    });
+    renderPage(<DashboardPage />);
+    const reportCalls = () => fetchMock.mock.calls.map(([input]) => new URL(String(input), 'http://localhost')).filter((u) => u.pathname.endsWith('/reports/operator/org-csc'));
+
+    // No direction picked: the request carries none and the server's default (import) is shown.
+    expect(await screen.findByText('129 assessments · 1 self · 128 customer')).toBeInTheDocument();
+    expect(reportCalls().map((u) => u.searchParams.get('direction'))).toEqual([null]);
+    const switcher = screen.getByRole('radiogroup', { name: 'Direction' });
+    expect(within(switcher).getByRole('radio', { name: 'Import' })).toHaveAttribute('aria-checked', 'true');
+    expect(screen.getByText('Selected operator · Import')).toBeInTheDocument();
+
+    // Picking the shown direction again asks for nothing new.
+    await userEvent.click(within(switcher).getByRole('radio', { name: 'Import' }));
+    expect(reportCalls()).toHaveLength(1);
+
+    await userEvent.click(within(switcher).getByRole('radio', { name: 'Export' }));
+    await waitFor(() => expect(reportCalls().map((u) => u.searchParams.get('direction'))).toEqual([null, 'EXPORT']));
+    // While export loads: the skeleton, not the import figures; the switch stays on the pick.
+    expect(screen.getByTestId('dashboard-skeleton')).toBeInTheDocument();
+    expect(screen.queryByText('129 assessments · 1 self · 128 customer')).toBeNull();
+    expect(within(screen.getByRole('radiogroup', { name: 'Direction' })).getByRole('radio', { name: 'Export' })).toHaveAttribute('aria-checked', 'true');
+
+    releaseExport();
+    expect(await screen.findByText('98 assessments · 1 self · 97 customer')).toBeInTheDocument();
+    expect(screen.getByText('Selected operator · Export')).toBeInTheDocument();
   });
 
   it('switches the category card between levels and the table twin', async () => {
