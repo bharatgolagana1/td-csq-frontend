@@ -75,4 +75,34 @@ describe('AssessmentStepper', () => {
     expect(onSubmit).toHaveBeenCalledTimes(2);
     expect(screen.queryByRole('dialog')).toBeNull();
   });
+
+  it('IMPORT_EXPORT: counts both directions, lists each missing one in the review and jumps to that direction', async () => {
+    // Everything answered for import except q4; export only for the first section.
+    const draft = [answer('q1', { direction: 'IMPORT' }), answer('q2', { direction: 'IMPORT' }), answer('q3', { direction: 'IMPORT', comment: 'Fine' }), answer('q1', { direction: 'EXPORT' }), answer('q2', { direction: 'EXPORT' })];
+    const onProgress = vi.fn();
+    const { onSave } = renderStepper(draft, { answerMode: 'IMPORT_EXPORT', onProgress });
+    expect(onProgress).toHaveBeenLastCalledWith({ answered: 5, total: 8, pct: 63 });
+    expect(screen.getByText('4 of 4 answered in this section')).toBeInTheDocument();
+    expect(screen.getAllByRole('region', { name: 'Import' })).toHaveLength(2);
+
+    await userEvent.click(screen.getByRole('button', { name: /Review & submit/ }));
+    expect(screen.getByText('3 items need attention')).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /^Q\d/ }).map((b) => b.textContent)).toEqual([
+      'Q3How would you rate security screening?Security · ExportNot answered',
+      'Q4How would you rate the overall experience?Security · ImportNot answered',
+      'Q4How would you rate the overall experience?Security · ExportNot answered',
+    ]);
+    expect(screen.getByRole('button', { name: 'Submit' })).toBeDisabled();
+
+    await userEvent.click(screen.getByRole('button', { name: /Q4.*Security · Export/ }));
+    expect(screen.getByRole('heading', { level: 2, name: 'Security' })).toBeInTheDocument();
+    expect(document.activeElement?.id).toBe('q-q4-export');
+    // The jump turned validation on: the unanswered direction says so, the answered one stays quiet.
+    expect(within(document.activeElement as HTMLElement).getByRole('alert')).toHaveTextContent('Choose a rating or NA');
+    expect(within(document.getElementById('q-q3-import') as HTMLElement).queryByRole('alert')).toBeNull();
+
+    await userEvent.click(within(screen.getByRole('radiogroup', { name: 'How would you rate the overall experience? — Export' })).getByRole('radio', { name: 'Good' }));
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith([{ questionId: 'q4', direction: 'EXPORT', rating: 3, na: false, comment: null, followUp: [] }]), { timeout: 2000 });
+    expect(onProgress).toHaveBeenLastCalledWith({ answered: 6, total: 8, pct: 75 });
+  });
 });

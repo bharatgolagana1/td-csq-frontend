@@ -1,9 +1,9 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { type AssessmentDetail } from '@/api/assessments.types';
+import { type AssessmentDetail, type DetailAnswer } from '@/api/assessments.types';
 import { AuthProvider, type Session } from '@/auth/session';
 
 vi.mock('@/auth/keycloak', () => ({
@@ -38,14 +38,16 @@ const DETAIL: AssessmentDetail = {
   surveyType: 'DOMESTIC',
   customerType: 'CB',
   customerId: null,
-  assessorName: 'A*** R***',
-  assessorEmailMasked: 'a***@delcargo.test',
-  assessor: { name: 'A*** R***', email: 'a***@delcargo.test', revealed: false },
+  assessorName: null,
+  assessorEmailMasked: null,
+  assessor: { name: null, email: null, revealed: false },
   status: 'SUBMITTED',
   progress: { answered: 2, total: 2, pct: 100 },
   startedAt: '2026-10-02T04:00:00.000Z',
   submittedAt: '2026-10-05T06:34:00.000Z',
   score: 3,
+  importScore: null,
+  exportScore: null,
   survey: { id: 's1', code: 'DOMESTIC', name: 'Domestic survey', version: 3 },
   answers: [
     { questionId: 'q1', code: 'Q1', text: 'Shipment acceptance', category: { id: 'c1', code: 'H', name: 'Cargo handling' }, subcategory: { id: 's', code: 'S', name: 'Acceptance' }, rating: 2, na: false, comment: 'Queues at the gate', followUp: ['Queues'] },
@@ -85,8 +87,9 @@ describe('AssessmentPage', () => {
     mount();
     expect(detail).toHaveBeenCalledWith('a1');
     expect(screen.getByRole('heading', { level: 1, name: 'Customer assessment' })).toBeInTheDocument();
-    expect(screen.getByText('Identity masked')).toBeInTheDocument();
-    expect(screen.getByText('a***@delcargo.test')).toBeInTheDocument();
+    expect(screen.getByText('Identity hidden')).toBeInTheDocument();
+    expect(screen.getByText('Privacy setting')).toBeInTheDocument();
+    expect(screen.queryByText(/@/)).toBeNull();
     expect(screen.getByText('Customs broker')).toBeInTheDocument();
     expect(screen.getByText('5 Oct 2026, 12:04 IST (UTC+05:30)')).toBeInTheDocument();
     expect(screen.getByText('3.0')).toBeInTheDocument();
@@ -95,5 +98,33 @@ describe('AssessmentPage', () => {
     expect(screen.getByText('Very good')).toBeInTheDocument();
     expect(screen.getByText('Queues')).toBeInTheDocument();
     expect(screen.getByText('Queues at the gate')).toBeInTheDocument();
+    expect(screen.queryByText('Import score')).toBeNull();
+  });
+
+  it('shows an IMPORT_EXPORT return with both scores and each question answered per direction', () => {
+    const [q1, q2] = DETAIL.answers as [DetailAnswer, DetailAnswer];
+    const importExport: AssessmentDetail = {
+      ...DETAIL,
+      answerMode: 'IMPORT_EXPORT',
+      progress: { answered: 4, total: 4, pct: 100 },
+      score: null,
+      importScore: 3.5,
+      exportScore: 2.5,
+      answers: [
+        { ...q1, direction: 'IMPORT', rating: 4, comment: null, followUp: [] },
+        { ...q1, direction: 'EXPORT' },
+        { ...q2, direction: 'IMPORT', rating: 3 },
+        { ...q2, direction: 'EXPORT', rating: 3 },
+      ],
+    };
+    detail.mockReturnValue({ isPending: false, isError: false, data: importExport } as unknown as ReturnType<typeof useAssessment>);
+    mount();
+    expect(screen.getByText('Import score').nextElementSibling).toHaveTextContent('3.5');
+    expect(screen.getByText('Export score').nextElementSibling).toHaveTextContent('2.5');
+    expect(screen.queryByText('Score')).toBeNull();
+    const shipment = screen.getByText('Shipment acceptance').closest('li') as HTMLElement;
+    expect(within(shipment).getByRole('region', { name: 'Import answer' })).toHaveTextContent('Very good');
+    expect(within(shipment).getByRole('region', { name: 'Export answer' })).toHaveTextContent(/Fair.*Queues at the gate/);
+    expect(screen.getAllByText('2/2')).toHaveLength(2);
   });
 });

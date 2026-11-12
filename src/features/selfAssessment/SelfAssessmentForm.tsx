@@ -1,4 +1,4 @@
-import { useSaveSelfAnswers, useSaveSelfSectionRemarks, useSelfAssessment, useSubmitSelfAssessment } from '@/api/assessments';
+import { useSaveSelfAnswers, useSelfAssessment, useSubmitSelfAssessment } from '@/api/assessments';
 import { type SurveyType } from '@/api/assessments.types';
 import { type CurrentCycleSummary } from '@/api/sampling.types';
 import { useSession } from '@/auth/session';
@@ -40,13 +40,13 @@ export function SelfAssessmentForm({ cycle, surveyType }: SelfAssessmentFormProp
   const toast = useToast();
   const query = useSelfAssessment(cycle.id, surveyType);
   const save = useSaveSelfAnswers(cycle.id, surveyType);
-  const saveRemarks = useSaveSelfSectionRemarks(cycle.id, surveyType);
   const submit = useSubmitSelfAssessment(cycle.id, surveyType);
 
   if (query.isPending) return <FormSkeleton />;
   if (query.isError) return <QueryError error={query.error} title="Could not load the self-assessment" onRetry={() => void query.refetch()} />;
 
   const data = query.data;
+  const answerMode = data.assessment.answerMode ?? 'SINGLE';
   if (data.assessment.status === 'SUBMITTED') {
     const at = data.assessment.submittedAt;
     return (
@@ -54,7 +54,7 @@ export function SelfAssessmentForm({ cycle, surveyType }: SelfAssessmentFormProp
         <Banner tone="success" title={`Submitted${at ? ` on ${formatDateTime(at, cycle.tz)} ${describeTimeZone(cycle.tz)}` : ''}`}>
           Your answers are locked. {SELF_NOTE}
         </Banner>
-        <AnswerSummary groups={groupsFromForm(data, data.answers)} />
+        <AnswerSummary groups={groupsFromForm(data, data.answers, answerMode)} answerMode={answerMode} />
       </div>
     );
   }
@@ -64,9 +64,8 @@ export function SelfAssessmentForm({ cycle, surveyType }: SelfAssessmentFormProp
       <AssessmentStepper
         form={data}
         draft={data.answers}
-        initialSectionRemarks={data.sectionRemarks ?? []}
+        answerMode={answerMode}
         onSave={(answers) => save.mutateAsync(answers)}
-        onSaveSectionRemarks={(sectionRemarks) => saveRemarks.mutateAsync({ sectionRemarks })}
         onSubmit={() => submit.mutateAsync()}
         storageKey={`csq.self.${org.id}.${cycle.id}.${surveyType}`}
         tz={cycle.tz}

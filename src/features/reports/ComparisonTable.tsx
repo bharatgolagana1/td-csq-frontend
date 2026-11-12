@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 
+import { DIRECTION_LABELS } from '@/api/reports';
 import { type ComparisonRow } from '@/api/reports.types';
 import { DeltaChip } from '@/design/charts';
 import { type Column, EmptyState, Table, Tag } from '@/design/primitives';
@@ -16,7 +17,7 @@ export type ComparisonTableProps = {
   caption: string;
 };
 
-/** One survey node per row, one column per compared cycle, then the change later − earlier. */
+/** One survey node per row, one column per compared cycle (its direction under the name, unless SINGLE), then the change later − earlier. */
 export function ComparisonTable({ rows, cycles, parentNames, caption }: ComparisonTableProps) {
   const columns = useMemo<Column<ComparisonRow>[]>(() => {
     const cols: Column<ComparisonRow>[] = [
@@ -34,7 +35,15 @@ export function ComparisonTable({ rows, cycles, parentNames, caption }: Comparis
     cycles.forEach((c, i) => {
       cols.push({
         id: `c${i}`,
-        header: c.name,
+        header:
+          c.direction === 'SINGLE' ? (
+            c.name
+          ) : (
+            <span className={styles.colHead}>
+              {c.name}
+              <span className={styles.nameSub}>{DIRECTION_LABELS[c.direction]}</span>
+            </span>
+          ),
         width: 128,
         align: 'right',
         mono: true,

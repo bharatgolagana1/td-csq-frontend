@@ -1,7 +1,7 @@
 import { type ReactNode } from 'react';
 
 import { isApiError } from '@/api/client';
-import { useOperatorReport } from '@/api/reports';
+import { shownDirection, useOperatorReport } from '@/api/reports';
 import { useSettings } from '@/api/settings';
 import { useSession } from '@/auth/session';
 import { Card, EmptyState, PageHeader, Pill, Skeleton, statusVariant, Tag } from '@/design/primitives';
@@ -66,6 +66,7 @@ export default function DashboardPage() {
   const data = report.data;
   const provisional = data?.provisional ?? selection.selection.provisional;
   const cycle = data?.cycle ?? selection.selection.cycle;
+  const direction = shownDirection(data, selection.direction);
   const questionsTo = `${href(`/reports/operator/${selection.acoId}/questions`)}${selection.search ? `?${selection.search}` : ''}`;
 
   let body: ReactNode;
@@ -86,7 +87,7 @@ export default function DashboardPage() {
   } else {
     body = (
       <div className={styles.grid} data-stale={report.isFetching || undefined}>
-        <HeroCard report={data} minResponses={settings.data?.scoring.minResponses} />
+        <HeroCard report={data} direction={direction} minResponses={settings.data?.scoring.minResponses} />
         <OverallCard report={data} />
         <FeedbackCard report={data} />
         <CategoriesCard report={data} questionsTo={questionsTo} />
@@ -113,7 +114,7 @@ export default function DashboardPage() {
         actions={<ExportButton query={{ scope: 'operator', acoId: selection.acoId, ...selection.query }} cycleCode={cycle?.code} disabled={!data} />}
         tabs={{ tabs: dashboardTabs(href, selection.acoId, selection.search), 'aria-label': 'Dashboard views' }}
       />
-      <DashboardFilters selection={selection} />
+      <DashboardFilters selection={selection} direction={direction} />
       {body}
     </>
   );

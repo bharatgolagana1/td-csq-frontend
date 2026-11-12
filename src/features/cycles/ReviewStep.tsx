@@ -6,7 +6,7 @@ import { Button, KeyValue, type KeyValueItem, Pill } from '@/design/primitives';
 import { describeTimeZone, formatInt } from '@/lib/format';
 
 import { useBuilder } from './builderContext';
-import { CYCLE_TYPE_LABELS, TYPE_PILL } from './cycleLabels';
+import { ANSWER_MODE_LABELS, CYCLE_TYPE_LABELS, TYPE_PILL } from './cycleLabels';
 import styles from './cycles.module.css';
 import { airportShareTotal } from './ParticipantsStep';
 import { formatWall } from './SamplingStep';
@@ -40,6 +40,7 @@ export function ReviewStep({ onSaveDraft, onPublish, saving, publishing, canPubl
     { key: 'Name', value: v.name || '—' },
     { key: 'Code', value: v.code || '—', mono: true },
     { key: 'Type', value: <Pill variant={TYPE_PILL[v.type]}>{CYCLE_TYPE_LABELS[v.type]}</Pill> },
+    { key: 'Answer mode', value: ANSWER_MODE_LABELS[v.answerMode] },
     { key: 'Time zone', value: `${v.tz} · ${describeTimeZone(v.tz)}` },
   ];
   const windows: KeyValueItem[] = [

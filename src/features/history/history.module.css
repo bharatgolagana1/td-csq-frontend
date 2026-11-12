@@ -115,6 +115,18 @@
   font-variant-numeric: tabular-nums;
   font-weight: 500;
 }
+/* An IMPORT_EXPORT row's two scores, one per line. */
+.scores {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+}
+.scoreLabel {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
 .cardSubmitted {
   font-size: var(--text-xs);
   color: var(--muted);
@@ -156,4 +168,11 @@
   margin: var(--space-3) 0 0;
   color: var(--muted);
   font-size: var(--text-sm);
+}
+
+/* A customer identity withheld by the privacy setting. */
+.identityHidden {
+  color: var(--muted);
+  font-style: italic;
+  font-weight: 400;
 }

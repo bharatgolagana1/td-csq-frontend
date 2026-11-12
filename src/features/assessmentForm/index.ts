@@ -8,6 +8,7 @@
  *   <AssessmentStepper
  *     form={form}                       // AssessmentForm: { survey, categories → subcategories → questions }
  *     draft={draft.answers}             // Answer[] as GET …/draft returns them
+ *     answerMode={assessment.answerMode ?? 'SINGLE'}   // IMPORT_EXPORT: every question rated for import and export
  *     onSave={(answers) => save(answers)}   // merge PATCH …/answers; may return { lastSavedAt }
  *     onSubmit={() => submit()}         // POST …/submit; reject with the ApiError
  *     storageKey={`csq.assess.${token}`}    // localStorage replay queue (omit = memory only)
@@ -20,22 +21,30 @@
  * to api/assessments.types, so `form` and `draft.answers` pass through as-is.
  *
  * Lower-level pieces (for a custom composition): `useAssessmentDraft`,
- * `QuestionCard`, `RatingScale`, `StepHeader`, `ProgressBar`, `SaveStatus`,
+ * `QuestionCard`, `ImportExportQuestionCard`, `AnswerControls`,
+ * `QuestionHead`, `RatingScale`, `StepHeader`, `ProgressBar`, `SaveStatus`,
  * `StepList`, `ReviewList`, `SubmitConfirm`, `AnswerSummary`, and the pure
  * rules (`formSteps`, `readinessOf`, `reviewItems`, `groupsFromForm`, …).
  */
 
+export { AnswerControls, type AnswerControlsProps } from './AnswerControls';
 export { AnswerSummary, type AnswerSummaryProps } from './AnswerSummary';
 export { AssessmentStepper, type AssessmentStepperProps } from './AssessmentStepper';
+export { ImportExportQuestionCard, type ImportExportQuestionCardProps } from './ImportExportQuestionCard';
 export { ProgressBar, type ProgressBarProps } from './ProgressBar';
 export { QuestionCard, type QuestionCardProps } from './QuestionCard';
+export { QuestionHead, type QuestionHeadProps } from './QuestionHead';
 export { RatingScale, type RatingScaleProps } from './RatingScale';
 export { ReviewList, type ReviewListProps } from './ReviewList';
 export {
+  ANSWER_DIRECTIONS,
+  answerDirections,
   answerIssues,
+  answerKey,
   answersToMap,
   commentHint,
   commentRequired,
+  DIRECTION_LABELS,
   emptyAnswer,
   formSteps,
   fromAnswer,
@@ -63,6 +72,7 @@ export { StepList, type StepListItem, type StepListProps } from './StepList';
 export { SubmitConfirm, type SubmitConfirmProps } from './SubmitConfirm';
 export type {
   AnswerGroup,
+  AnswerGroupAnswer,
   AnswerGroupItem,
   AnswerIssue,
   AnswerIssueField,

@@ -1,12 +1,14 @@
-import { type Answer, type AnswerInput, type AssessmentForm, type DetailAnswer, type FormQuestion, type Progress, type Rating } from '@/api/assessments.types';
+import { type Answer, type AnswerDirection, type AnswerInput, type AnswerMode, type AssessmentForm, type DetailAnswer, type FormQuestion, type Progress, type Rating } from '@/api/assessments.types';
 
-import { type AnswerGroup, type AnswerIssue, type FormStep, type FormStepQuestion, type LocalAnswer, type ReviewItem, type StepReadiness } from './types';
+import { type AnswerGroup, type AnswerGroupAnswer, type AnswerGroupItem, type AnswerIssue, type FormStep, type FormStepQuestion, type LocalAnswer, type ReviewItem, type StepReadiness } from './types';
 
 /* Form rules (backend ARCHITECTURE §7 "Form rules"), mirrored client-side so the
    form validates inline and never sends an answer the server would refuse:
    every active question needs a rating or NA; a comment when the comment mode
    says so (REQUIRED_ON_LOW ⇒ Fair/Poor); follow-up options only on Fair/Poor
-   and only from the question's list. Pure: no React, no IO. */
+   and only from the question's list. An IMPORT_EXPORT form asks every question
+   twice, once per direction, and each direction follows the same rules. Pure:
+   no React, no IO. */
 
 export type RatingValue = Rating | 'NA';
 
@@ -27,16 +29,30 @@ export function isLowRating(rating: Rating | null | undefined): boolean {
   return rating !== null && rating !== undefined && rating <= LOW_RATING_MAX;
 }
 
-export function emptyAnswer(questionId: string): LocalAnswer {
-  return { questionId, rating: null, na: false, comment: '', followUp: [] };
+export const ANSWER_DIRECTIONS: readonly AnswerDirection[] = ['IMPORT', 'EXPORT'];
+
+export const DIRECTION_LABELS: Record<AnswerDirection, string> = { IMPORT: 'Import', EXPORT: 'Export' };
+
+/** The answers a question takes: one per direction under IMPORT_EXPORT, a single undirected one otherwise. */
+export function answerDirections(mode: AnswerMode = 'SINGLE'): readonly (AnswerDirection | undefined)[] {
+  return mode === 'IMPORT_EXPORT' ? ANSWER_DIRECTIONS : [undefined];
+}
+
+/** Key of a local answer: the question id, with `:IMPORT` / `:EXPORT` for a directed one. */
+export function answerKey(questionId: string, direction?: AnswerDirection | null): string {
+  return direction ? `${questionId}:${direction}` : questionId;
+}
+
+export function emptyAnswer(questionId: string, direction?: AnswerDirection): LocalAnswer {
+  return { questionId, ...(direction ? { direction } : {}), rating: null, na: false, comment: '', followUp: [] };
 }
 
 export function fromAnswer(answer: Answer): LocalAnswer {
-  return { questionId: answer.questionId, rating: answer.rating, na: answer.na, comment: answer.comment ?? '', followUp: [...answer.followUp] };
+  return { questionId: answer.questionId, ...(answer.direction ? { direction: answer.direction } : {}), rating: answer.rating, na: answer.na, comment: answer.comment ?? '', followUp: [...answer.followUp] };
 }
 
 export function answersToMap(answers: readonly Answer[]): Map<string, LocalAnswer> {
-  return new Map(answers.map((a) => [a.questionId, fromAnswer(a)]));
+  return new Map(answers.map((a) => [answerKey(a.questionId, a.direction), fromAnswer(a)]));
 }
 
 export function isAnswered(answer: LocalAnswer | undefined): boolean {
@@ -80,7 +96,7 @@ export function toAnswerInput(question: FormQuestion, answer: LocalAnswer): Answ
   const comment = question.commentMode === 'NONE' ? null : answer.comment.trim() || null;
   const listed = new Set(question.followUp?.options ?? []);
   const followUp = isLowRating(answer.rating) ? Array.from(new Set(answer.followUp.filter((o) => listed.has(o)))) : [];
-  return { questionId: answer.questionId, rating: answer.na ? null : answer.rating, na: answer.na, comment, followUp };
+  return { questionId: answer.questionId, ...(answer.direction ? { direction: answer.direction } : {}), rating: answer.na ? null : answer.rating, na: answer.na, comment, followUp };
 }
 
 /** One step per category; questions in display order (subcategories first, then direct questions), numbered across the form. */
@@ -101,32 +117,39 @@ export function stepQuestions(steps: readonly FormStep[]): FormStepQuestion[] {
   return steps.flatMap((s) => s.questions);
 }
 
-/** Readiness of a list of questions against the local answers (§7: every question answered; rules satisfied). */
-export function readinessOf(questions: readonly FormStepQuestion[], answers: ReadonlyMap<string, LocalAnswer>): StepReadiness {
+/** Readiness of a list of questions against the local answers (§7: every question answered — in both directions under IMPORT_EXPORT; rules satisfied). */
+export function readinessOf(questions: readonly FormStepQuestion[], answers: ReadonlyMap<string, LocalAnswer>, mode: AnswerMode = 'SINGLE'): StepReadiness {
   const missing: string[] = [];
   const invalid: string[] = [];
+  const directions = answerDirections(mode);
   questions.forEach(({ question }) => {
-    const answer = answers.get(question.id);
-    if (!isAnswered(answer)) missing.push(question.id);
-    else if (answerIssues(question, answer).length > 0) invalid.push(question.id);
+    directions.forEach((direction) => {
+      const key = answerKey(question.id, direction);
+      const answer = answers.get(key);
+      if (!isAnswered(answer)) missing.push(key);
+      else if (answerIssues(question, answer).length > 0) invalid.push(key);
+    });
   });
-  return { answered: questions.length - missing.length, total: questions.length, missing, invalid, complete: missing.length === 0 && invalid.length === 0 };
+  const total = questions.length * directions.length;
+  return { answered: total - missing.length, total, missing, invalid, complete: missing.length === 0 && invalid.length === 0 };
 }
 
 export function progressOf(answered: number, total: number): Progress {
   return { answered, total, pct: total === 0 ? 0 : Math.round((answered / total) * 100) };
 }
 
-/** Everything the review step lists: unanswered questions and required comments left empty, in form order. */
-export function reviewItems(steps: readonly FormStep[], answers: ReadonlyMap<string, LocalAnswer>): ReviewItem[] {
+/** Everything the review step lists: unanswered questions and required comments left empty, in form order (import before export). */
+export function reviewItems(steps: readonly FormStep[], answers: ReadonlyMap<string, LocalAnswer>, mode: AnswerMode = 'SINGLE'): ReviewItem[] {
   const items: ReviewItem[] = [];
+  const directions = answerDirections(mode);
   steps.forEach((step, stepIndex) => {
     step.questions.forEach(({ question, index }) => {
-      const answer = answers.get(question.id);
-      const issues = answerIssues(question, answer);
-      if (issues.length === 0) return;
-      const reason = issues.some((i) => i.field === 'rating') ? 'missing' : 'comment';
-      items.push({ questionId: question.id, code: question.code, text: question.text, index, stepIndex, stepLabel: step.label, reason });
+      directions.forEach((direction) => {
+        const issues = answerIssues(question, answers.get(answerKey(question.id, direction)));
+        if (issues.length === 0) return;
+        const reason = issues.some((i) => i.field === 'rating') ? 'missing' : 'comment';
+        items.push({ questionId: question.id, ...(direction ? { direction } : {}), code: question.code, text: question.text, index, stepIndex, stepLabel: step.label, reason });
+      });
     });
   });
   return items;
@@ -145,27 +168,31 @@ export function ownScore(answers: Iterable<{ rating: Rating | null; na?: boolean
   return Math.round((sum / n) * 10) / 10;
 }
 
+function groupAnswer(a: Answer | undefined): AnswerGroupAnswer | null {
+  return a ? { rating: a.rating, na: a.na, comment: a.comment, followUp: a.followUp } : null;
+}
+
 /** Read-only groups (category → items) for the answer summary from a form and its saved answers. */
-export function groupsFromForm(form: AssessmentForm, answers: readonly Answer[]): AnswerGroup[] {
-  const byId = new Map(answers.map((a) => [a.questionId, a]));
+export function groupsFromForm(form: AssessmentForm, answers: readonly Answer[], mode: AnswerMode = 'SINGLE'): AnswerGroup[] {
+  const byKey = new Map(answers.map((a) => [answerKey(a.questionId, a.direction), a]));
   return formSteps(form).map((step) => ({
     id: step.id,
     name: step.label,
-    items: step.questions.map(({ question, subcategory }) => {
-      const a = byId.get(question.id);
-      return {
-        question: { id: question.id, code: question.code, text: question.text },
-        subcategory: subcategory?.name ?? null,
-        answer: a ? { rating: a.rating, na: a.na, comment: a.comment, followUp: a.followUp } : null,
-      };
-    }),
+    items: step.questions.map(({ question, subcategory }) => ({
+      question: { id: question.id, code: question.code, text: question.text },
+      subcategory: subcategory?.name ?? null,
+      ...(mode === 'IMPORT_EXPORT'
+        ? { answer: null, importAnswer: groupAnswer(byKey.get(answerKey(question.id, 'IMPORT'))), exportAnswer: groupAnswer(byKey.get(answerKey(question.id, 'EXPORT'))) }
+        : { answer: groupAnswer(byKey.get(question.id)) }),
+    })),
   }));
 }
 
-/** Read-only groups from a `GET /assessments/:id` return (every form question with its answer, in form order). */
+/** Read-only groups from a `GET /assessments/:id` return (every form question with its answer, in form order; an IMPORT_EXPORT return lists each question once per direction). */
 export function groupsFromDetail(answers: readonly DetailAnswer[]): AnswerGroup[] {
   const groups: AnswerGroup[] = [];
   const byCategory = new Map<string, AnswerGroup>();
+  const byQuestion = new Map<string, AnswerGroupItem>();
   answers.forEach((a) => {
     let group = byCategory.get(a.category.id);
     if (!group) {
@@ -173,11 +200,16 @@ export function groupsFromDetail(answers: readonly DetailAnswer[]): AnswerGroup[
       byCategory.set(a.category.id, group);
       groups.push(group);
     }
-    group.items.push({
-      question: { id: a.questionId, code: a.code, text: a.text },
-      subcategory: a.subcategory?.name ?? null,
-      answer: a.rating !== null || a.na ? { rating: a.rating, na: a.na, comment: a.comment, followUp: a.followUp } : null,
-    });
+    let item = byQuestion.get(a.questionId);
+    if (!item) {
+      item = { question: { id: a.questionId, code: a.code, text: a.text }, subcategory: a.subcategory?.name ?? null, answer: null };
+      byQuestion.set(a.questionId, item);
+      group.items.push(item);
+    }
+    const answer = a.rating !== null || a.na ? groupAnswer(a) : null;
+    if (a.direction === 'IMPORT') item.importAnswer = answer;
+    else if (a.direction === 'EXPORT') item.exportAnswer = answer;
+    else item.answer = answer;
   });
   return groups;
 }
@@ -186,7 +218,7 @@ export function stepIndexOf(steps: readonly FormStep[], questionId: string): num
   return steps.findIndex((s) => s.questions.some((q) => q.question.id === questionId));
 }
 
-/** DOM id of a question card, for jump links. */
-export function questionDomId(questionId: string): string {
-  return `q-${questionId}`;
+/** DOM id of a question card (or of one direction's part of it), for jump links. */
+export function questionDomId(questionId: string, direction?: AnswerDirection): string {
+  return direction ? `q-${questionId}-${direction.toLowerCase()}` : `q-${questionId}`;
 }

@@ -9,8 +9,10 @@ export type RatingScaleProps = {
   value: RatingValue | null;
   onChange: (value: RatingValue) => void;
   disabled?: boolean;
-  /** id of the element naming the group (the question text). */
-  labelledBy: string;
+  /** id of the element naming the group (the question text)… */
+  labelledBy?: string;
+  /** …or a name of its own ("<question> — Import" on an import/export card). */
+  label?: string;
   describedBy?: string;
   invalid?: boolean;
   className?: string;
@@ -21,11 +23,12 @@ export type RatingScaleProps = {
  * group: Tab reaches it, arrows move the choice, every cell is ≥ 44 px. The
  * ACFI ramp colour appears only on the selected cell (ARCHITECTURE §3).
  */
-export function RatingScale({ name, value, onChange, disabled, labelledBy, describedBy, invalid, className }: RatingScaleProps) {
+export function RatingScale({ name, value, onChange, disabled, labelledBy, label, describedBy, invalid, className }: RatingScaleProps) {
   return (
     <div
       role="radiogroup"
       aria-labelledby={labelledBy}
+      aria-label={label}
       aria-describedby={describedBy}
       aria-invalid={invalid || undefined}
       aria-required="true"

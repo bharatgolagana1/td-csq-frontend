@@ -2,10 +2,11 @@ import { type ReactNode } from 'react';
 
 import { type HistoryRow } from '@/api/assessments.types';
 import { type Column, EmptyState, Pill, type SortState, Table } from '@/design/primitives';
+import { cn } from '@/lib/cn';
 import { formatDateTime, formatRating } from '@/lib/format';
 
 import styles from './history.module.css';
-import { assessorLabel, KIND_LABELS, kindVariant, STATUS_LABELS, statusPillVariant, TYPE_LABELS, zoneAbbr } from './historyLabels';
+import { assessorLabel, isIdentityHidden, KIND_LABELS, kindVariant, rowAnswerMode, STATUS_LABELS, statusPillVariant, TYPE_LABELS, zoneAbbr } from './historyLabels';
 import { useMediaQuery } from './useMediaQuery';
 
 export type HistoryTableProps = {
@@ -25,6 +26,21 @@ function submittedLabel(row: HistoryRow, tz: string): string {
   return `${formatDateTime(row.submittedAt, tz)} ${zoneAbbr(tz, new Date(row.submittedAt))}`;
 }
 
+/** The single score, or the import and the export score of an IMPORT_EXPORT assessment. */
+function Score({ row }: { row: HistoryRow }) {
+  if (rowAnswerMode(row) !== 'IMPORT_EXPORT') return <>{formatRating(row.score)}</>;
+  return (
+    <span className={styles.scores}>
+      <span>
+        <span className={styles.scoreLabel}>Import</span> {formatRating(row.importScore)}
+      </span>
+      <span>
+        <span className={styles.scoreLabel}>Export</span> {formatRating(row.exportScore)}
+      </span>
+    </span>
+  );
+}
+
 function Empty({ filtered, onClearFilters }: { filtered: boolean; onClearFilters: () => void }): ReactNode {
   return filtered ? (
     <EmptyState
@@ -42,7 +58,7 @@ function Empty({ filtered, onClearFilters }: { filtered: boolean; onClearFilters
   );
 }
 
-/** Cycle · kind · customer type · assessor (masked e-mail) · status · submitted · score. Cards under 760px. */
+/** Cycle · kind · customer type · assessor (masked e-mail) · status · submitted · score (import and export for an IMPORT_EXPORT assessment). Cards under 760px. */
 export function HistoryTable({ rows, loading, sort, onSortChange, onOpen, tzOf, filtered, onClearFilters }: HistoryTableProps) {
   const phone = useMediaQuery('(max-width: 760px)');
 
@@ -70,7 +86,7 @@ export function HistoryTable({ rows, loading, sort, onSortChange, onOpen, tzOf, 
                     {STATUS_LABELS[row.status]}
                   </Pill>
                 </span>
-                <span className={styles.cardName}>{assessorLabel(row)}</span>
+                <span className={cn(styles.cardName, isIdentityHidden(row) && styles.identityHidden)}>{assessorLabel(row)}</span>
                 {row.assessorEmailMasked ? <span className={styles.cardEmail}>{row.assessorEmailMasked}</span> : null}
                 <span className={styles.cardMeta}>
                   <Pill variant={kindVariant(row.kind)} dot={false} size="sm">
@@ -81,7 +97,9 @@ export function HistoryTable({ rows, loading, sort, onSortChange, onOpen, tzOf, 
                       {row.customerType}
                     </Pill>
                   ) : null}
-                  <span className={styles.cardScore}>{formatRating(row.score)}</span>
+                  <span className={styles.cardScore}>
+                    <Score row={row} />
+                  </span>
                 </span>
                 <span className={styles.cardSubmitted}>{row.submittedAt ? `Submitted ${submittedLabel(row, tz)}` : `${row.progress.answered} of ${row.progress.total} answered`}</span>
               </button>
@@ -134,7 +152,7 @@ export function HistoryTable({ rows, loading, sort, onSortChange, onOpen, tzOf, 
       header: 'Assessor',
       cell: (r) => (
         <span className={styles.assessor}>
-          <span className={styles.assessorName}>{assessorLabel(r)}</span>
+          <span className={cn(styles.assessorName, isIdentityHidden(r) && styles.identityHidden)}>{assessorLabel(r)}</span>
           {r.assessorEmailMasked ? <span className={styles.assessorEmail}>{r.assessorEmailMasked}</span> : null}
         </span>
       ),
@@ -151,7 +169,7 @@ export function HistoryTable({ rows, loading, sort, onSortChange, onOpen, tzOf, 
       ),
     },
     { id: 'submittedAt', header: 'Submitted', width: 190, sortable: true, mono: true, hideBelow: 'md', cell: (r) => submittedLabel(r, tzOf(r.cycle.id)) },
-    { id: 'score', header: 'Score', width: 80, align: 'right', mono: true, cell: (r) => formatRating(r.score) },
+    { id: 'score', header: 'Score', width: 110, align: 'right', mono: true, cell: (r) => <Score row={r} /> },
   ];
 
   return (

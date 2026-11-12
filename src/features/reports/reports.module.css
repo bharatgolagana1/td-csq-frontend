@@ -120,6 +120,13 @@
   font-size: var(--text-xs);
   color: var(--muted);
 }
+/* A right-aligned column head with a second line (the comparison's direction). */
+.colHead {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+}
 .wrapText {
   white-space: normal;
   min-width: 220px;

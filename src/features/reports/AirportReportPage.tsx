@@ -1,7 +1,7 @@
 import { type ReactNode } from 'react';
 
 import { isApiError } from '@/api/client';
-import { SURVEY_TYPE_LABELS, useAirportReport, useAirportScope, useCycleSelection } from '@/api/reports';
+import { DIRECTION_LABELS, shownDirection, SURVEY_TYPE_LABELS, useAirportReport, useAirportScope, useCycleSelection } from '@/api/reports';
 import { type AirportReport } from '@/api/reports.types';
 import { useSession } from '@/auth/session';
 import { HorizontalBar, RankTable, ScoreHero } from '@/design/charts';
@@ -23,11 +23,12 @@ const CATEGORY_COLUMNS: Column<AirportReport['categories'][number]>[] = [
 
 function AirportBody({ report }: { report: AirportReport }) {
   const scored = report.operators?.filter((o) => !o.suppressed && o.mean !== null).length;
+  const direction = shownDirection(report);
   return (
     <>
       <Card className={styles.span12}>
         <ScoreHero
-          label={`Weighted airport score · ${report.cycle.name} · ${SURVEY_TYPE_LABELS[report.surveyType]}`}
+          label={`Weighted airport score · ${report.cycle.name} · ${SURVEY_TYPE_LABELS[report.surveyType]}${direction ? ` · ${DIRECTION_LABELS[direction]}` : ''}`}
           value={report.overall.mean}
           rank={report.overall.rank}
           rankOf={report.overall.rankOf}
@@ -74,6 +75,7 @@ export default function AirportReportPage() {
   const data = report.data;
   const current = data?.cycle ?? cycle.selection.cycle;
   const provisional = data?.provisional ?? cycle.selection.provisional;
+  const direction = shownDirection(data, cycle.direction);
 
   let body: ReactNode;
   if (cycle.noCycles) {
@@ -128,6 +130,8 @@ export default function AirportReportPage() {
         selection={cycle.selection}
         onCycle={cycle.setCycle}
         onSurveyType={cycle.setSurveyType}
+        direction={direction}
+        onDirection={cycle.setDirection}
       />
       {body}
     </>
