@@ -19,6 +19,7 @@ export function cycleSummary(over: Partial<CycleSummary> = {}): CycleSummary {
     code: 'CSQ-26H2',
     name: 'CSQ 2026 H2',
     type: 'BOTH',
+    answerMode: 'IMPORT_EXPORT',
     status: 'SAMPLING_OPEN',
     tz: 'Asia/Kolkata',
     sampling: window('2026-10-01T00:00', '2026-10-11T00:00'),

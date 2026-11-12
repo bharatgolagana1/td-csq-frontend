@@ -156,6 +156,7 @@ export function AssessForm({ token, session, invitation, resumed, actions, onPro
       <AssessmentStepper
         form={form.data}
         draft={draft.data.answers}
+        answerMode={form.data.assessment.answerMode ?? 'SINGLE'}
         onSave={save}
         onSubmit={submit}
         onSubmitted={submitted}

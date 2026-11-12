@@ -1,4 +1,5 @@
-import { type OperatorReport } from '@/api/reports.types';
+import { DIRECTION_LABELS } from '@/api/reports';
+import { type OperatorReport, type ScoreDirection } from '@/api/reports.types';
 import { DeltaChip } from '@/design/charts';
 import { Card, RatingPill, Stat, Tag } from '@/design/primitives';
 import { cn } from '@/lib/cn';
@@ -11,8 +12,8 @@ function responses(n: number): string {
   return `${formatInt(n)} ${n === 1 ? 'response' : 'responses'}`;
 }
 
-/** The dark hero: selected operator, the one rating, rank of n, counts, and the FF / CB split as two tiles (§7). */
-export function HeroCard({ report, minResponses }: { report: OperatorReport; minResponses?: number }) {
+/** The dark hero: selected operator, the one rating, rank of n, counts, and the FF / CB split as two tiles (§7). An IMPORT_EXPORT cycle names the direction in the eyebrow. */
+export function HeroCard({ report, direction = null, minResponses }: { report: OperatorReport; direction?: ScoreDirection | null; minResponses?: number }) {
   const { overall, byStakeholder, operator, provisional, comparison } = report;
   const suppressed = overall.suppressed === 'INSUFFICIENT_RESPONSES';
   const value = overall.customer.mean;
@@ -22,7 +23,7 @@ export function HeroCard({ report, minResponses }: { report: OperatorReport; min
       <div className={styles.heroInner}>
         <div className={styles.heroHead}>
           <div>
-            <p className={styles.eyebrow}>Selected operator</p>
+            <p className={styles.eyebrow}>{direction ? `Selected operator · ${DIRECTION_LABELS[direction]}` : 'Selected operator'}</p>
             <h3 className={styles.heroName}>{operator.name}</h3>
             <p className={styles.heroAirport}>{airport ? `${airport.name} · ${airport.iata}` : operator.code}</p>
           </div>

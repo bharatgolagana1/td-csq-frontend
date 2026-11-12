@@ -10,7 +10,7 @@ import { AnswerSummary, groupsFromDetail } from '@/features/assessmentForm';
 import { DEFAULT_TZ, describeTimeZone, formatDateTime, formatInt, formatRating } from '@/lib/format';
 
 import styles from './history.module.css';
-import { assessorLabel, isIdentityHidden, KIND_LABELS, kindVariant, STATUS_LABELS, statusPillVariant, SURVEY_LABELS, TYPE_LABELS } from './historyLabels';
+import { assessorLabel, isIdentityHidden, KIND_LABELS, kindVariant, rowAnswerMode, STATUS_LABELS, statusPillVariant, SURVEY_LABELS, TYPE_LABELS } from './historyLabels';
 
 function DetailSkeleton() {
   return (
@@ -94,13 +94,18 @@ export default function AssessmentPage() {
                 { key: 'Started', value: `${formatDateTime(data.startedAt, tz)} ${zone}`, mono: true },
                 { key: 'Submitted', value: data.submittedAt ? `${formatDateTime(data.submittedAt, tz)} ${zone}` : '—', mono: true },
                 { key: 'Answered', value: `${formatInt(data.progress.answered)} of ${formatInt(data.progress.total)}`, mono: true },
-                { key: 'Score', value: formatRating(data.score), mono: true },
+                ...(rowAnswerMode(data) === 'IMPORT_EXPORT'
+                  ? [
+                      { key: 'Import score', value: formatRating(data.importScore), mono: true },
+                      { key: 'Export score', value: formatRating(data.exportScore), mono: true },
+                    ]
+                  : [{ key: 'Score', value: formatRating(data.score), mono: true }]),
               ]}
             />
             {data.kind === 'SELF' ? <p className={styles.selfNote}>Self scores are reported beside customer scores and never enter the published rating.</p> : null}
           </Card>
 
-          <AnswerSummary groups={groupsFromDetail(data.answers)} />
+          <AnswerSummary groups={groupsFromDetail(data.answers)} answerMode={rowAnswerMode(data)} />
         </div>
       )}
     </>

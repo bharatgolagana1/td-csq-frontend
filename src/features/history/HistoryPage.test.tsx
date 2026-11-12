@@ -53,6 +53,8 @@ const ROWS: HistoryRow[] = [
     startedAt: '2026-10-02T04:00:00.000Z',
     submittedAt: '2026-10-05T06:34:00.000Z',
     score: 4.25,
+    importScore: null,
+    exportScore: null,
   },
   {
     id: 'a2',
@@ -70,6 +72,28 @@ const ROWS: HistoryRow[] = [
     startedAt: '2026-10-03T04:00:00.000Z',
     submittedAt: null,
     score: null,
+    importScore: null,
+    exportScore: null,
+  },
+  {
+    id: 'a3',
+    cycle: { id: 'cy1', code: 'CSQ-26H2', name: 'CSQ 2026 H2' },
+    operator: { id: 'org-csc', code: 'CSC-DEL', name: 'Cargo Service Center' },
+    kind: 'CUSTOMER',
+    surveyType: 'DOMESTIC',
+    answerMode: 'IMPORT_EXPORT',
+    customerType: 'CB',
+    customerId: null,
+    assessorName: 'Kiran Shah',
+    assessorEmailMasked: 'k***@brokers.test',
+    assessor: { name: 'Kiran Shah', email: 'kiran@brokers.test', revealed: true },
+    status: 'SUBMITTED',
+    progress: { answered: 46, total: 46, pct: 100 },
+    startedAt: '2026-10-02T05:00:00.000Z',
+    submittedAt: '2026-10-05T07:34:00.000Z',
+    score: null,
+    importScore: 4.2,
+    exportScore: 3.75,
   },
 ];
 
@@ -122,12 +146,17 @@ describe('HistoryPage', () => {
   });
 
   it('lists rows with the hidden identity, status pill and 1 dp score, and opens the return on click', async () => {
-    list.mockReturnValue({ isPending: false, isError: false, data: { data: ROWS, meta: { page: 1, pageSize: 25, total: 2 } } } as unknown as ReturnType<typeof useAssessments>);
+    list.mockReturnValue({ isPending: false, isError: false, data: { data: ROWS, meta: { page: 1, pageSize: 25, total: 3 } } } as unknown as ReturnType<typeof useAssessments>);
     mount();
-    expect(screen.getByText('2 assessments')).toBeInTheDocument();
+    expect(screen.getByText('3 assessments')).toBeInTheDocument();
     const customerRow = screen.getByRole('row', { name: /Identity hidden/ });
     expect(within(customerRow).queryByText(/@/)).toBeNull();
     expect(within(customerRow).getByText('4.3')).toBeInTheDocument();
+    expect(within(customerRow).queryByText('Import')).toBeNull();
+    // An IMPORT_EXPORT return shows its import and its export score.
+    const importExportRow = screen.getByRole('row', { name: /Kiran Shah/ });
+    expect(within(importExportRow).getByText('Import').parentElement).toHaveTextContent('Import 4.2');
+    expect(within(importExportRow).getByText('Export').parentElement).toHaveTextContent('Export 3.8');
     expect(within(customerRow).getByText('Submitted')).toBeInTheDocument();
     expect(within(customerRow).getByText('5 Oct 2026, 12:04 IST')).toBeInTheDocument();
     const selfRow = screen.getByRole('row', { name: /Priya Natarajan/ });

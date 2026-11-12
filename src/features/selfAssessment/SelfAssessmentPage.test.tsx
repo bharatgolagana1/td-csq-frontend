@@ -151,4 +151,24 @@ describe('SelfAssessmentPage', () => {
     expect(screen.getAllByText('Very good').length).toBeGreaterThan(0);
     expect(screen.getByText('NA')).toBeInTheDocument();
   });
+
+  it('follows the assessment’s IMPORT_EXPORT mode, open and submitted', () => {
+    current.mockReturnValue({ isPending: false, isError: false, data: [CYCLE] } as unknown as ReturnType<typeof useCurrentCycles>);
+    const draft = self('DRAFT');
+    selfQuery.mockReturnValue({ isPending: false, isError: false, data: { ...draft, assessment: { ...draft.assessment, answerMode: 'IMPORT_EXPORT' } } } as unknown as ReturnType<typeof useSelfAssessment>);
+    const { unmount } = mount();
+    // Two questions in the first section, each rated for import and export.
+    expect(screen.getAllByRole('radio')).toHaveLength(24);
+    expect(screen.getByRole('radiogroup', { name: 'How would you rate shipment acceptance? — Export' })).toBeInTheDocument();
+    unmount();
+
+    const submitted = self('SUBMITTED');
+    const answers = COMPLETE.flatMap((a) => [{ ...a, direction: 'IMPORT' as const }, { ...a, direction: 'EXPORT' as const, rating: 2 as const, na: false }]);
+    selfQuery.mockReturnValue({ isPending: false, isError: false, data: { ...submitted, assessment: { ...submitted.assessment, answerMode: 'IMPORT_EXPORT' }, answers } } as unknown as ReturnType<typeof useSelfAssessment>);
+    mount();
+    expect(screen.getAllByRole('region', { name: 'Import answer' })).toHaveLength(4);
+    expect(screen.getAllByRole('region', { name: 'Export answer' })).toHaveLength(4);
+    expect(screen.getAllByText('Fair')).toHaveLength(4);
+    expect(screen.getAllByText('4/4')).toHaveLength(2);
+  });
 });

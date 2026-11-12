@@ -9,6 +9,10 @@ export type SurveyType = 'DOMESTIC' | 'INTERNATIONAL';
 export type CycleType = SurveyType | 'BOTH';
 export const CYCLE_TYPES: readonly CycleType[] = ['DOMESTIC', 'INTERNATIONAL', 'BOTH'];
 
+/** IMPORT_EXPORT: every question is rated separately for import and for export; SINGLE: one rating per question. Fixed once the cycle is published. */
+export type AnswerMode = 'SINGLE' | 'IMPORT_EXPORT';
+export const ANSWER_MODES: readonly AnswerMode[] = ['IMPORT_EXPORT', 'SINGLE'];
+
 export type CycleStatus = 'DRAFT' | 'PUBLISHED' | 'SAMPLING_OPEN' | 'SAMPLING_CLOSED' | 'ASSESSMENT_OPEN' | 'ASSESSMENT_CLOSED' | 'SCORED' | 'ARCHIVED';
 export const CYCLE_STATUSES: readonly CycleStatus[] = ['DRAFT', 'PUBLISHED', 'SAMPLING_OPEN', 'SAMPLING_CLOSED', 'ASSESSMENT_OPEN', 'ASSESSMENT_CLOSED', 'SCORED', 'ARCHIVED'];
 
@@ -28,6 +32,7 @@ export type CycleSummary = {
   code: string;
   name: string;
   type: CycleType;
+  answerMode: AnswerMode;
   status: CycleStatus;
   tz: string;
   sampling: CycleWindow;
@@ -121,6 +126,8 @@ export type CreateCycleInput = {
   name: string;
   code: string;
   type: CycleType;
+  /** Default SINGLE on the API. */
+  answerMode?: AnswerMode;
   tz?: string;
   initiationDate?: string;
   sampling?: WindowInput;
@@ -132,7 +139,7 @@ export type CreateCycleInput = {
   surveyVersions?: { DOMESTIC?: string | null; INTERNATIONAL?: string | null };
 };
 
-/** PATCH /cycles/:id (DRAFT: anything; after publishing only end dates and reminders) */
+/** PATCH /cycles/:id (DRAFT: anything; after publishing only end dates and reminders — `answerMode` then answers 412) */
 export type PatchCycleInput = Partial<Omit<CreateCycleInput, 'sampling' | 'assessment'>> & {
   sampling?: Partial<WindowInput>;
   assessment?: Partial<WindowInput>;

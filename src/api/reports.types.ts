@@ -1,9 +1,20 @@
 /* Hand-written mirrors of the reports contract (td-csq-backend/docs/ARCHITECTURE.md §6
    "scoring and reports"; wire shapes in src/modules/reports/reports.schemas.ts).
-   Every mean on the wire is 2 dp or null (no score / suppressed). */
+   Every mean on the wire is 2 dp or null (no score / suppressed).
+
+   Directions: an IMPORT_EXPORT cycle is scored separately for import and for
+   export. A report takes `direction` (IMPORT | EXPORT) and the server resolves
+   it per cycle: a SINGLE cycle always answers with its single figures, an
+   IMPORT_EXPORT cycle with the asked direction or IMPORT. Every payload says
+   which one it holds (`direction`: SINGLE | IMPORT | EXPORT). */
 
 export type SurveyType = 'DOMESTIC' | 'INTERNATIONAL';
 export type CycleType = SurveyType | 'BOTH';
+export type AnswerMode = 'SINGLE' | 'IMPORT_EXPORT';
+/** What a report may ask for. */
+export type ScoreDirection = 'IMPORT' | 'EXPORT';
+/** What the server resolved the figures to. */
+export type ReportDirection = 'SINGLE' | ScoreDirection;
 
 export type MeanWithN = { mean: number | null; n: number };
 export type SelfFigure = { mean: number | null };
@@ -15,6 +26,7 @@ export type ReportCycle = {
   code: string;
   name: string;
   type: CycleType;
+  answerMode: AnswerMode;
   status: string;
   /** Assessment window as ISO instants. */
   assessment: { start: string; end: string } | null;
@@ -67,6 +79,7 @@ export type NationalTableRow = {
 export type OperatorReport = {
   cycle: ReportCycle;
   surveyType: SurveyType;
+  direction: ReportDirection;
   /** True while the cycle is not SCORED: figures come from a nightly (or manual) provisional run. */
   provisional: boolean;
   operator: OperatorSummary;
@@ -104,6 +117,7 @@ export type QuestionReportRow = {
 export type OperatorQuestions = {
   cycle: ReportCycle;
   surveyType: SurveyType;
+  direction: ReportDirection;
   provisional: boolean;
   operator: OperatorSummary;
   questions: QuestionReportRow[];
@@ -122,6 +136,7 @@ export type AirportOperatorRow = { acoId: string; code: string; name: string; me
 export type AirportReport = {
   cycle: ReportCycle;
   surveyType: SurveyType;
+  direction: ReportDirection;
   provisional: boolean;
   airport: AirportSummary;
   overall: AirportLevel & { rank: number | null; rankOf: number };
@@ -158,6 +173,7 @@ export type Participation = {
 export type NationalReport = {
   cycle: ReportCycle;
   surveyType: SurveyType;
+  direction: ReportDirection;
   provisional: boolean;
   airports: NationalAirportRow[];
   operators: NationalOperatorRow[];
@@ -170,24 +186,27 @@ export type ComparisonValue = { cycleId: string; customer: MeanWithN; self: Self
 /** One survey node across the compared cycles; `values` is aligned with `cycles`. Matched on code. */
 export type ComparisonRow = { code: string; name: string; parentCode: string | null; values: ComparisonValue[] };
 
-/** GET /reports/comparison */
+/** GET /reports/comparison — each compared cycle resolves the direction on its own. */
 export type ComparisonReport = {
   operator: OperatorSummary;
   surveyType: SurveyType;
-  cycles: (ReportCycle & { provisional: boolean })[];
+  cycles: (ReportCycle & { provisional: boolean; direction: ReportDirection })[];
   overall: (ComparisonValue & { rank: number | null; rankOf: number })[];
   categories: ComparisonRow[];
   subcategories: ComparisonRow[];
   questions: ComparisonRow[];
 };
 
-export type ReportQuery = { cycleId?: string; surveyType?: SurveyType };
+/** `direction` only when the user picked one; without it an IMPORT_EXPORT cycle answers with IMPORT. */
+export type ReportQuery = { cycleId?: string; surveyType?: SurveyType; direction?: ScoreDirection };
 
 export type ExportScope = 'operator' | 'airport' | 'national';
 export type ExportQuery = {
   scope: ExportScope;
   cycleId?: string;
   surveyType?: SurveyType;
+  /** IMPORT_EXPORT cycles only. */
+  direction?: ScoreDirection;
   acoId?: string;
   airportId?: string;
   format?: 'csv';
@@ -199,6 +218,7 @@ export type CycleOption = {
   code: string;
   name: string;
   type: CycleType;
+  answerMode: AnswerMode;
   status: string;
   scoredAt?: string | null;
 };

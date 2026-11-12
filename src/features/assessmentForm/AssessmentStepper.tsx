@@ -1,12 +1,13 @@
 import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 
-import { type Answer, type AnswerInput, type AssessmentForm, type Progress } from '@/api/assessments.types';
+import { type Answer, type AnswerDirection, type AnswerInput, type AnswerMode, type AssessmentForm, type Progress } from '@/api/assessments.types';
 import { Icon } from '@/design/icons';
 import { Button } from '@/design/primitives';
 import { cn } from '@/lib/cn';
 import { formatInt } from '@/lib/format';
 
 import styles from './AssessmentStepper.module.css';
+import { ImportExportQuestionCard } from './ImportExportQuestionCard';
 import { ProgressBar } from './ProgressBar';
 import { QuestionCard } from './QuestionCard';
 import { ReviewList } from './ReviewList';
@@ -22,6 +23,8 @@ export type AssessmentStepperProps = {
   form: AssessmentForm;
   /** Answers saved on the server when the form was loaded. */
   draft: readonly Answer[];
+  /** The assessment's answer mode (`assessment.answerMode`; default SINGLE). IMPORT_EXPORT asks every question for import and for export. */
+  answerMode?: AnswerMode;
   /** Merge-saves a batch of changed answers (the signed-in or the link-token PATCH); may resolve to a `SaveResult` (`{ lastSavedAt }`). */
   onSave: (answers: AnswerInput[]) => Promise<unknown>;
   /** Submits the assessment; rejects with the ApiError to show (412 lists `missing`). */
@@ -41,8 +44,9 @@ export type AssessmentStepperProps = {
   className?: string;
 };
 
-function focusQuestionCard(questionId: string): boolean {
-  const el = document.getElementById(questionDomId(questionId));
+/** Focuses a question card, or the direction part of an import/export card. */
+function focusQuestionCard(questionId: string, direction?: AnswerDirection): boolean {
+  const el = (direction ? document.getElementById(questionDomId(questionId, direction)) : null) ?? document.getElementById(questionDomId(questionId));
   if (!el) return false;
   el.scrollIntoView({ block: 'start' });
   el.focus({ preventScroll: true });
@@ -55,8 +59,8 @@ function focusQuestionCard(questionId: string): boolean {
  * on; the review step lists what is missing with jump links; Submit is enabled
  * only when the whole form is complete, flushes the draft, then confirms.
  */
-export function AssessmentStepper({ form, draft, onSave, onSubmit, storageKey, tz, readOnly = false, initialStep = 0, submitNote, onProgress, onStatus, onSubmitted, className }: AssessmentStepperProps) {
-  const d = useAssessmentDraft({ form, draft, save: onSave, storageKey, readOnly });
+export function AssessmentStepper({ form, draft, answerMode = 'SINGLE', onSave, onSubmit, storageKey, tz, readOnly = false, initialStep = 0, submitNote, onProgress, onStatus, onSubmitted, className }: AssessmentStepperProps) {
+  const d = useAssessmentDraft({ form, draft, save: onSave, storageKey, readOnly, answerMode });
   const stepCount = d.steps.length;
   const reviewIndex = stepCount;
   const [step, setStep] = useState(() => Math.min(Math.max(0, initialStep), reviewIndex));
@@ -67,8 +71,8 @@ export function AssessmentStepper({ form, draft, onSave, onSubmit, storageKey, t
   const [blocked, setBlocked] = useState<string | null>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const navigated = useRef(false);
-  /** Question to land on after the next step change (a jump from the review list). */
-  const pendingFocus = useRef<string | null>(null);
+  /** Question (and direction) to land on after the next step change (a jump from the review list). */
+  const pendingFocus = useRef<Pick<ReviewItem, 'questionId' | 'direction'> | null>(null);
 
   useEffect(() => onProgress?.(d.progress), [d.progress, onProgress]);
   useEffect(() => onStatus?.(d.status), [d.status, onStatus]);
@@ -86,9 +90,9 @@ export function AssessmentStepper({ form, draft, onSave, onSubmit, storageKey, t
   // After a step change: scroll to the top of the step and move focus there (or to the jumped-to question).
   useEffect(() => {
     if (!navigated.current) return;
-    const questionId = pendingFocus.current;
+    const target = pendingFocus.current;
     pendingFocus.current = null;
-    if (questionId && focusQuestionCard(questionId)) return;
+    if (target && focusQuestionCard(target.questionId, target.direction)) return;
     sectionRef.current?.scrollIntoView({ block: 'start' });
     sectionRef.current?.focus({ preventScroll: true });
   }, [step]);
@@ -107,10 +111,10 @@ export function AssessmentStepper({ form, draft, onSave, onSubmit, storageKey, t
   const jump = (item: ReviewItem) => {
     setValidated((v) => new Set(v).add(item.stepIndex));
     if (item.stepIndex === step) {
-      focusQuestionCard(item.questionId);
+      focusQuestionCard(item.questionId, item.direction);
       return;
     }
-    pendingFocus.current = item.questionId;
+    pendingFocus.current = item;
     go(item.stepIndex);
   };
 
@@ -166,24 +170,37 @@ export function AssessmentStepper({ form, draft, onSave, onSubmit, storageKey, t
           {review ? (
             <>
               <StepHeader index={reviewIndex} count={stepCount + 1} title="Review and submit" description="Submitted answers are locked." />
-              <ReviewList items={reviewItems(d.steps, d.answers)} onJump={jump} />
+              <ReviewList items={reviewItems(d.steps, d.answers, answerMode)} onJump={jump} />
             </>
           ) : current ? (
             <>
-              <StepHeader index={step} count={stepCount + 1} title={current.label} description={`${formatInt(d.readinessFor(step).answered)} of ${formatInt(current.questions.length)} answered in this section`} />
+              <StepHeader index={step} count={stepCount + 1} title={current.label} description={`${formatInt(d.readinessFor(step).answered)} of ${formatInt(d.readinessFor(step).total)} answered in this section`} />
               <div className={styles.cards}>
-                {current.questions.map(({ question, subcategory, index }) => (
-                  <QuestionCard
-                    key={question.id}
-                    question={question}
-                    index={index}
-                    section={subcategory?.name ?? null}
-                    answer={d.answerFor(question.id)}
-                    onChange={(patch) => d.setAnswer(question.id, patch)}
-                    showValidation={validated.has(step)}
-                    readOnly={readOnly}
-                  />
-                ))}
+                {current.questions.map(({ question, subcategory, index }) =>
+                  answerMode === 'IMPORT_EXPORT' ? (
+                    <ImportExportQuestionCard
+                      key={question.id}
+                      question={question}
+                      index={index}
+                      section={subcategory?.name ?? null}
+                      answerFor={(direction) => d.answerFor(question.id, direction)}
+                      onChange={(direction, patch) => d.setAnswer(question.id, patch, direction)}
+                      showValidation={validated.has(step)}
+                      readOnly={readOnly}
+                    />
+                  ) : (
+                    <QuestionCard
+                      key={question.id}
+                      question={question}
+                      index={index}
+                      section={subcategory?.name ?? null}
+                      answer={d.answerFor(question.id)}
+                      onChange={(patch) => d.setAnswer(question.id, patch)}
+                      showValidation={validated.has(step)}
+                      readOnly={readOnly}
+                    />
+                  ),
+                )}
               </div>
             </>
           ) : null}
