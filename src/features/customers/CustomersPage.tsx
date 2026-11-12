@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { errorMessage, errorRequestId } from '@/api/client';
-import { useAcoScope, useCustomers, useSetCustomerStatus } from '@/api/customers';
+import { useAcoScope, useCustomers, useDeleteCustomers, useSetCustomerStatus } from '@/api/customers';
 import { type Customer, type CustomerStatus, type CustomerSurveyType, type CustomerType } from '@/api/customers.types';
 import { useSession } from '@/auth/session';
 import { Icon } from '@/design/icons';
-import { Button, EmptyState, PageHeader, Pagination, SearchInput, Select, type SortState, Tag, Toolbar, ToolbarCount, useToast } from '@/design/primitives';
+import { Button, ConfirmDialog, EmptyState, PageHeader, Pagination, SearchInput, Select, type SortState, Tag, Toolbar, ToolbarCount, useToast } from '@/design/primitives';
 import { formatInt } from '@/lib/format';
 
 import { CustomerDetailDrawer } from './CustomerDetailDrawer';
@@ -22,6 +22,7 @@ type FormState = { mode: 'closed' } | { mode: 'add' } | { mode: 'edit'; customer
 export default function CustomersPage() {
   const { hasTask, org } = useSession();
   const canManage = hasTask('customers.manage');
+  const canDelete = hasTask('customers.delete');
   const toast = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -40,6 +41,8 @@ export default function CustomersPage() {
   const [detail, setDetail] = useState<Customer | null>(null);
   const setStatusMutation = useSetCustomerStatus();
   const [bulkPending, setBulkPending] = useState(false);
+  const deleteCustomers = useDeleteCustomers();
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const filtered = Boolean(q || type || surveyType || status || tag);
   const query = useCustomers(
@@ -91,6 +94,21 @@ export default function CustomersPage() {
   };
 
   const selectedCount = rows.filter((c) => selected.has(c.id)).length;
+
+  /** Deletes the confirmed selection; customers the API refused stay selected, with its reason. */
+  const deleteSelected = async () => {
+    const ids = rows.filter((c) => selected.has(c.id)).map((c) => c.id);
+    if (ids.length === 0) return;
+    const { deleted, failed } = await deleteCustomers.mutateAsync(ids);
+    setConfirmDelete(false);
+    setSelected(new Set(failed.map((f) => f.id)));
+    if (deleted.length > 0) toast.success(`${formatInt(deleted.length)} ${deleted.length === 1 ? 'customer' : 'customers'} deleted`);
+    const first = failed[0];
+    if (first) {
+      const what = failed.length === 1 ? 'One customer was not deleted' : `${formatInt(failed.length)} customers were not deleted`;
+      toast.error(`${what}: ${errorMessage(first.error)}`, { requestId: errorRequestId(first.error) });
+    }
+  };
 
   return (
     <>
@@ -191,6 +209,12 @@ export default function CustomersPage() {
                 <Button size="sm" variant="danger" onClick={() => void bulk('INACTIVE')} loading={bulkPending}>
                   Deactivate
                 </Button>
+
+                {canDelete ? (
+                  <Button size="sm" variant="danger" icon={<Icon name="trash" size={16} />} onClick={() => setConfirmDelete(true)} disabled={bulkPending}>
+                    Delete
+                  </Button>
+                ) : null}
                 <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())} disabled={bulkPending}>
                   Clear
                 </Button>
@@ -266,6 +290,16 @@ export default function CustomersPage() {
         </>
       )}
 
+      <ConfirmDialog
+        open={confirmDelete}
+        onClose={() => setConfirmDelete(false)}
+        onConfirm={() => void deleteSelected()}
+        title={`Delete ${formatInt(selectedCount)} ${selectedCount === 1 ? 'customer' : 'customers'}?`}
+        description="They leave the directory and can no longer be sampled. Their past assessments stay in the history, and adding the same e-mail again brings a customer back."
+        confirmLabel="Delete"
+        danger
+        loading={deleteCustomers.isPending}
+      />
       {form.mode !== 'closed' ? (
         <CustomerFormDrawer open onClose={() => setForm({ mode: 'closed' })} customer={form.mode === 'edit' ? form.customer : null} acoId={scope.acoId} isPlatform={scope.isPlatform} />
       ) : null}

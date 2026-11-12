@@ -105,6 +105,30 @@ export function useSetCustomerStatus() {
   });
 }
 
+export type DeleteCustomersResult = { deleted: string[]; failed: { id: string; error: unknown }[] };
+
+/**
+ * Delete customers (soft: their history stays). One request per id, settled
+ * together; the directory is refetched once at the end. A customer in a
+ * locked sample of a running cycle comes back in `failed` with the API's 412.
+ */
+export function useDeleteCustomers() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (ids: readonly string[]): Promise<DeleteCustomersResult> => {
+      const results = await Promise.allSettled(ids.map((id) => api.delete<undefined>(`/customers/${id}`)));
+      const out: DeleteCustomersResult = { deleted: [], failed: [] };
+      results.forEach((result, index) => {
+        const id = ids[index] ?? '';
+        if (result.status === 'fulfilled') out.deleted.push(id);
+        else out.failed.push({ id, error: result.reason });
+      });
+      return out;
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: customerKeys.all }),
+  });
+}
+
 // --- CSV import ---------------------------------------------------------------
 // The CSV goes up as multipart and the template comes down as a file, so these
 // two bypass the JSON-only `api.*` methods and build the same headers.
