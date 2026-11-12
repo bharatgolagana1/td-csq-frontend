@@ -38,9 +38,9 @@ const DETAIL: AssessmentDetail = {
   surveyType: 'DOMESTIC',
   customerType: 'CB',
   customerId: null,
-  assessorName: 'A*** R***',
-  assessorEmailMasked: 'a***@delcargo.test',
-  assessor: { name: 'A*** R***', email: 'a***@delcargo.test', revealed: false },
+  assessorName: null,
+  assessorEmailMasked: null,
+  assessor: { name: null, email: null, revealed: false },
   status: 'SUBMITTED',
   progress: { answered: 2, total: 2, pct: 100 },
   startedAt: '2026-10-02T04:00:00.000Z',
@@ -87,8 +87,9 @@ describe('AssessmentPage', () => {
     mount();
     expect(detail).toHaveBeenCalledWith('a1');
     expect(screen.getByRole('heading', { level: 1, name: 'Customer assessment' })).toBeInTheDocument();
-    expect(screen.getByText('Identity masked')).toBeInTheDocument();
-    expect(screen.getByText('a***@delcargo.test')).toBeInTheDocument();
+    expect(screen.getByText('Identity hidden')).toBeInTheDocument();
+    expect(screen.getByText('Privacy setting')).toBeInTheDocument();
+    expect(screen.queryByText(/@/)).toBeNull();
     expect(screen.getByText('Customs broker')).toBeInTheDocument();
     expect(screen.getByText('5 Oct 2026, 12:04 IST (UTC+05:30)')).toBeInTheDocument();
     expect(screen.getByText('3.0')).toBeInTheDocument();

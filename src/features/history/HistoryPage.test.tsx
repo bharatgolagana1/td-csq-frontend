@@ -45,9 +45,9 @@ const ROWS: HistoryRow[] = [
     surveyType: 'DOMESTIC',
     customerType: 'FF',
     customerId: null,
-    assessorName: 'A*** R***',
-    assessorEmailMasked: 'a***@delcargo.test',
-    assessor: { name: 'A*** R***', email: 'a***@delcargo.test', revealed: false },
+    assessorName: null,
+    assessorEmailMasked: null,
+    assessor: { name: null, email: null, revealed: false },
     status: 'SUBMITTED',
     progress: { answered: 23, total: 23, pct: 100 },
     startedAt: '2026-10-02T04:00:00.000Z',
@@ -84,9 +84,9 @@ const ROWS: HistoryRow[] = [
     answerMode: 'IMPORT_EXPORT',
     customerType: 'CB',
     customerId: null,
-    assessorName: 'K*** S***',
+    assessorName: 'Kiran Shah',
     assessorEmailMasked: 'k***@brokers.test',
-    assessor: { name: 'K*** S***', email: 'k***@brokers.test', revealed: false },
+    assessor: { name: 'Kiran Shah', email: 'kiran@brokers.test', revealed: true },
     status: 'SUBMITTED',
     progress: { answered: 46, total: 46, pct: 100 },
     startedAt: '2026-10-02T05:00:00.000Z',
@@ -145,16 +145,16 @@ describe('HistoryPage', () => {
     expect(list).toHaveBeenLastCalledWith(expect.not.objectContaining({ kind: 'SELF' }));
   });
 
-  it('lists rows with masked e-mail, status pill and 1 dp score, and opens the return on click', async () => {
+  it('lists rows with the hidden identity, status pill and 1 dp score, and opens the return on click', async () => {
     list.mockReturnValue({ isPending: false, isError: false, data: { data: ROWS, meta: { page: 1, pageSize: 25, total: 3 } } } as unknown as ReturnType<typeof useAssessments>);
     mount();
     expect(screen.getByText('3 assessments')).toBeInTheDocument();
-    const customerRow = screen.getByRole('row', { name: /A\*\*\* R\*\*\*/ });
-    expect(within(customerRow).getByText('a***@delcargo.test')).toBeInTheDocument();
+    const customerRow = screen.getByRole('row', { name: /Identity hidden/ });
+    expect(within(customerRow).queryByText(/@/)).toBeNull();
     expect(within(customerRow).getByText('4.3')).toBeInTheDocument();
     expect(within(customerRow).queryByText('Import')).toBeNull();
     // An IMPORT_EXPORT return shows its import and its export score.
-    const importExportRow = screen.getByRole('row', { name: /K\*\*\* S\*\*\*/ });
+    const importExportRow = screen.getByRole('row', { name: /Kiran Shah/ });
     expect(within(importExportRow).getByText('Import').parentElement).toHaveTextContent('Import 4.2');
     expect(within(importExportRow).getByText('Export').parentElement).toHaveTextContent('Export 3.8');
     expect(within(customerRow).getByText('Submitted')).toBeInTheDocument();
@@ -167,7 +167,7 @@ describe('HistoryPage', () => {
     await userEvent.selectOptions(screen.getByLabelText('Cycle'), 'cy1');
     expect(screen.getByRole('button', { name: 'Export CSV' })).toBeEnabled();
 
-    await userEvent.click(screen.getByText('A*** R***'));
+    await userEvent.click(screen.getByText('Identity hidden'));
     expect(await screen.findByText('detail a1')).toBeInTheDocument();
   });
 
