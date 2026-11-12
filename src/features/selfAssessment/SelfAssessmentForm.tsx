@@ -1,4 +1,4 @@
-import { useSaveSelfAnswers, useSelfAssessment, useSubmitSelfAssessment } from '@/api/assessments';
+import { useSaveSelfAnswers, useSaveSelfRemarks, useSelfAssessment, useSubmitSelfAssessment } from '@/api/assessments';
 import { type SurveyType } from '@/api/assessments.types';
 import { type CurrentCycleSummary } from '@/api/sampling.types';
 import { useSession } from '@/auth/session';
@@ -40,6 +40,7 @@ export function SelfAssessmentForm({ cycle, surveyType }: SelfAssessmentFormProp
   const toast = useToast();
   const query = useSelfAssessment(cycle.id, surveyType);
   const save = useSaveSelfAnswers(cycle.id, surveyType);
+  const saveRemarks = useSaveSelfRemarks(cycle.id, surveyType);
   const submit = useSubmitSelfAssessment(cycle.id, surveyType);
 
   if (query.isPending) return <FormSkeleton />;
@@ -54,7 +55,7 @@ export function SelfAssessmentForm({ cycle, surveyType }: SelfAssessmentFormProp
         <Banner tone="success" title={`Submitted${at ? ` on ${formatDateTime(at, cycle.tz)} ${describeTimeZone(cycle.tz)}` : ''}`}>
           Your answers are locked. {SELF_NOTE}
         </Banner>
-        <AnswerSummary groups={groupsFromForm(data, data.answers, answerMode)} answerMode={answerMode} />
+        <AnswerSummary groups={groupsFromForm(data, data.answers, answerMode, data.sectionRemarks)} answerMode={answerMode} />
       </div>
     );
   }
@@ -65,7 +66,9 @@ export function SelfAssessmentForm({ cycle, surveyType }: SelfAssessmentFormProp
         form={data}
         draft={data.answers}
         answerMode={answerMode}
+        remarks={data.sectionRemarks}
         onSave={(answers) => save.mutateAsync(answers)}
+        onSaveRemarks={(remarks) => saveRemarks.mutateAsync(remarks)}
         onSubmit={() => submit.mutateAsync()}
         storageKey={`csq.self.${org.id}.${cycle.id}.${surveyType}`}
         tz={cycle.tz}

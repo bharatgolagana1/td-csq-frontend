@@ -2,7 +2,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 
 import { getAccessToken } from '@/auth/keycloak';
 
-import { type AnswerInput, type AssessmentDetail, type AssessmentExportQuery, type AssessmentListQuery, type AssessmentSummary, type HistoryRow, type PatchAnswersResult, type SelfAssessment, type SurveyType } from './assessments.types';
+import { type AnswerInput, type AssessmentDetail, type AssessmentExportQuery, type AssessmentListQuery, type AssessmentSummary, type HistoryRow, type PatchAnswersResult, type PatchSectionRemarksResult, type SectionRemark, type SelfAssessment, type SurveyType } from './assessments.types';
 import { api, ApiError, buildUrl, NetworkError } from './client';
 import { readSelectedOrg } from './selectedOrg';
 
@@ -56,6 +56,13 @@ export function useSelfAssessment(cycleId: string | undefined, surveyType: Surve
 export function useSaveSelfAnswers(cycleId: string, surveyType: SurveyType) {
   return useMutation({
     mutationFn: (answers: AnswerInput[]) => api.patch<PatchAnswersResult>(`/assessments/self/${cycleId}/${surveyType}/answers`, { body: { answers } }),
+  });
+}
+
+/** Merge PATCH of changed section remarks (an empty remark clears the section's). */
+export function useSaveSelfRemarks(cycleId: string, surveyType: SurveyType) {
+  return useMutation({
+    mutationFn: (sectionRemarks: SectionRemark[]) => api.patch<PatchSectionRemarksResult>(`/assessments/self/${cycleId}/${surveyType}/remarks`, { body: { sectionRemarks } }),
   });
 }
 

@@ -36,6 +36,12 @@ export type StepReadiness = {
   complete: boolean;
 };
 
+/** Readiness of a step or of the whole form, section remarks included (the draft hook's view). */
+export type SectionReadiness = StepReadiness & {
+  /** Sections (category ids) still without a remark, in form order. */
+  missingRemarks: string[];
+};
+
 export type FormStepQuestion = {
   question: FormQuestion;
   subcategory: FormSubcategory | null;
@@ -65,6 +71,14 @@ export type ReviewItem = {
   reason: ReviewReason;
 };
 
+/** A section the review step lists because its remark is still empty ("<section> · Remarks needed"). */
+export type RemarkReviewItem = {
+  /** The section's category id. */
+  stepId: string;
+  stepIndex: number;
+  stepLabel: string;
+};
+
 export type AnswerGroupAnswer = { rating: Rating | null; na: boolean; comment: string | null; followUp: string[] };
 
 /** Read-only grouping for the answer summary (self-assessment done state, history return). IMPORT_EXPORT returns fill `importAnswer` and `exportAnswer` instead of `answer`. */
@@ -76,4 +90,5 @@ export type AnswerGroupItem = {
   exportAnswer?: AnswerGroupAnswer | null;
 };
 
-export type AnswerGroup = { id: string; name: string; items: AnswerGroupItem[] };
+/** `remark`: the section's remark, null when it has none. */
+export type AnswerGroup = { id: string; name: string; items: AnswerGroupItem[]; remark?: string | null };

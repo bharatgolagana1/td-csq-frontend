@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import { type DetailAnswer } from '@/api/assessments.types';
 
-import { answerIssues, answersToMap, formSteps, groupsFromDetail, groupsFromForm, ownScore, readinessOf, reviewItems, stepQuestions, toAnswerInput } from './rules';
-import { answer, COMPLETE, FORM, Q1, Q2, Q3 } from './testFixtures';
+import { answerIssues, answersToMap, formSteps, groupsFromDetail, groupsFromForm, missingRemarks, ownScore, readinessOf, remarkReviewItems, remarksToMap, reviewItems, stepQuestions, toAnswerInput } from './rules';
+import { answer, COMPLETE, FORM, Q1, Q2, Q3, REMARKS } from './testFixtures';
 
 describe('form rules', () => {
   it('numbers questions across steps in display order', () => {
@@ -80,6 +80,34 @@ describe('form rules', () => {
     expect(fromDetail.map((g) => g.name)).toEqual(['Handling', 'Security']);
     expect(fromDetail[0]?.items[0]).toMatchObject({ subcategory: 'Acceptance', answer: { rating: 2, comment: 'Slow', followUp: ['Queues'] } });
     expect(fromDetail[1]?.items[0]?.answer).toBeNull();
+  });
+
+  it('needs one remark per section, whitespace not counting', () => {
+    const steps = formSteps(FORM);
+    expect(missingRemarks(steps, remarksToMap(REMARKS))).toEqual([]);
+    const partial = remarksToMap([{ categoryId: 'c1', remark: '   ' }, { categoryId: 'c2', remark: 'Fine' }]);
+    expect(missingRemarks(steps, partial)).toEqual(['c1']);
+    expect(remarkReviewItems(steps, new Map())).toEqual([
+      { stepId: 'c1', stepIndex: 0, stepLabel: 'Cargo handling' },
+      { stepId: 'c2', stepIndex: 1, stepLabel: 'Security' },
+    ]);
+  });
+
+  it('carries each section’s remark into the read-only groups', () => {
+    expect(groupsFromForm(FORM, COMPLETE, 'SINGLE', REMARKS).map((g) => [g.name, g.remark])).toEqual([
+      ['Cargo handling', 'Acceptance is quick; paperwork could be lighter.'],
+      ['Security', 'Screening is thorough.'],
+    ]);
+    expect(groupsFromForm(FORM, COMPLETE).every((g) => g.remark === null)).toBe(true);
+    const row = { code: 'Q1', text: 'One', subcategory: null };
+    const fromDetail = groupsFromDetail(
+      [
+        { ...answer('q1'), ...row, category: { id: 'c1', code: 'H', name: 'Handling' } },
+        { ...answer('q3'), ...row, questionId: 'q3', category: { id: 'c2', code: 'S', name: 'Security' } },
+      ],
+      [{ categoryId: 'c2', remark: 'Screening is thorough.' }],
+    );
+    expect(fromDetail.map((g) => g.remark)).toEqual([null, 'Screening is thorough.']);
   });
 
   it('groups import and export answers under one item per question', () => {

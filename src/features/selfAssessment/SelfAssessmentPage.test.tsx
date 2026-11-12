@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -7,7 +8,7 @@ import { type SelfAssessment } from '@/api/assessments.types';
 import { type CurrentCycle } from '@/api/sampling.types';
 import { AuthProvider, type Session } from '@/auth/session';
 import { ToastProvider } from '@/design/primitives';
-import { COMPLETE, FORM } from '@/features/assessmentForm/testFixtures';
+import { COMPLETE, FORM, REMARKS } from '@/features/assessmentForm/testFixtures';
 
 vi.mock('@/auth/keycloak', () => ({
   keycloak: { authenticated: false, tokenParsed: undefined },
@@ -21,10 +22,11 @@ vi.mock('@/api/sampling', () => ({ useCurrentCycles: vi.fn() }));
 vi.mock('@/api/assessments', () => ({
   useSelfAssessment: vi.fn(),
   useSaveSelfAnswers: vi.fn(() => ({ mutateAsync: vi.fn().mockResolvedValue({ lastSavedAt: null }) })),
+  useSaveSelfRemarks: vi.fn(() => ({ mutateAsync: vi.fn().mockResolvedValue({ sectionRemarks: [], lastSavedAt: null }) })),
   useSubmitSelfAssessment: vi.fn(() => ({ mutateAsync: vi.fn().mockResolvedValue({}) })),
 }));
 
-import { useSelfAssessment } from '@/api/assessments';
+import { useSaveSelfRemarks, useSelfAssessment } from '@/api/assessments';
 import { useCurrentCycles } from '@/api/sampling';
 
 import SelfAssessmentPage from './SelfAssessmentPage';
@@ -82,6 +84,7 @@ function self(status: 'DRAFT' | 'SUBMITTED'): SelfAssessment {
     },
     progress: { answered: 0, total: 4, pct: 0 },
     answers: status === 'SUBMITTED' ? COMPLETE : [],
+    sectionRemarks: status === 'SUBMITTED' ? REMARKS : [],
   };
 }
 
@@ -138,7 +141,23 @@ describe('SelfAssessmentPage', () => {
     expect(screen.getByRole('tab', { name: 'International' })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByRole('heading', { level: 2, name: 'Cargo handling' })).toBeInTheDocument();
     expect(screen.getAllByRole('radio')).toHaveLength(12);
+    expect(screen.getByRole('textbox', { name: 'Remarks for Cargo handling' })).toHaveValue('');
     expect(screen.getByText(/closes 14 Nov 2026, 23:59/)).toBeInTheDocument();
+  });
+
+  it('autosaves a section remark through the self-assessment remarks PATCH', async () => {
+    const mutateAsync = vi.fn().mockResolvedValue({ sectionRemarks: [], lastSavedAt: '2026-10-07T06:35:00.000Z' });
+    vi.mocked(useSaveSelfRemarks).mockReturnValue({ mutateAsync } as unknown as ReturnType<typeof useSaveSelfRemarks>);
+    current.mockReturnValue({ isPending: false, isError: false, data: [CYCLE] } as unknown as ReturnType<typeof useCurrentCycles>);
+    selfQuery.mockReturnValue({ isPending: false, isError: false, data: { ...self('DRAFT'), sectionRemarks: [{ categoryId: 'c2', remark: 'Screening is thorough.' }] } } as unknown as ReturnType<typeof useSelfAssessment>);
+    mount();
+    expect(useSaveSelfRemarks).toHaveBeenLastCalledWith('cy1', 'DOMESTIC');
+    await userEvent.type(screen.getByRole('textbox', { name: 'Remarks for Cargo handling' }), 'Our acceptance desk is quick.');
+    await waitFor(() => expect(mutateAsync).toHaveBeenCalledWith([{ categoryId: 'c1', remark: 'Our acceptance desk is quick.' }]), { timeout: 2000 });
+    // The saved remark of the other section is loaded, not re-sent.
+    await userEvent.click(screen.getByRole('button', { name: 'Next' }));
+    expect(screen.getByRole('textbox', { name: 'Remarks for Security' })).toHaveValue('Screening is thorough.');
+    expect(mutateAsync).toHaveBeenCalledTimes(1);
   });
 
   it('shows the submitted return read-only with its time', () => {
@@ -150,6 +169,10 @@ describe('SelfAssessmentPage', () => {
     expect(screen.getByRole('heading', { level: 3, name: 'Security' })).toBeInTheDocument();
     expect(screen.getAllByText('Very good').length).toBeGreaterThan(0);
     expect(screen.getByText('NA')).toBeInTheDocument();
+    // Each section's remark, read-only, under its answers.
+    expect(within(screen.getByRole('region', { name: 'Cargo handling' })).getByText('Acceptance is quick; paperwork could be lighter.')).toBeInTheDocument();
+    expect(within(screen.getByRole('region', { name: 'Security' })).getByText('Screening is thorough.')).toBeInTheDocument();
+    expect(screen.queryByRole('textbox')).toBeNull();
   });
 
   it('follows the assessment’s IMPORT_EXPORT mode, open and submitted', () => {

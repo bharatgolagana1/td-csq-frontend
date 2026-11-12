@@ -38,7 +38,7 @@ function NoCustomerAccess() {
   );
 }
 
-/** /history/:id — one read-only return: identity (masked per setting), status, score (hidden without assessments.scores), answers by category. */
+/** /history/:id — one read-only return: identity (masked per setting), status, score (hidden without assessments.scores), answers and the remark by category. */
 export default function AssessmentPage() {
   const { id } = useParams<{ id: string }>();
   const { hasTask } = useSession();
@@ -125,7 +125,7 @@ export default function AssessmentPage() {
             {data.kind === 'SELF' ? <p className={styles.selfNote}>Self scores are reported beside customer scores and never enter the published rating.</p> : null}
           </Card>
 
-          <AnswerSummary groups={groupsFromDetail(data.answers)} answerMode={rowAnswerMode(data)} />
+          <AnswerSummary groups={groupsFromDetail(data.answers, data.sectionRemarks)} answerMode={rowAnswerMode(data)} />
         </div>
       )}
     </>

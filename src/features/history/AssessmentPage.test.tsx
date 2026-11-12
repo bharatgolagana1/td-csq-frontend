@@ -55,6 +55,7 @@ const DETAIL: AssessmentDetail = {
     { questionId: 'q1', code: 'Q1', text: 'Shipment acceptance', category: { id: 'c1', code: 'H', name: 'Cargo handling' }, subcategory: { id: 's', code: 'S', name: 'Acceptance' }, rating: 2, na: false, comment: 'Queues at the gate', followUp: ['Queues'] },
     { questionId: 'q2', code: 'Q2', text: 'Security screening', category: { id: 'c2', code: 'S', name: 'Security' }, subcategory: null, rating: 4, na: false, comment: null, followUp: [] },
   ],
+  sectionRemarks: [{ categoryId: 'c1', remark: 'Gate queues at peak hours.' }],
 };
 
 function mount(session: Session = SESSION) {
@@ -101,6 +102,15 @@ describe('AssessmentPage', () => {
     expect(screen.getByText('Queues')).toBeInTheDocument();
     expect(screen.getByText('Queues at the gate')).toBeInTheDocument();
     expect(screen.queryByText('Import score')).toBeNull();
+  });
+
+  it('shows each category’s remark under its answers, and nothing for a category without one', () => {
+    detail.mockReturnValue({ isPending: false, isError: false, data: DETAIL } as unknown as ReturnType<typeof useAssessment>);
+    mount();
+    const handling = screen.getByRole('region', { name: 'Cargo handling' });
+    expect(within(handling).getByRole('heading', { level: 4, name: 'Remarks' })).toBeInTheDocument();
+    expect(within(handling).getByText('Gate queues at peak hours.')).toBeInTheDocument();
+    expect(within(screen.getByRole('region', { name: 'Security' })).queryByRole('heading', { name: 'Remarks' })).toBeNull();
   });
 
   it('shows an IMPORT_EXPORT return with both scores and each question answered per direction', () => {

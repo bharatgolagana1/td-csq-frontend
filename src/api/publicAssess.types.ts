@@ -14,12 +14,14 @@ import {
   type CustomerType,
   type Draft,
   type PatchAnswersResult,
+  type PatchSectionRemarksResult,
   type Progress,
   type Readiness,
+  type SectionRemark,
   type SurveyType,
 } from './assessments.types';
 
-export type { Answer, AnswerInput, AssessmentForm, AssessmentFormResponse, AssessmentSummary, CustomerType, Draft, PatchAnswersResult, Progress, Readiness, SurveyType };
+export type { Answer, AnswerInput, AssessmentForm, AssessmentFormResponse, AssessmentSummary, CustomerType, Draft, PatchAnswersResult, PatchSectionRemarksResult, Progress, Readiness, SectionRemark, SurveyType };
 
 export type InvitationState = 'PENDING' | 'SENT' | 'OPENED' | 'VERIFIED' | 'SUBMITTED' | 'EXPIRED' | 'REVOKED';
 

@@ -8,7 +8,7 @@ export type StepListItem = {
   label: string;
   answered: number;
   total: number;
-  /** Every question answered and valid. */
+  /** Every question answered and valid, and the section's remark given. */
   complete: boolean;
   /** The review step: no count, a different marker. */
   review?: boolean;

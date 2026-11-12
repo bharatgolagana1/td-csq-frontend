@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 
 import { errorMessage, errorRequestId } from '@/api/client';
 import { publicAssessApi, useAssessmentDraftData, useAssessmentForm } from '@/api/publicAssess';
-import { type AnswerInput, type LinkSession, type PublicInvitation } from '@/api/publicAssess.types';
+import { type AnswerInput, type LinkSession, type PublicInvitation, type SectionRemark } from '@/api/publicAssess.types';
 import { Icon } from '@/design/icons';
 import { Button, EmptyState, Skeleton } from '@/design/primitives';
 import { AssessmentStepper } from '@/features/assessmentForm';
@@ -67,6 +67,18 @@ export function AssessForm({ token, session, invitation, resumed, actions, onPro
     async (answers: AnswerInput[]) => {
       try {
         return await publicAssessApi.saveAnswers(token, linkToken, answers);
+      } catch (e) {
+        routeFlowError(e, actions);
+        throw e;
+      }
+    },
+    [token, linkToken, actions],
+  );
+
+  const saveRemarks = useCallback(
+    async (remarks: SectionRemark[]) => {
+      try {
+        return await publicAssessApi.saveRemarks(token, linkToken, remarks);
       } catch (e) {
         routeFlowError(e, actions);
         throw e;
@@ -157,7 +169,9 @@ export function AssessForm({ token, session, invitation, resumed, actions, onPro
         form={form.data}
         draft={draft.data.answers}
         answerMode={form.data.assessment.answerMode ?? 'SINGLE'}
+        remarks={draft.data.sectionRemarks}
         onSave={save}
+        onSaveRemarks={saveRemarks}
         onSubmit={submit}
         onSubmitted={submitted}
         onProgress={progress}

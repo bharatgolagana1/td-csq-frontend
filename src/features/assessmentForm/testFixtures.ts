@@ -1,4 +1,4 @@
-import { type Answer, type AssessmentForm, type FormQuestion } from '@/api/assessments.types';
+import { type Answer, type AssessmentForm, type FormQuestion, type SectionRemark } from '@/api/assessments.types';
 
 /* Test-only: a small two-category form exercising every comment mode and a follow-up. */
 
@@ -51,3 +51,9 @@ export function answer(questionId: string, overrides: Partial<Answer> = {}): Ans
 
 /** Every question answered and valid. */
 export const COMPLETE: Answer[] = [answer('q1'), answer('q2'), answer('q3', { comment: 'Fine' }), answer('q4', { na: true, rating: null })];
+
+/** A remark for every section. */
+export const REMARKS: SectionRemark[] = [
+  { categoryId: 'c1', remark: 'Acceptance is quick; paperwork could be lighter.' },
+  { categoryId: 'c2', remark: 'Screening is thorough.' },
+];

@@ -9,8 +9,10 @@ import {
   type LinkSession,
   type OtpSent,
   type PatchAnswersResult,
+  type PatchSectionRemarksResult,
   type PublicInvitation,
   type Readiness,
+  type SectionRemark,
   type SubmitResult,
 } from './publicAssess.types';
 
@@ -28,13 +30,13 @@ export const publicAssessKeys = {
   readiness: (token: string) => ['publicAssess', token, 'readiness'] as const,
 };
 
-/** The wire sends `draftResponse` (`{ answers, … }`); an older shape was a bare array. The app always sees `{ answers }`. */
+/** The wire sends `draftResponse` (`{ answers, sectionRemarks, … }`); an older shape was a bare array. The app always sees `{ answers, sectionRemarks }`. */
 export function normaliseDraft(raw: unknown): Draft {
-  const empty: Draft = { id: '', status: 'DRAFT', answers: [], progress: { answered: 0, total: 0, pct: 0 }, lastSavedAt: null, submittedAt: null };
+  const empty: Draft = { id: '', status: 'DRAFT', answers: [], sectionRemarks: [], progress: { answered: 0, total: 0, pct: 0 }, lastSavedAt: null, submittedAt: null };
   if (Array.isArray(raw)) return { ...empty, answers: raw as Answer[] };
   if (raw && typeof raw === 'object') {
     const d = raw as Partial<Draft>;
-    return { ...empty, ...d, answers: Array.isArray(d.answers) ? d.answers : [] };
+    return { ...empty, ...d, answers: Array.isArray(d.answers) ? d.answers : [], sectionRemarks: Array.isArray(d.sectionRemarks) ? d.sectionRemarks : [] };
   }
   return empty;
 }
@@ -47,6 +49,8 @@ export const publicAssessApi = {
   draft: async (token: string, linkToken: string, signal?: AbortSignal) => normaliseDraft(await api.get<unknown>(`${base(token)}/draft`, { linkToken, signal })),
   saveAnswers: (token: string, linkToken: string, answers: AnswerInput[]) =>
     api.patch<PatchAnswersResult>(`${base(token)}/answers`, { body: { answers }, linkToken }),
+  saveRemarks: (token: string, linkToken: string, sectionRemarks: SectionRemark[]) =>
+    api.patch<PatchSectionRemarksResult>(`${base(token)}/remarks`, { body: { sectionRemarks }, linkToken }),
   readiness: (token: string, linkToken: string, signal?: AbortSignal) => api.get<Readiness>(`${base(token)}/readiness`, { linkToken, signal }),
   submit: (token: string, linkToken: string) => api.post<SubmitResult | undefined>(`${base(token)}/submit`, { body: {}, linkToken }),
 };
@@ -99,4 +103,4 @@ export function useAssessmentDraftData(token: string, linkToken: string | null) 
 
 /* Saving and submitting are driven by the shared stepper's own scheduler
    (features/assessmentForm useAssessmentDraft), so the form calls
-   `publicAssessApi.saveAnswers` / `.submit` directly instead of through mutations. */
+   `publicAssessApi.saveAnswers` / `.saveRemarks` / `.submit` directly instead of through mutations. */
