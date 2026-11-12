@@ -8,9 +8,14 @@ vi.mock('@/auth/keycloak', () => ({
   forceRefreshToken: vi.fn(async () => false),
 }));
 
-import { apiError, happyBackend, importExportForm, invitation, mockApi, renderAssess, session, TOKEN } from './test.helpers';
+import { apiError, emptyDraft, happyBackend, importExportForm, invitation, mockApi, renderAssess, session, TOKEN } from './test.helpers';
 
 const base = `/public/assess/${TOKEN}`;
+
+/** Types the section's remark (the stepper's "Remarks for <section>" field). */
+async function writeRemark(user: ReturnType<typeof userEvent.setup>, section: string, remark: string) {
+  await user.type(screen.getByRole('textbox', { name: `Remarks for ${section}` }), remark);
+}
 
 describe('/assess/:token state machine', () => {
   beforeEach(() => {
@@ -187,11 +192,13 @@ describe('/assess/:token state machine', () => {
     await screen.findByText('Domestic cargo service quality', { exact: false });
     await waitFor(() => expect(screen.getByRole('heading', { name: 'Domestic cargo service quality' })).toHaveFocus());
 
-    // Step 1 · Operations (q1, q2)
+    // Step 1 · Operations (q1, q2) and its remark
     for (const radio of screen.getAllByRole('radio', { name: 'Excellent' })) await user.click(radio);
+    await writeRemark(user, 'Operations', 'Acceptance is quick.');
     await user.click(screen.getByRole('button', { name: 'Next' }));
-    // Step 2 · Security (q3, q4)
+    // Step 2 · Security (q3, q4) and its remark
     for (const radio of await screen.findAllByRole('radio', { name: 'Very good' })) await user.click(radio);
+    await writeRemark(user, 'Security', 'Screening is thorough.');
     await user.click(screen.getByRole('button', { name: 'Review' }));
 
     expect(await screen.findByText('Everything is answered')).toBeInTheDocument();
@@ -210,6 +217,11 @@ describe('/assess/:token state machine', () => {
     const sent = saves.flatMap((c) => (c.body as { answers: { questionId: string; rating: number }[] }).answers);
     expect(new Set(sent.map((a) => a.questionId))).toEqual(new Set(['q1', 'q2', 'q3', 'q4']));
     expect(sent.find((a) => a.questionId === 'q3')?.rating).toBe(4);
+    const remarkSaves = calls.filter((c) => c.method === 'PATCH' && c.path === `${base}/remarks`);
+    expect(remarkSaves.length).toBeGreaterThan(0);
+    remarkSaves.forEach((c) => expect(c.headers.get('x-csq-link-token')).toBe(session.sessionToken));
+    const remarks = new Map(remarkSaves.flatMap((c) => (c.body as { sectionRemarks: { categoryId: string; remark: string }[] }).sectionRemarks).map((r) => [r.categoryId, r.remark]));
+    expect(Object.fromEntries(remarks)).toEqual({ cat_ops: 'Acceptance is quick.', cat_sec: 'Screening is thorough.' });
     const submit = calls.find((c) => c.method === 'POST' && c.path === `${base}/submit`);
     expect(submit?.headers.get('x-csq-link-token')).toBe(session.sessionToken);
     expect(window.sessionStorage.getItem(`csq.assess.${TOKEN}`)).toBeNull();
@@ -229,10 +241,14 @@ describe('/assess/:token state machine', () => {
     const step1 = screen.getAllByRole('radio', { name: 'Excellent' });
     expect(step1).toHaveLength(4);
     for (const radio of step1) await user.click(radio);
+    // One remark per section, whatever the answer mode.
+    expect(screen.getAllByRole('textbox', { name: /^Remarks for/ })).toHaveLength(1);
+    await writeRemark(user, 'Operations', 'Import and export desks are equally quick.');
     await user.click(screen.getByRole('button', { name: 'Next' }));
     // Step 2 · Security (q3, q4): Import rated Very good, Export rated Fair (q3 asks for no comment on Fair: OPTIONAL).
     for (const group of await screen.findAllByRole('radiogroup', { name: / — Import$/ })) await user.click(within(group).getByRole('radio', { name: 'Very good' }));
     for (const group of screen.getAllByRole('radiogroup', { name: / — Export$/ })) await user.click(within(group).getByRole('radio', { name: 'Fair' }));
+    await writeRemark(user, 'Security', 'Export screening queues are long.');
     await user.click(screen.getByRole('button', { name: 'Review' }));
 
     expect(await screen.findByText('Everything is answered')).toBeInTheDocument();
@@ -245,7 +261,35 @@ describe('/assess/:token state machine', () => {
     const sent = calls.filter((c) => c.method === 'PATCH' && c.path === `${base}/answers`).flatMap((c) => (c.body as { answers: { questionId: string; direction?: string; rating: number }[] }).answers);
     const last = new Map(sent.map((a) => [`${a.questionId}:${a.direction}`, a.rating]));
     expect(Object.fromEntries(last)).toEqual({ 'q1:IMPORT': 5, 'q1:EXPORT': 5, 'q2:IMPORT': 5, 'q2:EXPORT': 5, 'q3:IMPORT': 4, 'q3:EXPORT': 2, 'q4:IMPORT': 4, 'q4:EXPORT': 2 });
+    const remarks = calls.filter((c) => c.method === 'PATCH' && c.path === `${base}/remarks`).flatMap((c) => (c.body as { sectionRemarks: { categoryId: string }[] }).sectionRemarks);
+    expect(new Set(remarks.map((r) => r.categoryId))).toEqual(new Set(['cat_ops', 'cat_sec']));
     expect(calls.some((c) => c.method === 'POST' && c.path === `${base}/submit`)).toBe(true);
+  });
+
+  it('remarks: restores the saved ones, lists a missing one in the review and holds Submit until it is in', async () => {
+    const user = userEvent.setup();
+    window.sessionStorage.setItem(`csq.assess.${TOKEN}`, JSON.stringify(session));
+    const answers = ['q1', 'q2', 'q3', 'q4'].map((questionId) => ({ questionId, rating: 4 as const, na: false, comment: null, followUp: [] }));
+    const { calls } = mockApi(happyBackend({ draft: { ...emptyDraft, answers, sectionRemarks: [{ categoryId: 'cat_ops', remark: 'Acceptance is quick.' }] } }));
+    renderAssess();
+    expect(await screen.findByRole('textbox', { name: 'Remarks for Operations' })).toHaveValue('Acceptance is quick.');
+
+    await user.click(within(screen.getByRole('list', { name: 'Sections' })).getByRole('button', { name: /Review & submit/ }));
+    expect(screen.getByText('1 item needs attention')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Submit' })).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: /Security.*Remarks needed/ }));
+    expect(screen.getByRole('textbox', { name: 'Remarks for Security' })).toHaveFocus();
+    await writeRemark(user, 'Security', 'Screening is thorough.');
+    await user.click(screen.getByRole('button', { name: 'Review' }));
+    expect(screen.getByText('Everything is answered')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Submit' }));
+    await user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Submit' }));
+    expect(await screen.findByRole('heading', { name: 'Thank you' })).toBeInTheDocument();
+    // Only the changed section was sent; the saved one stayed on the server.
+    const sent = calls.filter((c) => c.method === 'PATCH' && c.path === `${base}/remarks`).flatMap((c) => (c.body as { sectionRemarks: unknown[] }).sectionRemarks);
+    expect(sent).toEqual([{ categoryId: 'cat_sec', remark: 'Screening is thorough.' }]);
+    expect(calls.some((c) => c.method === 'PATCH' && c.path === `${base}/answers`)).toBe(false);
   });
 
   it('a link that dies mid-form closes the page on the next save', async () => {

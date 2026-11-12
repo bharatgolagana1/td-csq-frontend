@@ -53,7 +53,7 @@ function directionAnswer(item: AnswerGroupItem, direction: AnswerDirection): Ans
   return (direction === 'IMPORT' ? item.importAnswer : item.exportAnswer) ?? null;
 }
 
-/** Read-only answers by category: rating pills, follow-up tags and comments (self done state, history return). */
+/** Read-only answers by category: rating pills, follow-up tags and comments, then the section's remark (self done state, history return). */
 export function AnswerSummary({ groups, answerMode = 'SINGLE', className }: AnswerSummaryProps) {
   const directed = answerMode === 'IMPORT_EXPORT';
   return (
@@ -104,6 +104,12 @@ export function AnswerSummary({ groups, answerMode = 'SINGLE', className }: Answ
                 </li>
               ))}
             </ul>
+            {group.remark ? (
+              <div className={styles.remark}>
+                <h4 className={styles.remarkLabel}>Remarks</h4>
+                <p className={styles.remarkText}>{group.remark}</p>
+              </div>
+            ) : null}
           </section>
         );
       })}

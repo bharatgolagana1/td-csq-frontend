@@ -41,21 +41,14 @@ export type AnswerInput = {
   followUp?: string[];
 };
 
-export type SectionRemark = {
-  categoryId: string;
-  remark: string;
-};
+/** The remark on one section (form category): free text about the section as a whole, one per category whatever the answer mode. */
+export type SectionRemark = { categoryId: string; remark: string };
 
-// NEW: Request body for saving section remarks.
-export type PatchSectionRemarksInput = {
-  sectionRemarks: SectionRemark[];
-};
+/** `PATCH …/remarks`: a merge by category; an empty remark clears the section's. */
+export type PatchSectionRemarksInput = { sectionRemarks: SectionRemark[] };
 
-// NEW: Response returned after saving section remarks.
-export type PatchSectionRemarksResult = {
-  sectionRemarks: SectionRemark[];
-  lastSavedAt: string;
-};
+/** `PATCH …/remarks` → every remark saved after the merge, plus the save instant. */
+export type PatchSectionRemarksResult = { sectionRemarks: SectionRemark[]; lastSavedAt: string };
 
 export type FormFollowUp = { prompt: string; options: string[] };
 
@@ -124,7 +117,7 @@ export type Draft = {
   id: string;
   status: AssessmentStatus;
   answers: Answer[];
-  sectionRemarks?: SectionRemark[];
+  sectionRemarks: SectionRemark[];
   progress: Progress;
   lastSavedAt: string | null;
   submittedAt: string | null;
@@ -135,11 +128,11 @@ export type PatchAnswersInput = { answers: AnswerInput[] };
 /** `PATCH …/answers` → progress plus the save instant. */
 export type PatchAnswersResult = Progress & { lastSavedAt: string | null };
 
-/** `GET …/readiness`. */
-export type Readiness = { answered: number; total: number; missing: string[]; complete: boolean };
+/** `GET …/readiness`: `complete` once every question is answered and every section has a remark (`missingSectionRemarks`: category ids). */
+export type Readiness = { answered: number; total: number; missing: string[]; missingSectionRemarks: string[]; complete: boolean };
 
-/** `GET /assessments/self/:cycleId/:surveyType`: the form and the saved answers in one payload. */
-export type SelfAssessment = AssessmentFormResponse & { answers: Answer[]; sectionRemarks?: SectionRemark[]; };
+/** `GET /assessments/self/:cycleId/:surveyType`: the form, the saved answers and section remarks in one payload. */
+export type SelfAssessment = AssessmentFormResponse & { answers: Answer[]; sectionRemarks: SectionRemark[] };
 
 export type AssessorView = { name: string | null; email: string | null; revealed: boolean };
 
@@ -175,8 +168,8 @@ export type DetailAnswer = Answer & {
   subcategory: { id: string; code: string; name: string } | null;
 };
 
-/** `GET /assessments/:id`: the read-only return. */
-export type AssessmentDetail = HistoryRow & { survey: FormSurvey; answers: DetailAnswer[] };
+/** `GET /assessments/:id`: the read-only return; `sectionRemarks` in form order (only sections that have one). */
+export type AssessmentDetail = HistoryRow & { survey: FormSurvey; answers: DetailAnswer[]; sectionRemarks: SectionRemark[] };
 
 export type AssessmentListQuery = {
   page?: number;

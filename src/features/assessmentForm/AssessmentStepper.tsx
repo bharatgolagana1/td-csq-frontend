@@ -1,6 +1,6 @@
 import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 
-import { type Answer, type AnswerDirection, type AnswerInput, type AnswerMode, type AssessmentForm, type Progress } from '@/api/assessments.types';
+import { type Answer, type AnswerDirection, type AnswerInput, type AnswerMode, type AssessmentForm, type Progress, type SectionRemark } from '@/api/assessments.types';
 import { Icon } from '@/design/icons';
 import { Button } from '@/design/primitives';
 import { cn } from '@/lib/cn';
@@ -11,12 +11,13 @@ import { ImportExportQuestionCard } from './ImportExportQuestionCard';
 import { ProgressBar } from './ProgressBar';
 import { QuestionCard } from './QuestionCard';
 import { ReviewList } from './ReviewList';
-import { questionDomId, reviewItems } from './rules';
+import { questionDomId, remarkDomId, remarkReviewItems, reviewItems } from './rules';
 import { SaveStatus } from './SaveStatus';
+import { SectionRemarkField } from './SectionRemarkField';
 import { StepHeader } from './StepHeader';
 import { StepList, type StepListItem } from './StepList';
 import { SubmitConfirm } from './SubmitConfirm';
-import { type ReviewItem, type SaveStatus as SaveStatusValue } from './types';
+import { type RemarkReviewItem, type ReviewItem, type SaveStatus as SaveStatusValue } from './types';
 import { useAssessmentDraft } from './useAssessmentDraft';
 
 export type AssessmentStepperProps = {
@@ -25,9 +26,13 @@ export type AssessmentStepperProps = {
   draft: readonly Answer[];
   /** The assessment's answer mode (`assessment.answerMode`; default SINGLE). IMPORT_EXPORT asks every question for import and for export. */
   answerMode?: AnswerMode;
+  /** Section remarks saved on the server when the form was loaded. */
+  remarks?: readonly SectionRemark[];
   /** Merge-saves a batch of changed answers (the signed-in or the link-token PATCH); may resolve to a `SaveResult` (`{ lastSavedAt }`). */
   onSave: (answers: AnswerInput[]) => Promise<unknown>;
-  /** Submits the assessment; rejects with the ApiError to show (412 lists `missing`). */
+  /** Merge-saves a batch of changed section remarks (`PATCH …/remarks`), on the same schedule as the answers. */
+  onSaveRemarks: (remarks: SectionRemark[]) => Promise<unknown>;
+  /** Submits the assessment; rejects with the ApiError to show (412 lists `missing` and `missingSectionRemarks`). */
   onSubmit: () => Promise<unknown>;
   /** localStorage key of the offline replay queue. */
   storageKey?: string;
@@ -53,14 +58,24 @@ function focusQuestionCard(questionId: string, direction?: AnswerDirection): boo
   return true;
 }
 
+/** Focuses a section's remark field. */
+function focusRemark(categoryId: string): boolean {
+  const el = document.getElementById(remarkDomId(categoryId));
+  if (!el) return false;
+  el.scrollIntoView({ block: 'center' });
+  el.focus({ preventScroll: true });
+  return true;
+}
+
 /**
  * One category per step, a review step last (ARCHITECTURE §6, REQ §17). Every
- * step is navigable; leaving an incomplete step turns its inline validation
- * on; the review step lists what is missing with jump links; Submit is enabled
- * only when the whole form is complete, flushes the draft, then confirms.
+ * step is navigable and ends with the section's remark; leaving an incomplete
+ * step turns its inline validation on; the review step lists what is missing
+ * (answers and remarks) with jump links; Submit is enabled only when the whole
+ * form is complete, flushes the draft, then confirms.
  */
-export function AssessmentStepper({ form, draft, answerMode = 'SINGLE', onSave, onSubmit, storageKey, tz, readOnly = false, initialStep = 0, submitNote, onProgress, onStatus, onSubmitted, className }: AssessmentStepperProps) {
-  const d = useAssessmentDraft({ form, draft, save: onSave, storageKey, readOnly, answerMode });
+export function AssessmentStepper({ form, draft, answerMode = 'SINGLE', remarks, onSave, onSaveRemarks, onSubmit, storageKey, tz, readOnly = false, initialStep = 0, submitNote, onProgress, onStatus, onSubmitted, className }: AssessmentStepperProps) {
+  const d = useAssessmentDraft({ form, draft, remarks, save: onSave, saveRemarks: onSaveRemarks, storageKey, readOnly, answerMode });
   const stepCount = d.steps.length;
   const reviewIndex = stepCount;
   const [step, setStep] = useState(() => Math.min(Math.max(0, initialStep), reviewIndex));
@@ -71,8 +86,8 @@ export function AssessmentStepper({ form, draft, answerMode = 'SINGLE', onSave, 
   const [blocked, setBlocked] = useState<string | null>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const navigated = useRef(false);
-  /** Question (and direction) to land on after the next step change (a jump from the review list). */
-  const pendingFocus = useRef<Pick<ReviewItem, 'questionId' | 'direction'> | null>(null);
+  /** Where to land after the next step change (a jump from the review list): focuses it, false when it is not there. */
+  const pendingFocus = useRef<(() => boolean) | null>(null);
 
   useEffect(() => onProgress?.(d.progress), [d.progress, onProgress]);
   useEffect(() => onStatus?.(d.status), [d.status, onStatus]);
@@ -92,7 +107,7 @@ export function AssessmentStepper({ form, draft, answerMode = 'SINGLE', onSave, 
     if (!navigated.current) return;
     const target = pendingFocus.current;
     pendingFocus.current = null;
-    if (target && focusQuestionCard(target.questionId, target.direction)) return;
+    if (target?.()) return;
     sectionRef.current?.scrollIntoView({ block: 'start' });
     sectionRef.current?.focus({ preventScroll: true });
   }, [step]);
@@ -114,7 +129,17 @@ export function AssessmentStepper({ form, draft, answerMode = 'SINGLE', onSave, 
       focusQuestionCard(item.questionId, item.direction);
       return;
     }
-    pendingFocus.current = item;
+    pendingFocus.current = () => focusQuestionCard(item.questionId, item.direction);
+    go(item.stepIndex);
+  };
+
+  const jumpToRemark = (item: RemarkReviewItem) => {
+    setValidated((v) => new Set(v).add(item.stepIndex));
+    if (item.stepIndex === step) {
+      focusRemark(item.stepId);
+      return;
+    }
+    pendingFocus.current = () => focusRemark(item.stepId);
     go(item.stepIndex);
   };
 
@@ -122,7 +147,7 @@ export function AssessmentStepper({ form, draft, answerMode = 'SINGLE', onSave, 
     setSubmitError(null);
     const flushed = await d.flush();
     if (!flushed) {
-      setBlocked('Your latest answers have not reached the server yet. Check your connection and try again.');
+      setBlocked('Your latest answers or remarks have not reached the server yet. Check your connection and try again.');
       return;
     }
     setBlocked(null);
@@ -170,7 +195,7 @@ export function AssessmentStepper({ form, draft, answerMode = 'SINGLE', onSave, 
           {review ? (
             <>
               <StepHeader index={reviewIndex} count={stepCount + 1} title="Review and submit" description="Submitted answers are locked." />
-              <ReviewList items={reviewItems(d.steps, d.answers, answerMode)} onJump={jump} />
+              <ReviewList items={reviewItems(d.steps, d.answers, answerMode)} remarks={remarkReviewItems(d.steps, d.remarks)} onJump={jump} onJumpRemark={jumpToRemark} />
             </>
           ) : current ? (
             <>
@@ -201,6 +226,7 @@ export function AssessmentStepper({ form, draft, answerMode = 'SINGLE', onSave, 
                     />
                   ),
                 )}
+                <SectionRemarkField key={current.id} categoryId={current.id} section={current.label} value={d.remarkFor(current.id)} onChange={(remark) => d.setRemark(current.id, remark)} showValidation={validated.has(step)} readOnly={readOnly} />
               </div>
             </>
           ) : null}
@@ -218,7 +244,7 @@ export function AssessmentStepper({ form, draft, answerMode = 'SINGLE', onSave, 
           </Button>
           <div className={styles.navEnd}>
             {review ? (
-              <Button variant="primary" disabled={!canSubmit} onClick={() => void askToSubmit()} title={canSubmit ? undefined : 'Answer every question to submit'}>
+              <Button variant="primary" disabled={!canSubmit} onClick={() => void askToSubmit()} title={canSubmit ? undefined : 'Answer every question and add the remarks of every section to submit'}>
                 Submit
               </Button>
             ) : (

@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { type SectionRemark } from '@/api/assessments.types';
 import { NetworkError } from '@/api/client';
 
 import { answer, FORM } from './testFixtures';
@@ -25,9 +26,9 @@ function memoryStorage(): Storage {
 }
 Object.defineProperty(globalThis, 'localStorage', { value: memoryStorage(), configurable: true, writable: true });
 
-function setup(save = vi.fn().mockResolvedValue({ lastSavedAt: '2026-10-07T06:34:00.000Z' }), draft = [answer('q2')]) {
-  const hook = renderHook(() => useAssessmentDraft({ form: FORM, draft, save, storageKey: KEY }));
-  return { hook, save };
+function setup(save = vi.fn().mockResolvedValue({ lastSavedAt: '2026-10-07T06:34:00.000Z' }), draft = [answer('q2')], saveRemarks = vi.fn().mockResolvedValue({ sectionRemarks: [], lastSavedAt: '2026-10-07T06:35:00.000Z' }), remarks: SectionRemark[] = []) {
+  const hook = renderHook(() => useAssessmentDraft({ form: FORM, draft, save, remarks, saveRemarks, storageKey: KEY }));
+  return { hook, save, saveRemarks };
 }
 
 describe('useAssessmentDraft', () => {
@@ -81,7 +82,67 @@ describe('useAssessmentDraft', () => {
       await vi.advanceTimersByTimeAsync(800);
     });
     expect(save).toHaveBeenCalledWith([{ questionId: 'q1', rating: 2, na: false, comment: 'Long queues', followUp: ['Queues'] }]);
-    expect(hook.result.current.readinessFor(0).complete).toBe(true);
+    // Every question of the section is in; its remark is still missing.
+    expect(hook.result.current.readinessFor(0)).toMatchObject({ missing: [], invalid: [], missingRemarks: ['c1'], complete: false });
+    act(() => hook.result.current.setRemark('c1', 'Queues at peak hours'));
+    expect(hook.result.current.readinessFor(0)).toMatchObject({ missingRemarks: [], complete: true });
+    expect(hook.result.current.readiness.missingRemarks).toEqual(['c2']);
+  });
+
+  it('sends changed remarks in the same debounced flush as the answers, trimmed, and an emptied one as a clear', async () => {
+    const { hook, save, saveRemarks } = setup(undefined, [answer('q2')], undefined, [{ categoryId: 'c2', remark: 'Screening is thorough.' }]);
+    expect(hook.result.current.remarkFor('c2')).toBe('Screening is thorough.');
+    expect(hook.result.current.readiness.missingRemarks).toEqual(['c1']);
+    act(() => hook.result.current.setAnswer('q4', { rating: 5 }));
+    act(() => hook.result.current.setRemark('c1', '  Quick acceptance  '));
+    act(() => hook.result.current.setRemark('c2', '   '));
+    expect(hook.result.current.pending).toBe(3);
+    expect(hook.result.current.readiness.missingRemarks).toEqual(['c2']);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(800);
+    });
+    expect(save).toHaveBeenCalledTimes(1);
+    expect(saveRemarks).toHaveBeenCalledTimes(1);
+    expect(saveRemarks).toHaveBeenCalledWith([
+      { categoryId: 'c1', remark: 'Quick acceptance' },
+      { categoryId: 'c2', remark: '' },
+    ]);
+    expect(hook.result.current.status).toEqual({ kind: 'saved', at: '2026-10-07T06:35:00.000Z' });
+    expect(hook.result.current.pending).toBe(0);
+    expect(localStorage.getItem(KEY)).toBeNull();
+
+    // A remark alone is saved without an answers PATCH.
+    act(() => hook.result.current.setRemark('c2', 'Fine'));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(800);
+    });
+    expect(save).toHaveBeenCalledTimes(1);
+    expect(saveRemarks).toHaveBeenLastCalledWith([{ categoryId: 'c2', remark: 'Fine' }]);
+  });
+
+  it('keeps remarks on this device while offline and replays them, also from an earlier visit', async () => {
+    const saveRemarks = vi.fn().mockRejectedValueOnce(new NetworkError()).mockResolvedValue({ sectionRemarks: [], lastSavedAt: '2026-10-07T07:00:00.000Z' });
+    const { hook } = setup(undefined, [], saveRemarks);
+    act(() => hook.result.current.setRemark('c1', 'Quick acceptance'));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(800);
+    });
+    expect(hook.result.current.status).toEqual({ kind: 'offline', pending: 1 });
+    const queued = JSON.parse(localStorage.getItem(KEY) ?? '{}') as { v: number; answers: object; remarks: Record<string, string> };
+    expect(queued).toEqual({ v: 1, answers: {}, remarks: { c1: 'Quick acceptance' } });
+    hook.unmount();
+
+    // The next visit replays the queued remark over the server's (none).
+    const again = setup(undefined, [], saveRemarks);
+    expect(again.hook.result.current.remarkFor('c1')).toBe('Quick acceptance');
+    expect(again.hook.result.current.pending).toBe(1);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(saveRemarks).toHaveBeenLastCalledWith([{ categoryId: 'c1', remark: 'Quick acceptance' }]);
+    expect(again.hook.result.current.pending).toBe(0);
+    expect(localStorage.getItem(KEY)).toBeNull();
   });
 
   it('goes offline on a network failure, keeps the queue on this device and replays when back online', async () => {
@@ -139,12 +200,16 @@ describe('useAssessmentDraft', () => {
 
   it('is inert when read-only', async () => {
     const save = vi.fn();
-    const hook = renderHook(() => useAssessmentDraft({ form: FORM, draft: [], save, readOnly: true }));
+    const saveRemarks = vi.fn();
+    const hook = renderHook(() => useAssessmentDraft({ form: FORM, draft: [], save, remarks: [{ categoryId: 'c1', remark: 'Saved before' }], saveRemarks, readOnly: true }));
     act(() => hook.result.current.setAnswer('q4', { rating: 4 }));
+    act(() => hook.result.current.setRemark('c1', 'Changed'));
     await act(async () => {
       await vi.advanceTimersByTimeAsync(800);
     });
     expect(save).not.toHaveBeenCalled();
+    expect(saveRemarks).not.toHaveBeenCalled();
     expect(hook.result.current.answerFor('q4')).toBeUndefined();
+    expect(hook.result.current.remarkFor('c1')).toBe('Saved before');
   });
 });

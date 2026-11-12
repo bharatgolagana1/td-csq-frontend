@@ -1,14 +1,15 @@
-import { type Answer, type AnswerDirection, type AnswerInput, type AnswerMode, type AssessmentForm, type DetailAnswer, type FormQuestion, type Progress, type Rating } from '@/api/assessments.types';
+import { type Answer, type AnswerDirection, type AnswerInput, type AnswerMode, type AssessmentForm, type DetailAnswer, type FormQuestion, type Progress, type Rating, type SectionRemark } from '@/api/assessments.types';
 
-import { type AnswerGroup, type AnswerGroupAnswer, type AnswerGroupItem, type AnswerIssue, type FormStep, type FormStepQuestion, type LocalAnswer, type ReviewItem, type StepReadiness } from './types';
+import { type AnswerGroup, type AnswerGroupAnswer, type AnswerGroupItem, type AnswerIssue, type FormStep, type FormStepQuestion, type LocalAnswer, type RemarkReviewItem, type ReviewItem, type StepReadiness } from './types';
 
 /* Form rules (backend ARCHITECTURE §7 "Form rules"), mirrored client-side so the
    form validates inline and never sends an answer the server would refuse:
    every active question needs a rating or NA; a comment when the comment mode
    says so (REQUIRED_ON_LOW ⇒ Fair/Poor); follow-up options only on Fair/Poor
    and only from the question's list. An IMPORT_EXPORT form asks every question
-   twice, once per direction, and each direction follows the same rules. Pure:
-   no React, no IO. */
+   twice, once per direction, and each direction follows the same rules. Every
+   section (category) also takes one remark, whatever the answer mode, and
+   submitting waits for all of them. Pure: no React, no IO. */
 
 export type RatingValue = Rating | 'NA';
 
@@ -155,6 +156,35 @@ export function reviewItems(steps: readonly FormStep[], answers: ReadonlyMap<str
   return items;
 }
 
+// --- section remarks ---------------------------------------------------------
+
+/** The longest remark the server takes. */
+export const REMARK_MAX_LENGTH = 2000;
+
+/** A section's remark counts once it holds more than whitespace (the server trims, and clears an empty one). */
+export function hasRemark(remark: string | undefined): boolean {
+  return Boolean(remark?.trim());
+}
+
+export function remarksToMap(remarks: readonly SectionRemark[]): Map<string, string> {
+  return new Map(remarks.map((r) => [r.categoryId, r.remark]));
+}
+
+/** Sections (category ids) still without a remark, in form order. */
+export function missingRemarks(steps: readonly FormStep[], remarks: ReadonlyMap<string, string>): string[] {
+  return steps.filter((s) => !hasRemark(remarks.get(s.id))).map((s) => s.id);
+}
+
+/** The review step's "<section> · Remarks needed" entries, in form order. */
+export function remarkReviewItems(steps: readonly FormStep[], remarks: ReadonlyMap<string, string>): RemarkReviewItem[] {
+  return steps.flatMap((step, stepIndex) => (hasRemark(remarks.get(step.id)) ? [] : [{ stepId: step.id, stepIndex, stepLabel: step.label }]));
+}
+
+/** DOM id of a section's remark field, for jump links. */
+export function remarkDomId(categoryId: string): string {
+  return `remark-${categoryId}`;
+}
+
 /** The assessment's own NA-excluding mean rating, 1 dp; null when nothing is rated. */
 export function ownScore(answers: Iterable<{ rating: Rating | null; na?: boolean }>): number | null {
   let sum = 0;
@@ -172,12 +202,14 @@ function groupAnswer(a: Answer | undefined): AnswerGroupAnswer | null {
   return a ? { rating: a.rating, na: a.na, comment: a.comment, followUp: a.followUp } : null;
 }
 
-/** Read-only groups (category → items) for the answer summary from a form and its saved answers. */
-export function groupsFromForm(form: AssessmentForm, answers: readonly Answer[], mode: AnswerMode = 'SINGLE'): AnswerGroup[] {
+/** Read-only groups (category → items, and the section's remark) for the answer summary from a form and its saved answers. */
+export function groupsFromForm(form: AssessmentForm, answers: readonly Answer[], mode: AnswerMode = 'SINGLE', remarks: readonly SectionRemark[] = []): AnswerGroup[] {
   const byKey = new Map(answers.map((a) => [answerKey(a.questionId, a.direction), a]));
+  const remarkOf = remarksToMap(remarks);
   return formSteps(form).map((step) => ({
     id: step.id,
     name: step.label,
+    remark: remarkOf.get(step.id) ?? null,
     items: step.questions.map(({ question, subcategory }) => ({
       question: { id: question.id, code: question.code, text: question.text },
       subcategory: subcategory?.name ?? null,
@@ -188,15 +220,16 @@ export function groupsFromForm(form: AssessmentForm, answers: readonly Answer[],
   }));
 }
 
-/** Read-only groups from a `GET /assessments/:id` return (every form question with its answer, in form order; an IMPORT_EXPORT return lists each question once per direction). */
-export function groupsFromDetail(answers: readonly DetailAnswer[]): AnswerGroup[] {
+/** Read-only groups from a `GET /assessments/:id` return (every form question with its answer, in form order; an IMPORT_EXPORT return lists each question once per direction), each with its section's remark. */
+export function groupsFromDetail(answers: readonly DetailAnswer[], remarks: readonly SectionRemark[] = []): AnswerGroup[] {
   const groups: AnswerGroup[] = [];
   const byCategory = new Map<string, AnswerGroup>();
   const byQuestion = new Map<string, AnswerGroupItem>();
+  const remarkOf = remarksToMap(remarks);
   answers.forEach((a) => {
     let group = byCategory.get(a.category.id);
     if (!group) {
-      group = { id: a.category.id, name: a.category.name, items: [] };
+      group = { id: a.category.id, name: a.category.name, items: [], remark: remarkOf.get(a.category.id) ?? null };
       byCategory.set(a.category.id, group);
       groups.push(group);
     }

@@ -88,7 +88,7 @@ export const importExportForm: AssessmentFormResponse = {
   progress: { answered: 0, total: 8, pct: 0 },
 };
 
-export const emptyDraft: Draft = { id: 'asg_1', status: 'DRAFT', answers: [], progress: { answered: 0, total: 4, pct: 0 }, lastSavedAt: null, submittedAt: null };
+export const emptyDraft: Draft = { id: 'asg_1', status: 'DRAFT', answers: [], sectionRemarks: [], progress: { answered: 0, total: 4, pct: 0 }, lastSavedAt: null, submittedAt: null };
 
 export type MockRequest = { method: string; path: string; body: unknown; headers: Headers };
 export type MockReply = { status?: number; body?: unknown } | undefined;
@@ -128,12 +128,18 @@ export function mockApi(...handlers: MockHandler[]) {
   return { calls, fetchMock };
 }
 
-/** The happy-path backend: a SENT invitation, an OTP that is always 123456, the fixture form (or `overrides.form`) and an empty draft. */
+/**
+ * The happy-path backend: a SENT invitation, an OTP that is always 123456, the
+ * fixture form (or `overrides.form`) and an empty draft. Section remarks merge
+ * by category as the API does, and submit refuses (412) while a section has none.
+ */
 export function happyBackend(overrides: { invitation?: Partial<PublicInvitation>; form?: AssessmentFormResponse; draft?: Draft; devOtp?: string } = {}): MockHandler {
   const inv = { ...invitation, ...overrides.invitation };
   const served = overrides.form ?? form;
   const total = served.progress.total;
   const base = `/public/assess/${TOKEN}`;
+  const remarks = new Map((overrides.draft?.sectionRemarks ?? []).map((r) => [r.categoryId, r.remark]));
+  const missingRemarks = () => served.categories.filter((c) => !remarks.get(c.id)).map((c) => c.id);
   return ({ method, path, body, headers }) => {
     if (method === 'GET' && path === base) return { body: inv };
     if (method === 'POST' && path === `${base}/otp`) return { body: { sent: true, expiresAt: '2026-10-07T10:10:00.000Z', ...(overrides.devOtp ? { devOtp: overrides.devOtp } : {}) } };
@@ -148,8 +154,16 @@ export function happyBackend(overrides: { invitation?: Partial<PublicInvitation>
       const answers = (body as { answers: unknown[] }).answers;
       return { body: { answered: answers.length, total, pct: Math.round((answers.length / total) * 100), lastSavedAt: '2026-10-07T10:04:00.000Z' } };
     }
-    if (method === 'GET' && path === `${base}/readiness`) return { body: { answered: total, total, missing: [], complete: true } };
-    if (method === 'POST' && path === `${base}/submit`) return { body: { ...served.assessment, status: 'SUBMITTED', submittedAt: '2026-10-07T10:05:00.000Z' } };
+    if (method === 'PATCH' && path === `${base}/remarks`) {
+      (body as { sectionRemarks: { categoryId: string; remark: string }[] }).sectionRemarks.forEach(({ categoryId, remark }) => (remark.trim() ? remarks.set(categoryId, remark.trim()) : remarks.delete(categoryId)));
+      return { body: { sectionRemarks: [...remarks].map(([categoryId, remark]) => ({ categoryId, remark })), lastSavedAt: '2026-10-07T10:04:30.000Z' } };
+    }
+    if (method === 'GET' && path === `${base}/readiness`) return { body: { answered: total, total, missing: [], missingSectionRemarks: missingRemarks(), complete: missingRemarks().length === 0 } };
+    if (method === 'POST' && path === `${base}/submit`) {
+      const missingSectionRemarks = missingRemarks();
+      if (missingSectionRemarks.length > 0) return apiError(412, 'PRECONDITION_FAILED', `Add a remark to every section before submitting (${missingSectionRemarks.length} left)`, { missing: [], missingSectionRemarks });
+      return { body: { ...served.assessment, status: 'SUBMITTED', submittedAt: '2026-10-07T10:05:00.000Z' } };
+    }
     return undefined;
   };
 }
