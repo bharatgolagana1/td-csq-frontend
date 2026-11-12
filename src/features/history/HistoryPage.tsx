@@ -34,9 +34,22 @@ const SURVEY_OPTIONS = [
   { value: 'INTERNATIONAL', label: 'International' },
 ];
 
-/** /history — every assessment the caller may see; row → read-only return; CSV export per cycle (assessments.view). */
+/** Why the export button is off or limited (its title). */
+function exportTitle(cycleChosen: boolean, canViewDetails: boolean, kind: string): string | undefined {
+  if (!cycleChosen) return 'Choose a cycle to export';
+  if (canViewDetails) return undefined;
+  if (kind === 'CUSTOMER') return 'Your role cannot export customer assessments; choose Self or All kinds to export self-assessments';
+  return 'Exports self-assessments only: customer assessments need the “View customer assessment details” permission';
+}
+
+/**
+ * /history — every assessment the caller may see; row → read-only return; CSV export per cycle (assessments.view).
+ * Customer rows show their score with `assessments.scores` and open (and export) with `assessments.details`; self-assessments always do.
+ */
 export default function HistoryPage() {
   const { hasTask, scope, org } = useSession();
+  const canViewScores = hasTask('assessments.scores');
+  const canViewDetails = hasTask('assessments.details');
   const navigate = useNavigate();
   const toast = useToast();
   const state = useHistoryQuery();
@@ -60,14 +73,17 @@ export default function HistoryPage() {
   const tzOf = (cycleId: string) => tzByCycle.get(cycleId) ?? DEFAULT_TZ;
 
   const selectedCycle = state.filters.cycleId;
+  // Without assessments.details the export is the self-assessments: it never asks for customer rows (the API answers 403).
+  const exportKind = canViewDetails ? state.filters.kind : 'SELF';
+  const canExport = Boolean(selectedCycle) && (canViewDetails || state.filters.kind !== 'CUSTOMER');
   const onExport = () => {
-    if (!selectedCycle) return;
+    if (!selectedCycle || !canExport) return;
     const code = cycleOptions.find((o) => o.value === selectedCycle)?.label.split(' · ')[0] ?? selectedCycle;
     exportCsv.mutate(
       {
         query: {
           cycleId: selectedCycle,
-          ...(state.filters.kind ? { kind: state.filters.kind as 'CUSTOMER' | 'SELF' } : {}),
+          ...(exportKind ? { kind: exportKind as 'CUSTOMER' | 'SELF' } : {}),
           ...(state.filters.status ? { status: state.filters.status as 'DRAFT' | 'SUBMITTED' } : {}),
         },
         fileName: `assessments-${code}.csv`,
@@ -83,8 +99,8 @@ export default function HistoryPage() {
         title="History"
         context={scope.kind === 'ACO' ? `Every assessment of ${org.name}: customer returns and your self-assessments.` : 'Every assessment across operators; assessor identity is masked for operator users.'}
         actions={
-          <Button variant="secondary" icon={<Icon name="download" size={18} />} disabled={!selectedCycle} loading={exportCsv.isPending} onClick={onExport} title={selectedCycle ? undefined : 'Choose a cycle to export'}>
-            Export CSV
+          <Button variant="secondary" icon={<Icon name="download" size={18} />} disabled={!canExport} loading={exportCsv.isPending} onClick={onExport} title={exportTitle(Boolean(selectedCycle), canViewDetails, state.filters.kind)}>
+            {canViewDetails ? 'Export CSV' : 'Export self-assessments'}
           </Button>
         }
       />
@@ -101,7 +117,7 @@ export default function HistoryPage() {
         <QueryError error={list.error} title="Could not load assessments" onRetry={() => void list.refetch()} />
       ) : (
         <>
-          <HistoryTable rows={rows} loading={list.isPending} sort={state.sort} onSortChange={state.setSort} onOpen={(row) => navigate(row.id)} tzOf={tzOf} filtered={state.filtered} onClearFilters={state.clearFilters} />
+          <HistoryTable rows={rows} loading={list.isPending} sort={state.sort} onSortChange={state.setSort} onOpen={(row) => navigate(row.id)} canViewScores={canViewScores} canViewDetails={canViewDetails} tzOf={tzOf} filtered={state.filtered} onClearFilters={state.clearFilters} />
           <Pagination page={state.page} pageSize={state.pageSize} total={total} onPageChange={state.setPage} onPageSizeChange={state.setPageSize} />
         </>
       )}
