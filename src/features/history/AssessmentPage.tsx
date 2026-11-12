@@ -10,7 +10,7 @@ import { AnswerSummary, groupsFromDetail } from '@/features/assessmentForm';
 import { DEFAULT_TZ, describeTimeZone, formatDateTime, formatInt, formatRating } from '@/lib/format';
 
 import styles from './history.module.css';
-import { KIND_LABELS, kindVariant, STATUS_LABELS, statusPillVariant, SURVEY_LABELS, TYPE_LABELS } from './historyLabels';
+import { assessorLabel, isIdentityHidden, KIND_LABELS, kindVariant, STATUS_LABELS, statusPillVariant, SURVEY_LABELS, TYPE_LABELS } from './historyLabels';
 
 function DetailSkeleton() {
   return (
@@ -77,9 +77,9 @@ export default function AssessmentPage() {
                   key: 'Assessor',
                   value: (
                     <span className={styles.identity}>
-                      <span>{data.assessor.name ?? (data.kind === 'SELF' ? 'Self-assessment' : '—')}</span>
+                      <span className={isIdentityHidden(data) ? styles.identityHidden : undefined}>{assessorLabel(data)}</span>
                       {data.assessor.email ? <span className={styles.identityEmail}>{data.assessor.email}</span> : null}
-                      {!data.assessor.revealed ? <Tag tone="outline">Identity masked</Tag> : null}
+                      {isIdentityHidden(data) ? <Tag tone="outline">Privacy setting</Tag> : null}
                     </span>
                   ),
                 },
