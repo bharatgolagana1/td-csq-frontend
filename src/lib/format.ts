@@ -1,4 +1,5 @@
 import { differenceInSeconds, formatDistanceToNowStrict, parseISO } from 'date-fns';
+import { enIN } from 'date-fns/locale';
 import { formatInTimeZone } from 'date-fns-tz';
 
 export const DEFAULT_TZ = 'Asia/Kolkata';
@@ -60,7 +61,8 @@ export function formatCountdown(iso: string | Date | null | undefined, now = new
 /** "Asia/Kolkata" → "IST (UTC+05:30)". Falls back to the zone name. */
 export function describeTimeZone(tz: string, at = new Date()): string {
   try {
-    const abbr = formatInTimeZone(at, tz, 'zzz');
+    // en-IN names Asia/Kolkata "IST" whatever the browser's language (en-US only has "GMT+5:30").
+    const abbr = formatInTimeZone(at, tz, 'zzz', { locale: enIN });
     const offset = formatInTimeZone(at, tz, 'xxx');
     // Runtimes without zone names return "GMT+5:30"; avoid "GMT+5:30 (UTC+05:30)".
     if (/^(GMT|UTC)/.test(abbr)) return `UTC${offset}`;
