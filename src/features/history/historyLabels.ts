@@ -22,6 +22,16 @@ export function isIdentityHidden(row: Pick<HistoryRow, 'kind' | 'assessor'>): bo
   return row.kind === 'CUSTOMER' && !row.assessor.revealed;
 }
 
+/** A customer's score the API withholds without `assessments.scores`; a self-assessment's is always shown. */
+export function isScoreHidden(row: Pick<HistoryRow, 'kind'>, canViewScores: boolean): boolean {
+  return row.kind === 'CUSTOMER' && !canViewScores;
+}
+
+/** Whether the read-only return opens: a customer's needs `assessments.details` (the API answers 403 without it), a self-assessment's never does. */
+export function canOpenAssessment(row: Pick<HistoryRow, 'kind'>, canViewDetails: boolean): boolean {
+  return row.kind === 'SELF' || canViewDetails;
+}
+
 /** Who answered, as the row shows it: the customer contact (unless hidden) or the operator's user. */
 export function assessorLabel(row: AssessorFields): string {
   if (row.assessorName) return row.assessorName;

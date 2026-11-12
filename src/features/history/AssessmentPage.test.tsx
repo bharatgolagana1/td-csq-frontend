@@ -1,9 +1,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { type AssessmentDetail, type DetailAnswer } from '@/api/assessments.types';
+import { ApiError } from '@/api/client';
 import { AuthProvider, type Session } from '@/auth/session';
 
 vi.mock('@/auth/keycloak', () => ({
@@ -26,7 +28,7 @@ const SESSION: Session = {
   org: { id: 'org-acfi', name: 'Air Cargo Forum India', type: 'ACFI' },
   role: { code: 'SUPER_ADMIN', scope: 'PLATFORM' },
   scope: { kind: 'PLATFORM' },
-  tasks: new Set(['assessments.view', 'cycles.view']),
+  tasks: new Set(['assessments.view', 'assessments.scores', 'assessments.details', 'cycles.view']),
   memberships: [],
 };
 
@@ -56,12 +58,12 @@ const DETAIL: AssessmentDetail = {
   sectionRemarks: [{ categoryId: 'c1', remark: 'Gate queues at peak hours.' }],
 };
 
-function mount() {
+function mount(session: Session = SESSION) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={qc}>
       <MemoryRouter initialEntries={['/history/a1']} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <AuthProvider session={SESSION}>
+        <AuthProvider session={session}>
           <Routes>
             <Route path="/history/:id" element={<AssessmentPage />} />
           </Routes>
@@ -136,5 +138,40 @@ describe('AssessmentPage', () => {
     expect(within(shipment).getByRole('region', { name: 'Import answer' })).toHaveTextContent('Very good');
     expect(within(shipment).getByRole('region', { name: 'Export answer' })).toHaveTextContent(/Fair.*Queues at the gate/);
     expect(screen.getAllByText('2/2')).toHaveLength(2);
+  });
+
+  it('a 403 says the role may not open individual customer assessments, without a retry', () => {
+    detail.mockReturnValue({ isPending: false, isError: true, error: new ApiError(403, 'FORBIDDEN', 'Your role (ACO_ADMIN) lacks the "assessments.details" task', { task: 'assessments.details' }, 'req_4'), refetch: vi.fn() } as unknown as ReturnType<typeof useAssessment>);
+    mount({ ...SESSION, role: { code: 'ACO_ADMIN', scope: 'ACO' }, tasks: new Set(['assessments.view', 'cycles.view']) });
+    expect(screen.getByText("You don't have access to individual customer assessments")).toBeInTheDocument();
+    expect(screen.getByText(/Your role \(ACO admin\) lists customer assessments in History but cannot open their answers/)).toBeInTheDocument();
+    expect(screen.queryByText('Could not load this assessment')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Try again' })).toBeNull();
+    expect(screen.getByRole('link', { name: 'Back to history' })).toBeInTheDocument();
+  });
+
+  it('any other failure is the generic error with its retry', async () => {
+    const refetch = vi.fn();
+    detail.mockReturnValue({ isPending: false, isError: true, error: new ApiError(503, 'INTERNAL', 'Service unavailable', undefined, 'req_9'), refetch } as unknown as ReturnType<typeof useAssessment>);
+    mount();
+    expect(screen.getByText('Could not load this assessment')).toBeInTheDocument();
+    expect(screen.queryByText("You don't have access to individual customer assessments")).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Try again' }));
+    expect(refetch).toHaveBeenCalled();
+  });
+
+  it('without assessments.scores a customer return shows its score as hidden; a self-assessment keeps its score', () => {
+    const session = { ...SESSION, tasks: new Set(['assessments.view', 'assessments.details', 'cycles.view']) };
+    detail.mockReturnValue({ isPending: false, isError: false, data: { ...DETAIL, score: null } } as unknown as ReturnType<typeof useAssessment>);
+    const { unmount } = mount(session);
+    expect(screen.getByText('Score').nextElementSibling).toHaveTextContent('Score hidden');
+    expect(screen.getByTitle('Score hidden')).toHaveTextContent('—');
+    unmount();
+
+    const self: AssessmentDetail = { ...DETAIL, kind: 'SELF', customerType: null, assessorName: 'Priya Natarajan', assessorEmailMasked: 'p***@csc.example', assessor: { name: 'Priya Natarajan', email: 'priya@csc.example', revealed: true } };
+    detail.mockReturnValue({ isPending: false, isError: false, data: self } as unknown as ReturnType<typeof useAssessment>);
+    mount(session);
+    expect(screen.getByText('Score').nextElementSibling).toHaveTextContent('3.0');
+    expect(screen.queryByText('Score hidden')).toBeNull();
   });
 });

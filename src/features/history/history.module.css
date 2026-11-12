@@ -75,7 +75,8 @@
   text-align: left;
   font: inherit;
 }
-.card:hover {
+/* Only a card that opens its return reacts to hover; a customer card without assessments.details is a plain <div>. */
+button.card:hover {
   border-color: var(--line-2);
   background: var(--surface-2);
 }

@@ -129,7 +129,9 @@ Rules:
   **Market share** (`marketshare.view`) · **Reports** (`reports.national` |
   `reports.airport`) · **Customers** (`customers.view`) · **Sampling**
   (`sampling.view`) · **Self-assessment** (`assessments.self`) · **Dashboard**
-  (`reports.operator`) · **History** (`assessments.view`) · **Users & roles**
+  (`reports.operator`) · **History** (`assessments.view`; a customer row's
+  score needs `assessments.scores`, opening or exporting customer rows
+  `assessments.details` — self-assessments need neither) · **Users & roles**
   (`users.view`) · **Notifications** (`notifications.view`) · **Audit**
   (`audit.view`) · **Settings** (`settings.view`).
 - Default route after sign-in: platform roles → /overview; operator roles →

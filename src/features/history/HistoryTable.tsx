@@ -5,8 +5,9 @@ import { type Column, EmptyState, Pill, type SortState, Table } from '@/design/p
 import { cn } from '@/lib/cn';
 import { formatDateTime, formatRating } from '@/lib/format';
 
+import { HiddenScore } from './HiddenScore';
 import styles from './history.module.css';
-import { assessorLabel, isIdentityHidden, KIND_LABELS, kindVariant, rowAnswerMode, STATUS_LABELS, statusPillVariant, TYPE_LABELS, zoneAbbr } from './historyLabels';
+import { assessorLabel, canOpenAssessment, isIdentityHidden, isScoreHidden, KIND_LABELS, kindVariant, rowAnswerMode, STATUS_LABELS, statusPillVariant, TYPE_LABELS, zoneAbbr } from './historyLabels';
 import { useMediaQuery } from './useMediaQuery';
 
 export type HistoryTableProps = {
@@ -14,7 +15,12 @@ export type HistoryTableProps = {
   loading: boolean;
   sort: SortState;
   onSortChange: (sort: SortState) => void;
+  /** Called for the rows that open (`canOpenAssessment`); the others are not clickable. */
   onOpen: (row: HistoryRow) => void;
+  /** The session holds `assessments.scores`: without it a customer row's score shows as hidden. */
+  canViewScores: boolean;
+  /** The session holds `assessments.details`: without it a customer row does not open. */
+  canViewDetails: boolean;
   /** Cycle id → IANA zone, for the submitted column. */
   tzOf: (cycleId: string) => string;
   filtered: boolean;
@@ -26,8 +32,9 @@ function submittedLabel(row: HistoryRow, tz: string): string {
   return `${formatDateTime(row.submittedAt, tz)} ${zoneAbbr(tz, new Date(row.submittedAt))}`;
 }
 
-/** The single score, or the import and the export score of an IMPORT_EXPORT assessment. */
-function Score({ row }: { row: HistoryRow }) {
+/** The single score, or the import and the export score of an IMPORT_EXPORT assessment; a dash when it is withheld. */
+function Score({ row, hidden }: { row: HistoryRow; hidden: boolean }) {
+  if (hidden) return <HiddenScore />;
   if (rowAnswerMode(row) !== 'IMPORT_EXPORT') return <>{formatRating(row.score)}</>;
   return (
     <span className={styles.scores}>
@@ -59,8 +66,10 @@ function Empty({ filtered, onClearFilters }: { filtered: boolean; onClearFilters
 }
 
 /** Cycle · kind · customer type · assessor (masked e-mail) · status · submitted · score (import and export for an IMPORT_EXPORT assessment). Cards under 760px. */
-export function HistoryTable({ rows, loading, sort, onSortChange, onOpen, tzOf, filtered, onClearFilters }: HistoryTableProps) {
+export function HistoryTable({ rows, loading, sort, onSortChange, onOpen, canViewScores, canViewDetails, tzOf, filtered, onClearFilters }: HistoryTableProps) {
   const phone = useMediaQuery('(max-width: 760px)');
+  const canOpen = (row: HistoryRow) => canOpenAssessment(row, canViewDetails);
+  const scoreOf = (row: HistoryRow) => <Score row={row} hidden={isScoreHidden(row, canViewScores)} />;
 
   if (phone) {
     if (loading) {
@@ -77,32 +86,39 @@ export function HistoryTable({ rows, loading, sort, onSortChange, onOpen, tzOf, 
       <ul className={styles.cards} aria-label="Assessments">
         {rows.map((row) => {
           const tz = tzOf(row.cycle.id);
+          const content = (
+            <>
+              <span className={styles.cardTop}>
+                <span className={styles.cardCycle}>{row.cycle.code}</span>
+                <Pill variant={statusPillVariant(row.status)} size="sm">
+                  {STATUS_LABELS[row.status]}
+                </Pill>
+              </span>
+              <span className={cn(styles.cardName, isIdentityHidden(row) && styles.identityHidden)}>{assessorLabel(row)}</span>
+              {row.assessorEmailMasked ? <span className={styles.cardEmail}>{row.assessorEmailMasked}</span> : null}
+              <span className={styles.cardMeta}>
+                <Pill variant={kindVariant(row.kind)} dot={false} size="sm">
+                  {KIND_LABELS[row.kind]}
+                </Pill>
+                {row.customerType ? (
+                  <Pill variant="neutral" dot={false} size="sm" title={TYPE_LABELS[row.customerType]}>
+                    {row.customerType}
+                  </Pill>
+                ) : null}
+                <span className={styles.cardScore}>{scoreOf(row)}</span>
+              </span>
+              <span className={styles.cardSubmitted}>{row.submittedAt ? `Submitted ${submittedLabel(row, tz)}` : `${row.progress.answered} of ${row.progress.total} answered`}</span>
+            </>
+          );
           return (
             <li key={row.id}>
-              <button type="button" className={styles.card} onClick={() => onOpen(row)}>
-                <span className={styles.cardTop}>
-                  <span className={styles.cardCycle}>{row.cycle.code}</span>
-                  <Pill variant={statusPillVariant(row.status)} size="sm">
-                    {STATUS_LABELS[row.status]}
-                  </Pill>
-                </span>
-                <span className={cn(styles.cardName, isIdentityHidden(row) && styles.identityHidden)}>{assessorLabel(row)}</span>
-                {row.assessorEmailMasked ? <span className={styles.cardEmail}>{row.assessorEmailMasked}</span> : null}
-                <span className={styles.cardMeta}>
-                  <Pill variant={kindVariant(row.kind)} dot={false} size="sm">
-                    {KIND_LABELS[row.kind]}
-                  </Pill>
-                  {row.customerType ? (
-                    <Pill variant="neutral" dot={false} size="sm" title={TYPE_LABELS[row.customerType]}>
-                      {row.customerType}
-                    </Pill>
-                  ) : null}
-                  <span className={styles.cardScore}>
-                    <Score row={row} />
-                  </span>
-                </span>
-                <span className={styles.cardSubmitted}>{row.submittedAt ? `Submitted ${submittedLabel(row, tz)}` : `${row.progress.answered} of ${row.progress.total} answered`}</span>
-              </button>
+              {canOpen(row) ? (
+                <button type="button" className={styles.card} onClick={() => onOpen(row)}>
+                  {content}
+                </button>
+              ) : (
+                <div className={styles.card}>{content}</div>
+              )}
             </li>
           );
         })}
@@ -169,7 +185,7 @@ export function HistoryTable({ rows, loading, sort, onSortChange, onOpen, tzOf, 
       ),
     },
     { id: 'submittedAt', header: 'Submitted', width: 190, sortable: true, mono: true, hideBelow: 'md', cell: (r) => submittedLabel(r, tzOf(r.cycle.id)) },
-    { id: 'score', header: 'Score', width: 110, align: 'right', mono: true, cell: (r) => <Score row={r} /> },
+    { id: 'score', header: 'Score', width: 110, align: 'right', mono: true, cell: scoreOf },
   ];
 
   return (
@@ -182,6 +198,7 @@ export function HistoryTable({ rows, loading, sort, onSortChange, onOpen, tzOf, 
       loading={loading}
       stickyHeader
       onRowClick={onOpen}
+      isRowClickable={canOpen}
       caption="Assessments"
       empty={<Empty filtered={filtered} onClearFilters={onClearFilters} />}
     />

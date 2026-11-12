@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { configure, render, screen, within } from '@testing-library/react';
+import { configure, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -55,6 +55,16 @@ const LONG = { timeout: 30_000 };
 
 afterEach(() => vi.unstubAllGlobals());
 
+/**
+ * A step is ready once the form has moved focus to its heading (one animation
+ * frame after it renders). Typing before that races the focus move: the
+ * keystrokes land on the heading and the first field stays empty.
+ */
+async function stepShown(name: string): Promise<void> {
+  const heading = await screen.findByRole('heading', { level: 2, name }, { timeout: 4000 });
+  await waitFor(() => expect(heading).toHaveFocus(), { timeout: 4000 });
+}
+
 describe('RegisterPage states', () => {
   it('shows a loading card first', () => {
     mockApi(() => new Promise<Reply>(() => undefined));
@@ -106,7 +116,7 @@ describe('RegisterPage form', () => {
     await user.click(screen.getByRole('button', { name: 'Continue' }));
 
     // Step 2 — Address & contact.
-    expect(await screen.findByRole('heading', { level: 2, name: 'Address & contact' })).toBeInTheDocument();
+    await stepShown('Address & contact');
     expect(screen.getByText('Step 2 of 4')).toBeInTheDocument();
     await user.type(screen.getByLabelText(/Address line 1/), 'Plot 7, Cargo Complex');
     await user.type(screen.getByLabelText(/City/), 'New Delhi');
@@ -118,7 +128,7 @@ describe('RegisterPage form', () => {
     await user.click(screen.getByRole('button', { name: 'Continue' }));
 
     // Step 3 — Administrator: copy from the contact, then change the e-mail.
-    expect(await screen.findByRole('heading', { level: 2, name: 'Administrator' })).toBeInTheDocument();
+    await stepShown('Administrator');
     await user.click(screen.getByRole('button', { name: 'Same as contact' }));
     expect(screen.getByLabelText(/Full name/)).toHaveValue('Rahul Verma');
     const adminEmail = screen.getByLabelText(/E-mail/);
@@ -127,13 +137,13 @@ describe('RegisterPage form', () => {
     await user.click(screen.getByRole('button', { name: 'Continue' }));
 
     // Step 4 — Review, then submit.
-    expect(await screen.findByRole('heading', { level: 2, name: 'Review' })).toBeInTheDocument();
+    await stepShown('Review');
     const review = screen.getByRole('heading', { level: 2, name: 'Review' }).parentElement as HTMLElement;
     expect(within(review).getByText('Delhi Cargo Handlers')).toBeInTheDocument();
     expect(within(review).getByText('admin@dch.example')).toBeInTheDocument();
     expect(within(review).getByText('10 %')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Back' }));
-    expect(await screen.findByRole('heading', { level: 2, name: 'Administrator' })).toBeInTheDocument();
+    await stepShown('Administrator');
     await user.click(screen.getByRole('button', { name: 'Continue' }));
     await user.click(await screen.findByRole('button', { name: 'Submit registration' }));
 
@@ -162,7 +172,7 @@ describe('RegisterPage form', () => {
     const user = userEvent.setup();
     await user.type(await screen.findByLabelText(/Organisation name/), 'Delhi Cargo Handlers');
     await user.click(screen.getByRole('button', { name: 'Continue' }));
-    expect(await screen.findByRole('heading', { level: 2, name: 'Address & contact' })).toBeInTheDocument();
+    await stepShown('Address & contact');
     await user.type(screen.getByLabelText(/Address line 1/), 'Plot 7');
     await user.type(screen.getByLabelText(/City/), 'New Delhi');
     await user.type(screen.getByLabelText(/^State/), 'Delhi');
@@ -171,11 +181,11 @@ describe('RegisterPage form', () => {
     await user.type(screen.getByLabelText(/E-mail/), 'rahul@dch.example');
     await user.type(screen.getByLabelText(/Phone/), '+91 9876543210');
     await user.click(screen.getByRole('button', { name: 'Continue' }));
-    expect(await screen.findByRole('heading', { level: 2, name: 'Administrator' }, { timeout: 4000 })).toBeInTheDocument();
+    await stepShown('Administrator');
     await user.click(screen.getByRole('button', { name: 'Same as contact' }));
     await user.click(screen.getByRole('button', { name: 'Continue' }));
-    expect(await screen.findByRole('heading', { level: 2, name: 'Review' }, { timeout: 4000 })).toBeInTheDocument();
+    await stepShown('Review');
     await user.click(screen.getByRole('button', { name: 'Submit registration' }));
-    expect(await screen.findByRole('heading', { name: 'Already registered' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Already registered' }, { timeout: 4000 })).toBeInTheDocument();
   });
 });
