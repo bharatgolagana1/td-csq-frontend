@@ -41,6 +41,7 @@ describe('CycleDetailPage', () => {
     renderWithProviders(routes, { path: '/cycles/cy1' });
     expect(await screen.findByRole('heading', { name: 'CSQ 2026 H2' })).toBeInTheDocument();
     expect(screen.getByText('Sampling open')).toBeInTheDocument();
+    expect(screen.getByTitle('Answer mode')).toHaveTextContent('Import & Export');
     expect(screen.getByText(/Sampling closes in/)).toBeInTheDocument();
     expect(screen.getByText(/1 Oct 2026, 00:00 → 11 Oct 2026, 00:00/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Transition…' })).toBeInTheDocument();

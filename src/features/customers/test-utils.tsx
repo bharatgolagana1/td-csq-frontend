@@ -40,6 +40,7 @@ export function mockApi(routes: MockRoute[]) {
       const match = route.path.exec(path);
       if (!match) continue;
       const res = await route.reply({ url, body, match });
+      if (res.status === 204) return new Response(null, { status: 204 });
       if (typeof res.body === 'string') return new Response(res.body, { status: res.status ?? 200, headers: { 'content-type': 'text/csv' } });
       return json(res.body ?? {}, res.status ?? 200);
     }

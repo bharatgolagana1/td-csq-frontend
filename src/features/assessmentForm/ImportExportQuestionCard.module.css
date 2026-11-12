@@ -1,0 +1,25 @@
+/* ImportExportQuestionCard: the Import and Export parts inside a QuestionCard frame. Tokens only. */
+
+.direction {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: 14px 16px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  scroll-margin-top: 96px;
+}
+.direction:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.directionTitle {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}

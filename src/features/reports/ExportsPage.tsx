@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 
-import { SURVEY_TYPE_LABELS, useAirportScope, useCycleSelection, useOperatorScope } from '@/api/reports';
+import { DIRECTION_LABELS, SURVEY_TYPE_LABELS, useAirportScope, useCycleSelection, useOperatorScope } from '@/api/reports';
 import { type ExportScope } from '@/api/reports.types';
 import { useSession } from '@/auth/session';
 import { Card, KeyValue, PageHeader, Select } from '@/design/primitives';
@@ -24,10 +24,13 @@ export default function ExportsPage() {
   const operator = useOperatorScope();
   const airport = useAirportScope();
 
+  // No report is loaded here, so the cycle list says whether there is a direction to export (IMPORT unless picked).
+  const direction = cycle.selection.cycle?.answerMode === 'IMPORT_EXPORT' ? (cycle.direction ?? 'IMPORT') : undefined;
   const target = effectiveScope === 'operator' ? operator.options.find((o) => o.value === operator.acoId)?.label : effectiveScope === 'airport' ? airport.options.find((a) => a.value === airport.airportId)?.label : undefined;
   const query = {
     scope: effectiveScope ?? 'national',
     ...cycle.query,
+    direction,
     ...(effectiveScope === 'operator' ? { acoId: operator.acoId } : {}),
     ...(effectiveScope === 'airport' ? { airportId: airport.airportId } : {}),
   };
@@ -49,6 +52,8 @@ export default function ExportsPage() {
         selection={cycle.selection}
         onCycle={cycle.setCycle}
         onSurveyType={cycle.setSurveyType}
+        direction={direction ?? null}
+        onDirection={cycle.setDirection}
       />
       <Card title="Download" subtitle="The file carries the same confidentiality rules as the report on screen.">
         <div className={styles.exportForm}>
@@ -61,6 +66,7 @@ export default function ExportsPage() {
               ...(target ? [{ key: effectiveScope === 'operator' ? 'Operator' : 'Airport', value: target }] : []),
               { key: 'Cycle', value: cycle.selection.cycle?.name ?? '—' },
               { key: 'Survey type', value: cycle.selection.surveyType ? SURVEY_TYPE_LABELS[cycle.selection.surveyType] : '—' },
+              ...(direction ? [{ key: 'Direction', value: DIRECTION_LABELS[direction] }] : []),
               { key: 'Format', value: 'CSV (UTF-8)', mono: true },
             ]}
           />

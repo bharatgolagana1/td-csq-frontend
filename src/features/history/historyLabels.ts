@@ -1,4 +1,4 @@
-import { type AssessmentKind, type AssessmentStatus, type CustomerType, type HistoryRow, type SurveyType } from '@/api/assessments.types';
+import { type AnswerMode, type AssessmentKind, type AssessmentStatus, type CustomerType, type HistoryRow, type SurveyType } from '@/api/assessments.types';
 import { type PillVariant } from '@/design/primitives';
 import { describeTimeZone } from '@/lib/format';
 
@@ -15,10 +15,24 @@ export function statusPillVariant(status: AssessmentStatus): PillVariant {
   return status === 'SUBMITTED' ? 'success' : 'warn';
 }
 
-/** Who answered, as the row shows it: the customer contact (masked unless revealed) or the operator's user. */
-export function assessorLabel(row: Pick<HistoryRow, 'kind' | 'assessorName'>): string {
+type AssessorFields = Pick<HistoryRow, 'kind' | 'assessorName' | 'assessor'>;
+
+/** A customer's identity the API did not send (privacy setting off for this viewer). */
+export function isIdentityHidden(row: Pick<HistoryRow, 'kind' | 'assessor'>): boolean {
+  return row.kind === 'CUSTOMER' && !row.assessor.revealed;
+}
+
+/** Who answered, as the row shows it: the customer contact (unless hidden) or the operator's user. */
+export function assessorLabel(row: AssessorFields): string {
   if (row.assessorName) return row.assessorName;
-  return row.kind === 'SELF' ? 'Self-assessment' : 'Unknown assessor';
+  if (row.kind === 'SELF') return 'Self-assessment';
+  return isIdentityHidden(row) ? 'Identity hidden' : 'Unknown assessor';
+}
+
+/** The row's answer mode; without `answerMode` on the wire, a row scored by direction is an IMPORT_EXPORT one. */
+export function rowAnswerMode(row: Pick<HistoryRow, 'answerMode' | 'importScore' | 'exportScore'>): AnswerMode {
+  if (row.answerMode) return row.answerMode;
+  return (row.importScore ?? null) !== null || (row.exportScore ?? null) !== null ? 'IMPORT_EXPORT' : 'SINGLE';
 }
 
 /** "IST" from "IST (UTC+05:30)" for table cells. */

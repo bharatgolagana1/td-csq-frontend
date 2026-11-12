@@ -26,6 +26,7 @@ export type TaskCode =
   | 'cycles.operate'
   | 'customers.view'
   | 'customers.manage'
+  | 'customers.delete'
   | 'sampling.view'
   | 'sampling.manage'
   | 'sampling.lock'

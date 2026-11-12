@@ -1,7 +1,7 @@
 import { type ReactNode, useMemo, useState } from 'react';
 
 import { isApiError } from '@/api/client';
-import { cycleSelectOptions, reportableCycles, SURVEY_TYPE_LABELS, useComparison, useCycleSelection, useOperatorScope, useReportParams } from '@/api/reports';
+import { comparisonDirection, cycleSelectOptions, DIRECTION_LABELS, reportableCycles, SURVEY_TYPE_LABELS, useComparison, useCycleSelection, useOperatorScope, useReportParams } from '@/api/reports';
 import { type ComparisonReport } from '@/api/reports.types';
 import { useSession } from '@/auth/session';
 import { DeltaChip, GroupedBar, Segmented } from '@/design/charts';
@@ -50,6 +50,7 @@ function ComparisonBody({ report }: { report: ComparisonReport }) {
                 label={
                   <span className={styles.compareLabel}>
                     {c.name}
+                    {c.direction !== 'SINGLE' ? <Tag tone="outline">{DIRECTION_LABELS[c.direction]}</Tag> : null}
                     {c.provisional ? <Tag tone="outline">Provisional</Tag> : null}
                   </span>
                 }
@@ -88,8 +89,9 @@ export default function ComparisonPage() {
   const secondWanted = params.cycles.find((id) => id !== first) ?? '';
   const second = candidates.some((c) => c.id === secondWanted) ? secondWanted : (candidates.find((c) => c.id !== first)?.id ?? '');
   const ids = useMemo(() => [first, second].filter(Boolean), [first, second]);
-  const report = useComparison(operator.acoId || undefined, cycle.ready ? ids : [], cycle.selection.surveyType);
+  const report = useComparison(operator.acoId || undefined, cycle.ready ? ids : [], cycle.selection.surveyType, cycle.direction);
   const data = report.data;
+  const direction = comparisonDirection(data, cycle.direction);
   const secondOptions = cycleSelectOptions(candidates.filter((c) => c.id !== first));
 
   let body: ReactNode;
@@ -133,6 +135,8 @@ export default function ComparisonPage() {
         selection={cycle.selection}
         onCycle={cycle.setCycle}
         onSurveyType={cycle.setSurveyType}
+        direction={direction}
+        onDirection={cycle.setDirection}
         cycleLabel="First cycle"
       >
         <Select

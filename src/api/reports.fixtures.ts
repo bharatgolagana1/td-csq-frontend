@@ -21,6 +21,7 @@ export const CYCLE_LIVE: ReportCycle = {
   code: 'CSQ-26H2',
   name: 'CSQ 2026 H2',
   type: 'BOTH',
+  answerMode: 'SINGLE',
   status: 'ASSESSMENT_OPEN',
   assessment: { start: '2026-10-01T00:00:00+05:30', end: '2026-10-31T23:59:59+05:30' },
   scoredAt: null,
@@ -31,6 +32,7 @@ export const CYCLE_SCORED: ReportCycle = {
   code: 'CSQ-26H1',
   name: 'CSQ 2026 H1',
   type: 'BOTH',
+  answerMode: 'SINGLE',
   status: 'SCORED',
   assessment: { start: '2026-04-01T00:00:00+05:30', end: '2026-04-30T23:59:59+05:30' },
   scoredAt: '2026-05-02T03:00:00+05:30',
@@ -41,13 +43,17 @@ export const CYCLE_PREVIOUS: ReportCycle = {
   code: 'CSQ-25H2',
   name: 'CSQ 2025 H2',
   type: 'BOTH',
+  answerMode: 'SINGLE',
   status: 'SCORED',
   assessment: { start: '2025-10-01T00:00:00+05:30', end: '2025-10-31T23:59:59+05:30' },
   scoredAt: '2025-11-02T03:00:00+05:30',
 };
 
 /** GET /cycles rows, newest first (what the selectors receive). */
-export const CYCLE_OPTIONS: CycleOption[] = [CYCLE_LIVE, CYCLE_SCORED, CYCLE_PREVIOUS].map((c) => ({ id: c.id, code: c.code, name: c.name, type: c.type, status: c.status, scoredAt: c.scoredAt }));
+export const CYCLE_OPTIONS: CycleOption[] = [CYCLE_LIVE, CYCLE_SCORED, CYCLE_PREVIOUS].map((c) => ({ id: c.id, code: c.code, name: c.name, type: c.type, answerMode: c.answerMode, status: c.status, scoredAt: c.scoredAt }));
+
+/** The same list with the scored cycle (the default selection) run as IMPORT_EXPORT. */
+export const CYCLE_OPTIONS_IMPORT_EXPORT: CycleOption[] = CYCLE_OPTIONS.map((c) => (c.id === CYCLE_SCORED.id ? { ...c, answerMode: 'IMPORT_EXPORT' } : c));
 
 export const AIRPORT_OPTIONS: AirportOption[] = [
   { id: 'ap-bom', iata: 'BOM', name: 'Mumbai' },
@@ -144,6 +150,7 @@ export const CATEGORIES: CategoryReport[] = [
 export const OPERATOR_REPORT: OperatorReport = {
   cycle: CYCLE_SCORED,
   surveyType: 'DOMESTIC',
+  direction: 'SINGLE',
   provisional: false,
   operator: CSC,
   overall: { customer: { mean: 4.15, n: 128 }, self: { mean: 4.4 }, rank: 3, rankOf: 14 },
@@ -201,6 +208,21 @@ export const OPERATOR_REPORT_SUPPRESSED: OperatorReport = {
   assessments: { total: 3, customer: 2, self: 1 },
 };
 
+/** The scored cycle run as IMPORT_EXPORT: the server's default (import) figures… */
+export const OPERATOR_REPORT_IMPORT: OperatorReport = {
+  ...OPERATOR_REPORT,
+  cycle: { ...CYCLE_SCORED, answerMode: 'IMPORT_EXPORT' },
+  direction: 'IMPORT',
+};
+
+/** …and its export figures. */
+export const OPERATOR_REPORT_EXPORT: OperatorReport = {
+  ...OPERATOR_REPORT_IMPORT,
+  direction: 'EXPORT',
+  overall: { customer: { mean: 3.62, n: 97 }, self: { mean: 4.1 }, rank: 6, rankOf: 14 },
+  assessments: { total: 98, customer: 97, self: 1 },
+};
+
 function question(code: string, text: string, cat: CategoryReport, sub: number | null, mean: number | null, n: number, na: number, self: number | null, previous: number | null, comments: number): QuestionReportRow {
   const s = sub === null ? null : cat.subcategories[sub];
   return {
@@ -223,6 +245,7 @@ const [INF, SEC, PRO, TRD, CUS] = CATEGORIES as [CategoryReport, CategoryReport,
 export const OPERATOR_QUESTIONS: OperatorQuestions = {
   cycle: CYCLE_SCORED,
   surveyType: 'DOMESTIC',
+  direction: 'SINGLE',
   provisional: false,
   operator: CSC,
   questions: [
@@ -245,6 +268,7 @@ export const OPERATOR_QUESTIONS: OperatorQuestions = {
 export const AIRPORT_REPORT: AirportReport = {
   cycle: CYCLE_SCORED,
   surveyType: 'DOMESTIC',
+  direction: 'SINGLE',
   provisional: false,
   airport: DEL,
   overall: { mean: 4.08, coveredSharePct: 100, marketShareApplied: true, rank: 3, rankOf: 12 },
@@ -272,6 +296,7 @@ export const AIRPORT_REPORT_FOR_OPERATOR: AirportReport = {
 export const NATIONAL_REPORT: NationalReport = {
   cycle: CYCLE_SCORED,
   surveyType: 'DOMESTIC',
+  direction: 'SINGLE',
   provisional: false,
   airports: NATIONAL_TABLE.map((row) => ({
     id: `ap-${row.airportIata.toLowerCase()}`,
@@ -318,8 +343,8 @@ export const COMPARISON_REPORT: ComparisonReport = {
   operator: CSC,
   surveyType: 'DOMESTIC',
   cycles: [
-    { ...CYCLE_PREVIOUS, provisional: false },
-    { ...CYCLE_SCORED, provisional: false },
+    { ...CYCLE_PREVIOUS, provisional: false, direction: 'SINGLE' },
+    { ...CYCLE_SCORED, provisional: false, direction: 'SINGLE' },
   ],
   overall: [
     { cycleId: CYCLE_PREVIOUS.id, customer: { mean: 3.85, n: 117 }, self: { mean: 4.3 }, rank: 5, rankOf: 13 },

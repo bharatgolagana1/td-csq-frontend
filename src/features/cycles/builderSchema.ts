@@ -2,7 +2,7 @@ import { type FieldValues, type Path, type UseFormSetError } from 'react-hook-fo
 import { z } from 'zod';
 
 import { isApiError } from '@/api/client';
-import { type CreateCycleInput, type CycleDetail, type PatchCycleInput } from '@/api/cycles.types';
+import { type CreateCycleInput, type CycleDetail, type CycleStatus, type PatchCycleInput } from '@/api/cycles.types';
 import { type Settings } from '@/api/types';
 import { DEFAULT_TZ } from '@/lib/format';
 
@@ -14,7 +14,7 @@ import { isCalendarDate, serverWindowField, validateWindows, WALL_RE } from './d
    with the same `settings.defaults` the server would use. */
 
 export const BUILDER_STEPS = [
-  { id: 'basics', label: 'Basics', description: 'Name, code, type' },
+  { id: 'basics', label: 'Basics', description: 'Name, code, type, answers' },
   { id: 'windows', label: 'Windows', description: 'Sampling and assessment' },
   { id: 'sampling', label: 'Sampling & reminders', description: 'Minimum sample, cadence' },
   { id: 'participants', label: 'Participants', description: 'Airports and operators' },
@@ -37,6 +37,7 @@ export const builderSchema = z
     name: z.string().trim().min(1, 'Give the cycle a name').max(200, 'At most 200 characters'),
     code: z.string().trim().toUpperCase().regex(CODE_RE, '2–30 characters: letters, digits, _ or -'),
     type: z.enum(['DOMESTIC', 'INTERNATIONAL', 'BOTH']),
+    answerMode: z.enum(['IMPORT_EXPORT', 'SINGLE']),
     tz: z.string().trim().min(1, 'Choose a time zone'),
     /** Calendar date the windows were derived from; informational once the windows exist. */
     initiationDate: z.string().refine((v) => v === '' || isCalendarDate(v), 'Enter a real date'),
@@ -57,6 +58,7 @@ export const BUILDER_FIELDS = [
   'name',
   'code',
   'type',
+  'answerMode',
   'tz',
   'initiationDate',
   'sampling.start',
@@ -75,7 +77,7 @@ export const BUILDER_FIELDS = [
 export type BuilderField = (typeof BUILDER_FIELDS)[number];
 
 export const STEP_FIELDS: Record<Exclude<BuilderStepId, 'review'>, BuilderField[]> = {
-  basics: ['name', 'code', 'type', 'tz'],
+  basics: ['name', 'code', 'type', 'answerMode', 'tz'],
   windows: ['initiationDate', 'sampling.start', 'sampling.end', 'assessment.start', 'assessment.end'],
   sampling: ['minSampleSize', 'reminders.sampling.count', 'reminders.sampling.everyDays', 'reminders.assessment.count', 'reminders.assessment.everyDays'],
   participants: ['participatingAirportIds', 'participatingAcoIds'],
@@ -98,6 +100,7 @@ export function defaultBuilderValues(settings?: Settings | undefined): BuilderVa
     name: '',
     code: '',
     type: 'BOTH',
+    answerMode: 'IMPORT_EXPORT',
     tz: d?.tz ?? DEFAULT_TZ,
     initiationDate: '',
     sampling: { start: '', end: '' },
@@ -118,6 +121,7 @@ export function valuesFromCycle(cycle: CycleDetail): BuilderValues {
     name: cycle.name,
     code: cycle.code,
     type: cycle.type,
+    answerMode: cycle.answerMode,
     tz: cycle.tz,
     initiationDate: cycle.sampling.start.wall.slice(0, 10),
     sampling: { start: cycle.sampling.start.wall, end: cycle.sampling.end.wall },
@@ -134,6 +138,7 @@ export function toCreateInput(v: BuilderValues): CreateCycleInput {
     name: v.name,
     code: v.code,
     type: v.type,
+    answerMode: v.answerMode,
     tz: v.tz,
     sampling: { ...v.sampling },
     assessment: { ...v.assessment },
@@ -144,8 +149,15 @@ export function toCreateInput(v: BuilderValues): CreateCycleInput {
   };
 }
 
-export function toPatchInput(v: BuilderValues): PatchCycleInput {
-  return toCreateInput(v);
+/** The answer mode is fixed once the cycle is published (the API answers 412), so only a draft sends it. */
+export function toPatchInput(v: BuilderValues, status: CycleStatus = 'DRAFT'): PatchCycleInput {
+  const { answerMode, ...rest } = toCreateInput(v);
+  return status === 'DRAFT' ? { ...rest, answerMode } : rest;
+}
+
+/** A published cycle keeps the answer mode it was published with. */
+export function answerModeLocked(cycle: Pick<CycleDetail, 'status'> | null): boolean {
+  return cycle !== null && cycle.status !== 'DRAFT';
 }
 
 type Issue = { path?: (string | number)[] | string; field?: string; message?: string };

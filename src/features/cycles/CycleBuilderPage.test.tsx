@@ -147,6 +147,7 @@ describe('CycleBuilderPage', () => {
     expect(create?.body).toMatchObject({
       code: 'CSQ-26H2',
       type: 'BOTH',
+      answerMode: 'IMPORT_EXPORT',
       sampling: { start: '2026-10-01T00:00', end: '2026-10-11T00:00' },
       assessment: { start: '2026-10-11T00:00', end: '2026-11-10T00:00' },
       participatingAirportIds: ['ap-del', 'ap-bom'],
@@ -155,10 +156,26 @@ describe('CycleBuilderPage', () => {
     expect(calls.some((c) => c.method === 'POST' && c.path === '/cycles/cy9/publish')).toBe(true);
   });
 
+  it('asks for the answer mode on a new cycle, Import & Export by default, and sends the choice', async () => {
+    const { calls } = mockApi([...reference, { method: 'POST', path: '/cycles', reply: ({ body }) => ({ status: 201, body: one(cycleDetail({ id: 'cy9', code: (body as { code: string }).code }, 'DRAFT')) }) }]);
+    const user = userEvent.setup();
+    renderWithProviders(routes, { path: '/cycles/new' });
+    const modes = await screen.findByRole('radiogroup', { name: 'Answer mode' });
+    expect(within(modes).getByRole('radio', { name: /Import & Export/ })).toBeChecked();
+    expect(within(modes).getByRole('radio', { name: /Single rating/ })).toBeEnabled();
+    await user.click(within(modes).getByRole('radio', { name: /Single rating/ }));
+    await fillBasics(user);
+    fireEvent.change(screen.getByLabelText('Initiation date'), { target: { value: '2026-10-01' } });
+    await user.click(await screen.findByRole('button', { name: 'Derive windows' }));
+    await user.click(screen.getByRole('button', { name: 'Save as draft' }));
+    expect(await screen.findByText('detail cy9')).toBeInTheDocument();
+    expect(calls.find((c) => c.method === 'POST' && c.path === '/cycles')?.body).toMatchObject({ code: 'CSQ-26H2', answerMode: 'SINGLE' });
+  });
+
   it('edits a draft and refuses a published cycle', async () => {
-    mockApi([
+    const { calls } = mockApi([
       ...reference,
-      { path: '/cycles/cy1', reply: () => one(cycleDetail({ name: 'Draft one' }, 'DRAFT')) },
+      { path: '/cycles/cy1', reply: () => one(cycleDetail({ name: 'Draft one', answerMode: 'SINGLE' }, 'DRAFT')) },
       { path: '/cycles/cy2', reply: () => one(cycleDetail({ id: 'cy2' }, 'SAMPLING_OPEN')) },
       { method: 'PATCH', path: '/cycles/cy1', reply: ({ body }) => one(cycleDetail({ name: (body as { name: string }).name }, 'DRAFT')) },
     ]);
@@ -166,10 +183,14 @@ describe('CycleBuilderPage', () => {
     const first = renderWithProviders(routes, { path: '/cycles/cy1/edit' });
     expect(await screen.findByLabelText(/Cycle name/)).toHaveValue('Draft one');
     expect(screen.getByLabelText(/^Code/)).toHaveValue('CSQ-26H2');
+    // A draft's mode can still change; the PATCH carries it.
+    expect(screen.getByRole('radio', { name: /Single rating/ })).toBeChecked();
+    expect(screen.getByRole('radio', { name: /Import & Export/ })).toBeEnabled();
     await user.click(screen.getByRole('button', { name: 'Next' }));
     await waitFor(() => expect(dateInputs()[0]).toHaveValue('1 Oct 2026'));
     await user.click(screen.getByRole('button', { name: 'Save as draft' }));
     expect(await screen.findByText('detail cy1')).toBeInTheDocument();
+    expect(calls.find((c) => c.method === 'PATCH' && c.path === '/cycles/cy1')?.body).toMatchObject({ name: 'Draft one', answerMode: 'SINGLE' });
     first.unmount();
 
     renderWithProviders(routes, { path: '/cycles/cy2/edit' });

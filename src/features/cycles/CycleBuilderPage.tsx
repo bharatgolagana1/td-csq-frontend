@@ -125,7 +125,7 @@ export default function CycleBuilderPage() {
   /** Create or update the draft; maps server validation back onto the form. Null on failure. */
   const save = async (values: BuilderValues): Promise<CycleDetail | null> => {
     try {
-      if (effectiveId) return await update.mutateAsync({ id: effectiveId, ...toPatchInput(values) });
+      if (effectiveId) return await update.mutateAsync({ id: effectiveId, ...toPatchInput(values, cycleQuery.data?.status) });
       const created = await create.mutateAsync(toCreateInput(values));
       setCreatedId(created.id);
       return created;
