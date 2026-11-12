@@ -13,7 +13,7 @@ import { describeTimeZone, formatCountdown, formatDateTime, formatInt } from '@/
 import { useShell } from '@/shell/ShellContext';
 
 import { AuditTab } from './AuditTab';
-import { allowedTransitions, CYCLE_STATUS_LABELS, CYCLE_TYPE_LABELS, DEADLINE_LABELS, formatWindowLong, nextCycleDeadline, SAMPLING_PHASE, TYPE_PILL } from './cycleLabels';
+import { allowedTransitions, ANSWER_MODE_LABELS, CYCLE_STATUS_LABELS, CYCLE_TYPE_LABELS, DEADLINE_LABELS, formatWindowLong, nextCycleDeadline, SAMPLING_PHASE, TYPE_PILL } from './cycleLabels';
 import styles from './cycles.module.css';
 import { MonitoringTab } from './MonitoringTab';
 import { NotificationsTab } from './NotificationsTab';
@@ -146,6 +146,9 @@ export default function CycleDetailPage() {
           <span className={styles.pills}>
             <span className={styles.rowCode}>{cycle.code}</span>
             <Pill variant={TYPE_PILL[cycle.type]}>{CYCLE_TYPE_LABELS[cycle.type]}</Pill>
+            <Pill variant="neutral" dot={false} size="sm" title="Answer mode">
+              {ANSWER_MODE_LABELS[cycle.answerMode]}
+            </Pill>
             <Pill variant={statusVariant(cycle.status)} dot>
               {CYCLE_STATUS_LABELS[cycle.status]}
             </Pill>
