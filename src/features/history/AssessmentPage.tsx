@@ -10,8 +10,7 @@ import { AnswerSummary, groupsFromDetail } from '@/features/assessmentForm';
 import { DEFAULT_TZ, describeTimeZone, formatDateTime, formatInt, formatRating } from '@/lib/format';
 
 import styles from './history.module.css';
-import { KIND_LABELS, kindVariant, STATUS_LABELS, statusPillVariant, SURVEY_LABELS, TYPE_LABELS } from './historyLabels';
-const IDENTITY_MASK = '********';
+import { assessorLabel, isIdentityHidden, KIND_LABELS, kindVariant, STATUS_LABELS, statusPillVariant, SURVEY_LABELS, TYPE_LABELS } from './historyLabels';
 
 function DetailSkeleton() {
   return (
@@ -31,7 +30,6 @@ export default function AssessmentPage() {
   const { hasTask } = useSession();
   const query = useAssessment(id);
   const data = query.data;
-  const hideCustomerIdentity = data?.kind === 'CUSTOMER' && data.assessor.revealed === false;
   // The cycle carries the zone; readable only with cycles.view, else the default zone.
   const cycle = useCycle(data?.cycle.id, hasTask('cycles.view'));
   const tz = cycle.data?.tz ?? DEFAULT_TZ;
@@ -76,22 +74,14 @@ export default function AssessmentPage() {
                 },
                 { key: 'Customer type', value: data.customerType ? TYPE_LABELS[data.customerType] : '—' },
                 {
-                 key: 'Assessor',
-                 value: (
-                 <span className={styles.identity}>
-                  <span>
-                    {hideCustomerIdentity
-                    ? IDENTITY_MASK
-                    : data.assessor.name ?? (data.kind === 'SELF' ? 'Self-assessment' : '—')}
+                  key: 'Assessor',
+                  value: (
+                    <span className={styles.identity}>
+                      <span className={isIdentityHidden(data) ? styles.identityHidden : undefined}>{assessorLabel(data)}</span>
+                      {data.assessor.email ? <span className={styles.identityEmail}>{data.assessor.email}</span> : null}
+                      {isIdentityHidden(data) ? <Tag tone="outline">Privacy setting</Tag> : null}
                     </span>
-                    {hideCustomerIdentity ? (
-                      <span className={styles.identityEmail}>{IDENTITY_MASK}</span>
-                    ) : data.assessor.email ? (
-                    <span className={styles.identityEmail}>{data.assessor.email}</span>
-                    ) : null}
-                    {!data.assessor.revealed ? <Tag tone="outline">Identity masked</Tag> : null}
-                    </span>
-                    ),
+                  ),
                 },
                 {
                   key: 'Status',

@@ -2,10 +2,11 @@ import { type ReactNode } from 'react';
 
 import { type HistoryRow } from '@/api/assessments.types';
 import { type Column, EmptyState, Pill, type SortState, Table } from '@/design/primitives';
+import { cn } from '@/lib/cn';
 import { formatDateTime, formatRating } from '@/lib/format';
 
 import styles from './history.module.css';
-import { assessorLabel, KIND_LABELS, kindVariant, STATUS_LABELS, statusPillVariant, TYPE_LABELS, zoneAbbr } from './historyLabels';
+import { assessorLabel, isIdentityHidden, KIND_LABELS, kindVariant, STATUS_LABELS, statusPillVariant, TYPE_LABELS, zoneAbbr } from './historyLabels';
 import { useMediaQuery } from './useMediaQuery';
 
 export type HistoryTableProps = {
@@ -23,24 +24,6 @@ export type HistoryTableProps = {
 function submittedLabel(row: HistoryRow, tz: string): string {
   if (!row.submittedAt) return '—';
   return `${formatDateTime(row.submittedAt, tz)} ${zoneAbbr(tz, new Date(row.submittedAt))}`;
-}
-
-const IDENTITY_MASK = '********';
-
-function displayAssessorName(row: HistoryRow): string {
-  if (row.kind === 'CUSTOMER' && !row.assessor.revealed) {
-    return IDENTITY_MASK;
-  }
-
-  return assessorLabel(row);
-}
-
-function displayAssessorEmail(row: HistoryRow): string | null {
-  if (row.kind === 'CUSTOMER' && !row.assessor.revealed) {
-    return IDENTITY_MASK;
-  }
-
-  return row.assessorEmailMasked ?? null;
 }
 
 function Empty({ filtered, onClearFilters }: { filtered: boolean; onClearFilters: () => void }): ReactNode {
@@ -88,8 +71,8 @@ export function HistoryTable({ rows, loading, sort, onSortChange, onOpen, tzOf, 
                     {STATUS_LABELS[row.status]}
                   </Pill>
                 </span>
-                <span className={styles.cardName}>{displayAssessorName(row)} </span>
-                {displayAssessorEmail(row) ? (<span className={styles.cardEmail}>{displayAssessorEmail(row)}</span>) : null}
+                <span className={cn(styles.cardName, isIdentityHidden(row) && styles.identityHidden)}>{assessorLabel(row)}</span>
+                {row.assessorEmailMasked ? <span className={styles.cardEmail}>{row.assessorEmailMasked}</span> : null}
                 <span className={styles.cardMeta}>
                   <Pill variant={kindVariant(row.kind)} dot={false} size="sm">
                     {KIND_LABELS[row.kind]}
@@ -152,15 +135,8 @@ export function HistoryTable({ rows, loading, sort, onSortChange, onOpen, tzOf, 
       header: 'Assessor',
       cell: (r) => (
         <span className={styles.assessor}>
-          <span className={styles.assessorName}>
-            {displayAssessorName(r)}
-          </span>
-
-          {displayAssessorEmail(r) ? (
-            <span className={styles.assessorEmail}>
-              {displayAssessorEmail(r)}
-            </span>
-          ) : null}
+          <span className={cn(styles.assessorName, isIdentityHidden(r) && styles.identityHidden)}>{assessorLabel(r)}</span>
+          {r.assessorEmailMasked ? <span className={styles.assessorEmail}>{r.assessorEmailMasked}</span> : null}
         </span>
       ),
     },
