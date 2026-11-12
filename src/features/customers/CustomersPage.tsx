@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { errorMessage, errorRequestId } from '@/api/client';
-import { useAcoScope, useCustomers, useSetCustomerStatus, useDeleteCustomer,} from '@/api/customers';
+import { useAcoScope, useCustomers, useDeleteCustomers, useSetCustomerStatus } from '@/api/customers';
 import { type Customer, type CustomerStatus, type CustomerSurveyType, type CustomerType } from '@/api/customers.types';
 import { useSession } from '@/auth/session';
 import { Icon } from '@/design/icons';
-import { Button, EmptyState, PageHeader, Pagination, SearchInput, Select, type SortState, Tag, Toolbar, ToolbarCount, useToast } from '@/design/primitives';
+import { Button, ConfirmDialog, EmptyState, PageHeader, Pagination, SearchInput, Select, type SortState, Tag, Toolbar, ToolbarCount, useToast } from '@/design/primitives';
 import { formatInt } from '@/lib/format';
 
 import { CustomerDetailDrawer } from './CustomerDetailDrawer';
@@ -41,7 +41,8 @@ export default function CustomersPage() {
   const [detail, setDetail] = useState<Customer | null>(null);
   const setStatusMutation = useSetCustomerStatus();
   const [bulkPending, setBulkPending] = useState(false);
-  const deleteMutation = useDeleteCustomer();
+  const deleteCustomers = useDeleteCustomers();
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const filtered = Boolean(q || type || surveyType || status || tag);
   const query = useCustomers(
@@ -94,54 +95,18 @@ export default function CustomersPage() {
 
   const selectedCount = rows.filter((c) => selected.has(c.id)).length;
 
-   const deleteSelected = async () => {
-    if (!canDelete || bulkPending) return;
-
-    const targets = rows.filter((c) => selected.has(c.id));
-
-    if (targets.length === 0) return;
-
-    const confirmed = window.confirm(
-      `Are you sure you want to delete ${targets.length} ${
-        targets.length === 1 ? 'customer' : 'customers'
-      }?\n\nThe selected customers will be removed from the directory.`
-    );
-
-    if (!confirmed) return;
-
-    setBulkPending(true);
-
-    try {
-      const results = await Promise.allSettled(
-        targets.map((customer) =>
-          deleteMutation.mutateAsync(customer.id)
-        )
-      );
-
-      const failedIds = new Set(
-        targets
-          .filter((_, index) => results[index]?.status === 'rejected')
-          .map((customer) => customer.id)
-      );
-
-      const successCount = targets.length - failedIds.size;
-
-      if (failedIds.size === 0) {
-        toast.success(
-          `${successCount} ${
-            successCount === 1 ? 'customer' : 'customers'
-          } deleted successfully`
-        );
-      } else {
-        toast.error(
-          `${successCount} deleted, ${failedIds.size} failed`
-        );
-      }
-
-      // Keep failed customers selected so the CTO can retry.
-      setSelected(failedIds);
-    } finally {
-      setBulkPending(false);
+  /** Deletes the confirmed selection; customers the API refused stay selected, with its reason. */
+  const deleteSelected = async () => {
+    const ids = rows.filter((c) => selected.has(c.id)).map((c) => c.id);
+    if (ids.length === 0) return;
+    const { deleted, failed } = await deleteCustomers.mutateAsync(ids);
+    setConfirmDelete(false);
+    setSelected(new Set(failed.map((f) => f.id)));
+    if (deleted.length > 0) toast.success(`${formatInt(deleted.length)} ${deleted.length === 1 ? 'customer' : 'customers'} deleted`);
+    const first = failed[0];
+    if (first) {
+      const what = failed.length === 1 ? 'One customer was not deleted' : `${formatInt(failed.length)} customers were not deleted`;
+      toast.error(`${what}: ${errorMessage(first.error)}`, { requestId: errorRequestId(first.error) });
     }
   };
 
@@ -245,18 +210,11 @@ export default function CustomersPage() {
                   Deactivate
                 </Button>
 
-                {canDelete && (
-                  <Button
-                  size="sm"
-                  variant="danger"
-                  icon={<Icon name="trash" size={16} />}
-                  onClick={() => void deleteSelected()}
-                  disabled={bulkPending}
-                  >
+                {canDelete ? (
+                  <Button size="sm" variant="danger" icon={<Icon name="trash" size={16} />} onClick={() => setConfirmDelete(true)} disabled={bulkPending}>
                     Delete
-                    </Button>
-                  )}
-
+                  </Button>
+                ) : null}
                 <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())} disabled={bulkPending}>
                   Clear
                 </Button>
@@ -332,6 +290,16 @@ export default function CustomersPage() {
         </>
       )}
 
+      <ConfirmDialog
+        open={confirmDelete}
+        onClose={() => setConfirmDelete(false)}
+        onConfirm={() => void deleteSelected()}
+        title={`Delete ${formatInt(selectedCount)} ${selectedCount === 1 ? 'customer' : 'customers'}?`}
+        description="They leave the directory and can no longer be sampled. Their past assessments stay in the history, and adding the same e-mail again brings a customer back."
+        confirmLabel="Delete"
+        danger
+        loading={deleteCustomers.isPending}
+      />
       {form.mode !== 'closed' ? (
         <CustomerFormDrawer open onClose={() => setForm({ mode: 'closed' })} customer={form.mode === 'edit' ? form.customer : null} acoId={scope.acoId} isPlatform={scope.isPlatform} />
       ) : null}

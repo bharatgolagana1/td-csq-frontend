@@ -14,6 +14,8 @@ vi.mock('@/auth/keycloak', () => ({
 import CustomersPage from './CustomersPage';
 import { apiError, CUSTOMERS, customer, list, mockApi, OPERATOR_SESSION, PARTICIPATION, PLATFORM_SESSION, renderPage, VIEWER_SESSION } from './test-utils';
 
+const DELETER_SESSION = { ...OPERATOR_SESSION, tasks: new Set([...OPERATOR_SESSION.tasks, 'customers.delete']) };
+
 afterEach(() => vi.unstubAllGlobals());
 
 const listRoute = (rows = CUSTOMERS) => ({ method: 'GET' as const, path: /^\/customers$/, reply: () => list(rows) });
@@ -97,6 +99,57 @@ describe('CustomersPage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Deactivate' }));
     await waitFor(() => expect(api.calls.filter((c) => c.method === 'POST' && c.path.endsWith('/deactivate'))).toHaveLength(2));
     expect(await screen.findByText('2 customers deactivated')).toBeInTheDocument();
+  });
+
+  it('deletes the selected customers after confirming, refetching the directory once', async () => {
+    const api = mockApi([listRoute(), { method: 'DELETE', path: /^\/customers\/[^/]+$/, reply: () => ({ status: 204 }) }]);
+    renderPage(<CustomersPage />, { session: DELETER_SESSION });
+    await screen.findByRole('button', { name: 'Bluewave Logistics Pvt Ltd' });
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Select row 1' }));
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Select row 2' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
+
+    const dialog = await screen.findByRole('dialog', { name: 'Delete 2 customers?' });
+    expect(within(dialog).getByText(/Their past assessments stay in the history/)).toBeInTheDocument();
+    const listsBefore = api.calls.filter((c) => c.method === 'GET').length;
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Delete' }));
+
+    expect(await screen.findByText('2 customers deleted')).toBeInTheDocument();
+    expect(api.calls.filter((c) => c.method === 'DELETE').map((c) => c.path)).toHaveLength(2);
+    await waitFor(() => expect(api.calls.filter((c) => c.method === 'GET').length).toBe(listsBefore + 1));
+    expect(screen.queryByRole('dialog', { name: 'Delete 2 customers?' })).toBeNull();
+    expect(screen.queryByText('2 selected')).toBeNull();
+  });
+
+  it('keeps refused customers selected and says why', async () => {
+    mockApi([
+      listRoute(),
+      {
+        method: 'DELETE',
+        path: /^\/customers\/([^/]+)$/,
+        reply: ({ match }) =>
+          match[1] === 'c2' ? apiError(412, 'PRECONDITION_FAILED', 'This customer is in the locked sample of CSQ-2026-H2.') : { status: 204 },
+      },
+    ]);
+    renderPage(<CustomersPage />, { session: DELETER_SESSION });
+    await screen.findByRole('button', { name: 'Bluewave Logistics Pvt Ltd' });
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Select row 1' }));
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Select row 2' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
+    await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Delete' }));
+
+    expect(await screen.findByText('1 customer deleted')).toBeInTheDocument();
+    expect(await screen.findByText(/One customer was not deleted: This customer is in the locked sample of CSQ-2026-H2/)).toBeInTheDocument();
+    expect(screen.getByText('1 selected')).toBeInTheDocument();
+  });
+
+  it('offers Delete only with customers.delete', async () => {
+    mockApi([listRoute()]);
+    renderPage(<CustomersPage />);
+    await screen.findByRole('button', { name: 'Bluewave Logistics Pvt Ltd' });
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Select row 1' }));
+    expect(screen.getByRole('button', { name: 'Deactivate' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Delete' })).toBeNull();
   });
 
   it('opens the detail drawer with the participation history', async () => {
