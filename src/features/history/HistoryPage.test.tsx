@@ -23,7 +23,7 @@ vi.mock('@/api/assessments', () => ({
   useExportAssessments: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
 }));
 
-import { useAssessments } from '@/api/assessments';
+import { useAssessments, useExportAssessments } from '@/api/assessments';
 
 import HistoryPage from './HistoryPage';
 
@@ -32,7 +32,7 @@ const SESSION: Session = {
   org: { id: 'org-csc', name: 'Cargo Service Center', type: 'ACO', airportId: 'ap-del' },
   role: { code: 'ACO_ADMIN', scope: 'ACO' },
   scope: { kind: 'ACO', acoId: 'org-csc' },
-  tasks: new Set(['assessments.view', 'assessments.scores', 'assessments.details','cycles.view']),
+  tasks: new Set(['assessments.view', 'assessments.scores', 'assessments.details', 'cycles.view']),
   memberships: [],
 };
 
@@ -181,61 +181,67 @@ describe('HistoryPage', () => {
     expect(refetch).toHaveBeenCalled();
   });
 
-  it('hides customer details and scores for a restricted CTO', async () => {
-  list.mockReturnValue({
-    isPending: false,
-    isError: false,
-    data: {
-      data: ROWS,
-      meta: { page: 1, pageSize: 25, total: 2 },
-    },
-  } as unknown as ReturnType<typeof useAssessments>);
-
-  const restrictedSession: Session = {
-    ...SESSION,
-    tasks: new Set([
-      'assessments.view',
-      'cycles.view',
-    ]),
-  };
-
-  mount('/history', restrictedSession);
-
-  // Restricted CTO cannot see assessment scores.
-  expect(
-    screen.queryByRole('columnheader', { name: 'Score' }),
-  ).not.toBeInTheDocument();
-
-  // Customer identity is hidden.
-  expect(
-    screen.getByText('Anonymous customer'),
-  ).toBeInTheDocument();
-
-  expect(
-    screen.queryByText('a***@delcargo.test'),
-  ).not.toBeInTheDocument();
-
-  // Export action is restricted to self-assessments.
-  expect(
-    screen.getByRole('button', { name: 'Export self CSV' }),
-  ).toBeInTheDocument();
-
-  // Restricted customer rows do not navigate.
-  const customerRow = screen.getByRole('row', {
-    name: /Anonymous customer/,
+  it("without assessments.scores shows a customer row's score as hidden and keeps the self-assessment's", () => {
+    // What the API sends such a role: customer scores null, self scores as they are.
+    const rows: HistoryRow[] = [
+      { ...(ROWS[0] as HistoryRow), score: null },
+      { ...(ROWS[1] as HistoryRow), status: 'SUBMITTED', submittedAt: '2026-10-06T06:34:00.000Z', score: 3.5 },
+      { ...(ROWS[2] as HistoryRow), importScore: null, exportScore: null },
+    ];
+    list.mockReturnValue({ isPending: false, isError: false, data: { data: rows, meta: { page: 1, pageSize: 25, total: 3 } } } as unknown as ReturnType<typeof useAssessments>);
+    mount('/history', { ...SESSION, tasks: new Set(['assessments.view', 'assessments.details', 'cycles.view']) });
+    expect(screen.getByRole('columnheader', { name: 'Score' })).toBeInTheDocument();
+    const customerRow = screen.getByRole('row', { name: /Identity hidden/ });
+    expect(within(customerRow).getByText('Score hidden')).toBeInTheDocument();
+    expect(within(customerRow).getByTitle('Score hidden')).toHaveTextContent('—');
+    // The IMPORT_EXPORT customer row too, without its import / export labels.
+    const importExportRow = screen.getByRole('row', { name: /Kiran Shah/ });
+    expect(within(importExportRow).getByText('Score hidden')).toBeInTheDocument();
+    expect(within(importExportRow).queryByText('Import')).toBeNull();
+    const selfRow = screen.getByRole('row', { name: /Priya Natarajan/ });
+    expect(within(selfRow).getByText('3.5')).toBeInTheDocument();
+    expect(within(selfRow).queryByText('Score hidden')).toBeNull();
   });
 
-  await userEvent.click(customerRow);
+  it('without assessments.details a customer row does not open; a self-assessment still does', async () => {
+    list.mockReturnValue({ isPending: false, isError: false, data: { data: ROWS.slice(0, 2), meta: { page: 1, pageSize: 25, total: 2 } } } as unknown as ReturnType<typeof useAssessments>);
+    mount('/history', { ...SESSION, tasks: new Set(['assessments.view', 'assessments.scores', 'cycles.view']) });
+    const customerRow = screen.getByRole('row', { name: /Identity hidden/ });
+    expect(customerRow).not.toHaveClass('clickable');
+    await userEvent.click(within(customerRow).getByText('Identity hidden'));
+    expect(screen.queryByText('detail a1')).toBeNull();
+    expect(screen.getByRole('heading', { level: 1, name: 'History' })).toBeInTheDocument();
 
-  expect(
-    screen.queryByText('detail a1'),
-  ).not.toBeInTheDocument();
+    const selfRow = screen.getByRole('row', { name: /Priya Natarajan/ });
+    expect(selfRow).toHaveClass('clickable');
+    await userEvent.click(within(selfRow).getByText('Priya Natarajan'));
+    expect(await screen.findByText('detail a2')).toBeInTheDocument();
+  });
 
-  // Existing self-assessment access remains available.
-  await userEvent.click(screen.getByText('Priya Natarajan'));
+  it('exports the filters as they are with assessments.details', async () => {
+    const mutate = vi.fn();
+    vi.mocked(useExportAssessments).mockReturnValue({ mutate, isPending: false } as unknown as ReturnType<typeof useExportAssessments>);
+    list.mockReturnValue({ isPending: false, isError: false, data: { data: ROWS, meta: { page: 1, pageSize: 25, total: 3 } } } as unknown as ReturnType<typeof useAssessments>);
+    mount('/history?cycleId=cy1&kind=CUSTOMER');
+    await userEvent.click(screen.getByRole('button', { name: 'Export CSV' }));
+    expect(mutate).toHaveBeenCalledWith({ query: { cycleId: 'cy1', kind: 'CUSTOMER' }, fileName: 'assessments-CSQ-26H2.csv' }, expect.anything());
+  });
 
-  expect(
-    await screen.findByText('detail a2'),
-  ).toBeInTheDocument();
- });
+  it('without assessments.details exports self-assessments only, says so, and never asks for customer rows', async () => {
+    const mutate = vi.fn();
+    vi.mocked(useExportAssessments).mockReturnValue({ mutate, isPending: false } as unknown as ReturnType<typeof useExportAssessments>);
+    list.mockReturnValue({ isPending: false, isError: false, data: { data: ROWS.slice(0, 2), meta: { page: 1, pageSize: 25, total: 2 } } } as unknown as ReturnType<typeof useAssessments>);
+    mount('/history?cycleId=cy1', { ...SESSION, tasks: new Set(['assessments.view', 'assessments.scores', 'cycles.view']) });
+    expect(screen.queryByRole('button', { name: 'Export CSV' })).toBeNull();
+    const button = screen.getByRole('button', { name: 'Export self-assessments' });
+    expect(button).toHaveAttribute('title', expect.stringContaining('self-assessments only'));
+    await userEvent.click(button);
+    expect(mutate).toHaveBeenLastCalledWith({ query: { cycleId: 'cy1', kind: 'SELF' }, fileName: 'assessments-CSQ-26H2.csv' }, expect.anything());
+
+    // Filtered to customer assessments there is nothing it may export.
+    await userEvent.selectOptions(screen.getByLabelText('Kind'), 'CUSTOMER');
+    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute('title', expect.stringContaining('cannot export customer assessments'));
+    expect(mutate).toHaveBeenCalledTimes(1);
+  });
 });

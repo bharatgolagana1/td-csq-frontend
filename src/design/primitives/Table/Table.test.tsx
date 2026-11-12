@@ -65,6 +65,23 @@ describe('Table', () => {
     expect(screen.getByRole('checkbox', { name: 'Select all rows' })).toHaveProperty('indeterminate', true);
   });
 
+  it('clicks through rows, except those isRowClickable turns off (no handler, no clickable styling)', async () => {
+    const onRowClick = vi.fn();
+    const { rerender } = render(<Table columns={COLUMNS} rows={ROWS} rowKey={(r) => r.id} onRowClick={onRowClick} />);
+    await userEvent.click(screen.getByText('Beta'));
+    expect(onRowClick).toHaveBeenLastCalledWith(ROWS[1]);
+    expect(screen.getByRole('row', { name: /Alpha/ })).toHaveClass('clickable');
+
+    onRowClick.mockClear();
+    rerender(<Table columns={COLUMNS} rows={ROWS} rowKey={(r) => r.id} onRowClick={onRowClick} isRowClickable={(r) => r.id !== 'b'} />);
+    await userEvent.click(screen.getByText('Beta'));
+    expect(onRowClick).not.toHaveBeenCalled();
+    expect(screen.getByRole('row', { name: /Beta/ })).not.toHaveClass('clickable');
+    expect(screen.getByRole('row', { name: /Gamma/ })).toHaveClass('clickable');
+    await userEvent.click(screen.getByText('Gamma'));
+    expect(onRowClick).toHaveBeenCalledWith(ROWS[2]);
+  });
+
   it('renders row actions, the empty state and the loading state', async () => {
     const edit = vi.fn();
     render(<Table columns={COLUMNS} rows={ROWS} rowKey={(r) => r.id} rowActions={(r) => [{ id: 'edit', label: `Edit ${r.name}`, onSelect: edit }]} />);

@@ -1,16 +1,18 @@
 import { Link, useParams } from 'react-router-dom';
 
 import { useAssessment } from '@/api/assessments';
+import { isApiError } from '@/api/client';
 import { useCycle } from '@/api/cycles';
 import { useSession } from '@/auth/session';
 import { Icon } from '@/design/icons';
-import { Card, KeyValue, PageHeader, Pill, Skeleton, Tag } from '@/design/primitives';
+import { Card, EmptyState, KeyValue, PageHeader, Pill, Skeleton, Tag } from '@/design/primitives';
 import { QueryError } from '@/design/primitives/QueryError/QueryError';
 import { AnswerSummary, groupsFromDetail } from '@/features/assessmentForm';
-import { DEFAULT_TZ, describeTimeZone, formatDateTime, formatInt, formatRating } from '@/lib/format';
+import { DEFAULT_TZ, describeTimeZone, formatDateTime, formatInt, formatRating, humanise } from '@/lib/format';
 
+import { HiddenScore } from './HiddenScore';
 import styles from './history.module.css';
-import { assessorLabel, isIdentityHidden, KIND_LABELS, kindVariant, rowAnswerMode, STATUS_LABELS, statusPillVariant, SURVEY_LABELS, TYPE_LABELS } from './historyLabels';
+import { assessorLabel, isIdentityHidden, isScoreHidden, KIND_LABELS, kindVariant, rowAnswerMode, STATUS_LABELS, statusPillVariant, SURVEY_LABELS, TYPE_LABELS } from './historyLabels';
 
 function DetailSkeleton() {
   return (
@@ -24,19 +26,30 @@ function DetailSkeleton() {
   );
 }
 
-/** /history/:id — one read-only return: identity (masked per setting), status, score, answers by category. */
+/** 403 on a customer's return: the role lists customer assessments but may not open them (no `assessments.details`). */
+function NoCustomerAccess() {
+  const { role } = useSession();
+  return (
+    <EmptyState
+      icon="lock"
+      title="You don't have access to individual customer assessments"
+      description={`Your role (${humanise(role.code)}) lists customer assessments in History but cannot open their answers. Ask an administrator for the "View customer assessment details" permission if you need it.`}
+    />
+  );
+}
+
+/** /history/:id — one read-only return: identity (masked per setting), status, score (hidden without assessments.scores), answers by category. */
 export default function AssessmentPage() {
   const { id } = useParams<{ id: string }>();
   const { hasTask } = useSession();
   const query = useAssessment(id);
   const data = query.data;
-  const customerDetailsRestricted =
-    data?.kind === 'CUSTOMER' &&
-    !hasTask('assessments.details');
   // The cycle carries the zone; readable only with cycles.view, else the default zone.
   const cycle = useCycle(data?.cycle.id, hasTask('cycles.view'));
   const tz = cycle.data?.tz ?? DEFAULT_TZ;
   const zone = describeTimeZone(tz);
+  const scoreHidden = data !== undefined && isScoreHidden(data, hasTask('assessments.scores'));
+  const rating = (value: number | null) => (scoreHidden ? <HiddenScore /> : formatRating(value));
 
   const title = data ? (data.kind === 'SELF' ? 'Self-assessment' : 'Customer assessment') : 'Assessment';
 
@@ -57,14 +70,11 @@ export default function AssessmentPage() {
       {query.isPending ? (
         <DetailSkeleton />
       ) : query.isError ? (
-        <QueryError error={query.error} title="Could not load this assessment" onRetry={() => void query.refetch()} />
-      ) : customerDetailsRestricted ? (
-        <Card>
-          <p>
-            You do not have permission to view individual
-            customer assessment details.
-          </p>
-        </Card>
+        isApiError(query.error, 'FORBIDDEN') ? (
+          <NoCustomerAccess />
+        ) : (
+          <QueryError error={query.error} title="Could not load this assessment" onRetry={() => void query.refetch()} />
+        )
       ) : !data ? null : (
         <div className={styles.detail}>
           <Card>
@@ -106,10 +116,10 @@ export default function AssessmentPage() {
                 { key: 'Answered', value: `${formatInt(data.progress.answered)} of ${formatInt(data.progress.total)}`, mono: true },
                 ...(rowAnswerMode(data) === 'IMPORT_EXPORT'
                   ? [
-                      { key: 'Import score', value: formatRating(data.importScore), mono: true },
-                      { key: 'Export score', value: formatRating(data.exportScore), mono: true },
+                      { key: 'Import score', value: rating(data.importScore), mono: true },
+                      { key: 'Export score', value: rating(data.exportScore), mono: true },
                     ]
-                  : [{ key: 'Score', value: formatRating(data.score), mono: true }]),
+                  : [{ key: 'Score', value: rating(data.score), mono: true }]),
               ]}
             />
             {data.kind === 'SELF' ? <p className={styles.selfNote}>Self scores are reported beside customer scores and never enter the published rating.</p> : null}

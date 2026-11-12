@@ -40,6 +40,7 @@ export type TableProps<T> = {
   empty?: ReactNode;
   stickyHeader?: boolean;
   onRowClick?: (row: T) => void;
+  /** With `onRowClick`: rows it returns false for get no click handler and no clickable styling (default: every row). */
   isRowClickable?: (row: T) => boolean;
   rowClassName?: (row: T) => string | undefined;
   caption?: string;
@@ -165,24 +166,13 @@ export function Table<T>({
             ? rows.map((row, i) => {
                 const key = keys[i] ?? String(i);
                 const isSelected = selected?.has(key) ?? false;
-                const clickable =
-                  Boolean(onRowClick) &&
-                  (isRowClickable?.(row) ?? true);
+                const onClick = onRowClick && (isRowClickable?.(row) ?? true) ? () => onRowClick(row) : undefined;
                 return (
                   <tr
                     key={key}
-                    className={cn(
-                    styles.tr,
-                    isSelected && styles.selected,
-                    clickable && styles.clickable,
-                    rowClassName?.(row),
-              )}
-                  aria-selected={selectable ? isSelected : undefined}
-                  onClick={
-                   clickable && onRowClick
-                    ? () => onRowClick(row)
-                    : undefined
-                } 
+                    className={cn(styles.tr, isSelected && styles.selected, onClick && styles.clickable, rowClassName?.(row))}
+                    aria-selected={selectable ? isSelected : undefined}
+                    onClick={onClick}
                   >
                     {selectable ? (
                       <td className={cn(styles.td, styles.selectCol)} onClick={(e) => e.stopPropagation()}>
