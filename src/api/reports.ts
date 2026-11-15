@@ -8,6 +8,7 @@ import { type SelectOption } from '@/design/primitives/Select/Select';
 import { DIRECTION_LABELS } from '@/lib/directionLabels';
 
 import { api, ApiError, buildUrl, NetworkError } from './client';
+import { useCycle } from './cycles';
 import { useOperators } from './organisations';
 import {
   type AirportOption,
@@ -323,17 +324,30 @@ export function useOperatorScope(explicitAcoId?: string) {
   return { acoId, canChoose, options, setAcoId, loading: canChoose && operators.isPending, error: canChoose ? operators.error : null };
 }
 
-/** Which airport a report is about: airport users their own, ACO users the one they operate at, platform users choose. */
-export function useAirportScope() {
+/**
+ * Which airport a report is about: airport users their own, ACO users the one
+ * they operate at, platform users choose — among the airports that took part
+ * in `cycleId` when given (`GET /cycles/:id` → `participatingAirportIds`;
+ * any other answers 404 "Airport did not take part in this cycle"). Until the
+ * cycle loads nothing is chosen; if it cannot be read, every airport is offered.
+ */
+export function useAirportScope(cycleId?: string) {
   const { scope, org } = useSession();
   const { airportId: param, set } = useReportParams();
   const canChoose = scope.kind === 'PLATFORM';
   const airports = useReportAirports(canChoose);
-  const options = useMemo<ScopeOption[]>(() => (airports.data ?? []).map((a) => ({ value: a.id, label: `${a.name} · ${a.iata}` })), [airports.data]);
+  const cycle = useCycle(cycleId, canChoose);
+  const cyclePending = Boolean(cycleId) && cycle.isPending;
+  const participating = cycleId ? cycle.data?.participatingAirportIds : undefined;
+  const options = useMemo<ScopeOption[]>(() => {
+    if (cyclePending) return [];
+    const inCycle = participating ? new Set(participating) : null;
+    return (airports.data ?? []).filter((a) => !inCycle || inCycle.has(a.id)).map((a) => ({ value: a.id, label: `${a.name} · ${a.iata}` }));
+  }, [airports.data, participating, cyclePending]);
   const own = scope.kind === 'AIRPORT' ? scope.airportId : scope.kind === 'ACO' ? (org.airportId ?? '') : '';
   const airportId = own || (param && options.some((o) => o.value === param) ? param : (options[0]?.value ?? ''));
   const setAirportId = useCallback((id: string) => set({ airportId: id }), [set]);
-  return { airportId, canChoose, options, setAirportId, loading: canChoose && airports.isPending, error: canChoose ? airports.error : null };
+  return { airportId, canChoose, options, setAirportId, loading: canChoose && (airports.isPending || cyclePending), error: canChoose ? airports.error : null };
 }
 
 // --- exports -----------------------------------------------------------------

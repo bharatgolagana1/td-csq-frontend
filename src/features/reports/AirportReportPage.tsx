@@ -70,8 +70,9 @@ function AirportBody({ report }: { report: AirportReport }) {
 /** Reports → Airport: the market-share weighted roll-up (REQUIREMENTS §20, §23). */
 export default function AirportReportPage() {
   const { scope, org } = useSession();
-  const airport = useAirportScope();
   const cycle = useCycleSelection();
+  // Only the airports that took part in the chosen cycle (any other is a 404).
+  const airport = useAirportScope(cycle.selection.cycle?.id);
   const report = useAirportReport(airport.airportId || undefined, cycle.query, cycle.ready);
   const data = report.data;
   const current = data?.cycle ?? cycle.selection.cycle;
