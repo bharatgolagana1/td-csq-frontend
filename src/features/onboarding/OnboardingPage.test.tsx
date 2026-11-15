@@ -161,6 +161,34 @@ describe('OnboardingPage · Requests', () => {
     expect(calls.find((c) => c.method === 'POST')?.body).toEqual({ code: 'JCS-DEL', marketSharePct: 100, shares: [] });
   });
 
+  it('shows a requested 12.5 % as 12.5 % everywhere, and names what is wrong with a negative or non-numeric share', async () => {
+    const half = { ...SUBMITTED, marketSharePct: 12.5 };
+    mockApi([
+      { method: 'GET', path: /^\/onboarding\/links$/, reply: () => list([]) },
+      registrations([half]),
+      { method: 'GET', path: /^\/registrations\/reg-1$/, reply: () => data({ ...SUBMITTED_DETAIL, marketSharePct: 12.5, marketShare: { ...SUBMITTED_DETAIL.marketShare, projectedTotal: 112.5 } }) },
+    ]);
+    renderPage(<OnboardingPage />, { route: '/onboarding?tab=requests' });
+    const row = (await screen.findByRole('button', { name: 'Delhi Cargo Handlers' })).closest('tr') as HTMLElement;
+    expect(within(row).getByText('12.5 %')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Delhi Cargo Handlers' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Delhi Cargo Handlers' });
+    expect(within(dialog).getByText('Requested share').nextElementSibling).toHaveTextContent('12.5 %');
+    const shares = await within(dialog).findByRole('region', { name: 'Market share after approval' });
+    expect(within(shares).getByTestId('approval-total')).toHaveTextContent('112.5 %');
+    expect(within(shares).getByText('12.5 % over 100')).toBeInTheDocument();
+
+    const own = within(shares).getByLabelText('Share for Delhi Cargo Handlers');
+    await userEvent.clear(own);
+    await userEvent.type(own, '-5');
+    expect(within(shares).getByText('A share can’t be negative')).toBeInTheDocument();
+    await userEvent.clear(own);
+    await userEvent.type(own, 'ten');
+    expect(within(shares).getByText('Enter a number, e.g. 12.5')).toBeInTheDocument();
+    expect(own).toHaveAttribute('aria-invalid', 'true');
+    expect(within(dialog).getByRole('button', { name: 'Approve and invite administrator' })).toBeDisabled();
+  });
+
   it('opens the request from the reviewer URL and requires a reason to reject', async () => {
     mockApi([
       { method: 'GET', path: /^\/onboarding\/links$/, reply: () => list([]) },

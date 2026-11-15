@@ -2,7 +2,8 @@ import { Link } from 'react-router-dom';
 
 import { type Operator } from '@/api/operators.types';
 import { Card, KeyValue, Pill, statusVariant } from '@/design/primitives';
-import { formatDateTime, formatPct, humanise } from '@/lib/format';
+import { formatDateTime, humanise } from '@/lib/format';
+import { formatShare } from '@/lib/share';
 
 import { OperationsTags } from './OperationsTags';
 import { createdViaLabel } from './operatorLabels';
@@ -28,7 +29,7 @@ export function OperatorOverview({ operator, canSeeAirport }: { operator: Operat
             { key: 'Legal name', value: operator.legalName ?? '—' },
             { key: 'Airport', value: airport },
             { key: 'Operations', value: <OperationsTags operations={operator.operations} /> },
-            { key: 'Current market share', value: formatPct(operator.currentShare), mono: true },
+            { key: 'Current market share', value: formatShare(operator.currentShare), mono: true },
             { key: 'Onboarded via', value: createdViaLabel(operator.createdVia) },
             { key: 'Approved', value: formatDateTime(operator.approvedAt), mono: true },
             { key: 'Created', value: formatDateTime(operator.createdAt), mono: true },

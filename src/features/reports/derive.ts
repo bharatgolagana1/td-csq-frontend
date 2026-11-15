@@ -10,7 +10,8 @@ import {
   type Participation,
 } from '@/api/reports.types';
 import { type HorizontalBarRow, type RankRow } from '@/design/charts';
-import { formatInt, formatPct } from '@/lib/format';
+import { formatInt } from '@/lib/format';
+import { formatShare } from '@/lib/share';
 
 /* Pure shaping of the airport, national and comparison payloads. */
 
@@ -18,7 +19,7 @@ import { formatInt, formatPct } from '@/lib/format';
 
 /** "Market share applied · 100 % of the airport covered" / "Equal weights — no market-share snapshot · 55 % of operators covered". */
 export function coverageCaption(level: AirportLevel): string {
-  const covered = formatPct(level.coveredSharePct);
+  const covered = formatShare(level.coveredSharePct);
   return level.marketShareApplied ? `Market share applied · ${covered} of the airport’s share covered` : `Equal weights — no market-share snapshot · ${covered} of operators covered`;
 }
 
@@ -36,7 +37,7 @@ export function airportOperatorRows(operators: readonly AirportOperatorRow[]): R
       rating: scored ? o.mean : null,
       rank: scored ? rank : null,
       rankOf: ranked.length,
-      extra: o.sharePct === null ? '—' : formatPct(o.sharePct),
+      extra: o.sharePct === null ? '—' : formatShare(o.sharePct),
     };
   });
 }
@@ -48,7 +49,7 @@ export function airportCategoryBars(categories: AirportReport['categories']): Ho
 // --- national --------------------------------------------------------------
 
 export function nationalAirportRows(airports: NationalReport['airports']): RankRow[] {
-  return airports.map((a) => ({ id: a.id, label: a.name, sublabel: a.iata, rating: a.rating, rank: a.rank, rankOf: a.rankOf, extra: formatPct(a.coveredSharePct) }));
+  return airports.map((a) => ({ id: a.id, label: a.name, sublabel: a.iata, rating: a.rating, rank: a.rank, rankOf: a.rankOf, extra: formatShare(a.coveredSharePct) }));
 }
 
 export function nationalAirportBars(airports: NationalReport['airports']): HorizontalBarRow[] {

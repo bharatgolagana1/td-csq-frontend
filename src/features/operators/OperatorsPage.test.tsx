@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -49,6 +49,23 @@ describe('OperatorsPage', () => {
     renderPage(<OperatorsPage />);
     expect(await screen.findByText('Could not load operators')).toBeInTheDocument();
     expect(screen.getByText('req_abc123')).toBeInTheDocument();
+  });
+
+  it('flags a negative or non-numeric share in the create drawer as it is typed', async () => {
+    mockApi([{ method: 'GET', path: /^\/operators$/, reply: () => list([]) }, { method: 'GET', path: /^\/airports$/, reply: () => list([DEL]) }]);
+    renderPage(<OperatorsPage />);
+    await userEvent.click(await screen.findByRole('button', { name: 'Add operator' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Add operator' });
+    const share = within(dialog).getByLabelText(/Current share at the airport/);
+    await userEvent.type(share, '-5');
+    expect(await within(dialog).findByText('A share can’t be negative')).toBeInTheDocument();
+    await userEvent.clear(share);
+    await userEvent.type(share, 'abc');
+    expect(await within(dialog).findByText('Enter a number, e.g. 12.5')).toBeInTheDocument();
+    await userEvent.clear(share);
+    await userEvent.type(share, '12.5');
+    await waitFor(() => expect(within(dialog).queryByText('Enter a number, e.g. 12.5')).toBeNull());
+    expect(share).not.toHaveAttribute('aria-invalid');
   });
 
   it('validates the create drawer before posting', async () => {

@@ -58,7 +58,7 @@ export function OperatorCreateDrawer({ open, onClose, onCreated }: OperatorCreat
   const airports = useAirports({ pageSize: 200, active: 'true', sort: 'iata' }, open);
 
   const form = useForm<FormIn, unknown, FormOut>({ resolver: zodResolver(schema), defaultValues: DEFAULTS });
-  const { register, handleSubmit, setError, reset, getValues, setValue, formState } = form;
+  const { register, handleSubmit, setError, reset, getValues, setValue, trigger, formState } = form;
   const guard = useDiscardGuard(open, formState.isDirty, onClose);
   const reg = (name: string) => register(name as Path<FormIn>);
   const errAt = (path: string) => errorAt(formState.errors, path);
@@ -170,7 +170,8 @@ export function OperatorCreateDrawer({ open, onClose, onCreated }: OperatorCreat
             placeholder="0–100"
             hint="The airport's shares must still total 100 % with this operator: the first operator at an airport holds 100; elsewhere leave 0 and rebalance under Market share."
             error={errAt('marketSharePct')}
-            {...reg('marketSharePct')}
+            // Checked as it is typed, so a negative or non-numeric share is flagged at once rather than on submit.
+            {...register('marketSharePct', { onChange: () => void trigger('marketSharePct') })}
           />
         </FormSection>
 

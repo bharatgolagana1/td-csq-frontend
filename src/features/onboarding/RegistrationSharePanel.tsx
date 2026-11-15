@@ -1,7 +1,7 @@
 import { type RegistrationDetail } from '@/api/onboarding.types';
 import { Banner, Skeleton } from '@/design/primitives';
 import { cn } from '@/lib/cn';
-import { formatPct } from '@/lib/format';
+import { formatShare } from '@/lib/share';
 
 import styles from './onboarding.module.css';
 import { describeShareFit, projectedTotal, shareFit } from './shareProjection';
@@ -46,7 +46,7 @@ export function RegistrationSharePanel({ registration, loading }: RegistrationSh
               <span className={styles.code}>{e.code}</span>
               <span>{e.name}</span>
             </span>
-            <span className={styles.sharePct}>{formatPct(e.sharePct)}</span>
+            <span className={styles.sharePct}>{formatShare(e.sharePct)}</span>
           </li>
         ))}
         {reviewing ? (
@@ -55,18 +55,18 @@ export function RegistrationSharePanel({ registration, loading }: RegistrationSh
               <span>{registration.organisation.name}</span>
               <span className={styles.muted}>(on approval)</span>
             </span>
-            <span className={styles.sharePct}>{formatPct(pct)}</span>
+            <span className={styles.sharePct}>{formatShare(pct)}</span>
           </li>
         ) : null}
       </ul>
       <div className={styles.shareTotals}>
         <div className={styles.shareTotal}>
           <span className={styles.shareTotalLabel}>Current total</span>
-          <span className={styles.shareTotalValue}>{formatPct(share.total)}</span>
+          <span className={styles.shareTotalValue}>{formatShare(share.total)}</span>
         </div>
         <div className={styles.shareTotal}>
           <span className={styles.shareTotalLabel}>{reviewing ? 'After approval' : 'Total'}</span>
-          <span className={styles.shareTotalValue}>{formatPct(after)}</span>
+          <span className={styles.shareTotalValue}>{formatShare(after)}</span>
         </div>
       </div>
       {reviewing ? (

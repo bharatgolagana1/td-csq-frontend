@@ -146,12 +146,22 @@ describe('MarketSharePage', () => {
 
     await userEvent.type(csc, '0');
     expect(csc).toHaveValue('500');
-    expect(screen.getByText('Enter 0–100')).toBeInTheDocument();
+    expect(screen.getByText('At most 100')).toBeInTheDocument();
     expect(screen.getByText('50 % short of 100')).toBeInTheDocument();
     expect(save).toBeDisabled();
     await userEvent.clear(csc);
     await userEvent.type(csc, '150');
-    expect(screen.getByText('Enter 0–100')).toBeInTheDocument();
+    expect(screen.getByText('At most 100')).toBeInTheDocument();
+    expect(save).toBeDisabled();
+    // A negative or non-numeric share gets its own field error too.
+    await userEvent.clear(csc);
+    await userEvent.type(csc, '-5');
+    expect(screen.getByText('A share can’t be negative')).toBeInTheDocument();
+    expect(save).toBeDisabled();
+    await userEvent.clear(csc);
+    await userEvent.type(csc, 'abc');
+    expect(screen.getByText('Enter a number, e.g. 12.5')).toBeInTheDocument();
+    expect(csc).toHaveAttribute('aria-invalid', 'true');
     expect(save).toBeDisabled();
     await userEvent.clear(csc);
     await userEvent.type(csc, '50');

@@ -46,7 +46,7 @@ export function ShareEditor({ share, operators, canEdit, saving, onSave }: Share
             suffix="%"
             value={r.input}
             placeholder="0"
-            error={r.value === null ? 'Enter 0–100' : undefined}
+            error={r.error ?? undefined}
             wrapperClassName={styles.shareInput}
             onChange={(e) => editor.setShare(r.acoId, e.target.value)}
           />

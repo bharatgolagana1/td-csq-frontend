@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { type MarketShare } from '@/api/marketshare.types';
 import { Button, Card, EmptyState, Pill, Progress } from '@/design/primitives';
-import { formatPct } from '@/lib/format';
+import { formatShare } from '@/lib/share';
 
 import styles from './airports.module.css';
 
@@ -38,7 +38,7 @@ export function AirportSharePanel({ airportId, share, canEdit }: AirportSharePan
                   <span className={styles.code}>{e.code}</span>
                   <span>{e.name}</span>
                 </span>
-                <span className={styles.sharePct}>{formatPct(e.sharePct)}</span>
+                <span className={styles.sharePct}>{formatShare(e.sharePct)}</span>
                 <Progress value={e.sharePct} size="sm" className={styles.shareBar} caption="" />
               </li>
             ))}
@@ -49,7 +49,7 @@ export function AirportSharePanel({ airportId, share, canEdit }: AirportSharePan
               <Pill variant={complete ? 'success' : 'warn'} size="sm">
                 {complete ? 'Totals 100 %' : 'Does not total 100 %'}
               </Pill>
-              <span className={styles.sharePct}>{formatPct(share.total)}</span>
+              <span className={styles.sharePct}>{formatShare(share.total)}</span>
             </span>
           </div>
         </>

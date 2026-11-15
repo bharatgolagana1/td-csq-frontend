@@ -1,6 +1,7 @@
 import { type Registration } from '@/api/onboarding.types';
 import { type Column, EmptyState, Pill, type SortState, Table, Tag } from '@/design/primitives';
-import { formatPct, formatRelative } from '@/lib/format';
+import { formatRelative } from '@/lib/format';
+import { formatShare } from '@/lib/share';
 
 import styles from './onboarding.module.css';
 import { ORG_TYPE_LABEL, registrationStatusLabel, registrationStatusVariant } from './onboardingLabels';
@@ -55,7 +56,7 @@ export function RequestsTable({ rows, loading, sort, onSortChange, onOpen, filte
         </span>
       ),
     },
-    { id: 'share', header: 'Share', width: 90, align: 'right', mono: true, hideBelow: 'sm', cell: (r) => formatPct(r.marketSharePct) },
+    { id: 'share', header: 'Share', width: 90, align: 'right', mono: true, hideBelow: 'sm', cell: (r) => formatShare(r.marketSharePct) },
     { id: 'createdAt', header: 'Submitted', width: 140, sortable: true, mono: true, cell: (r) => formatRelative(r.createdAt) },
     { id: 'status', header: 'Status', width: 140, sortable: true, cell: (r) => <Pill variant={registrationStatusVariant(r.status)}>{registrationStatusLabel(r.status)}</Pill> },
   ];

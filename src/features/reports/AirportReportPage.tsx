@@ -7,7 +7,8 @@ import { useSession } from '@/auth/session';
 import { HorizontalBar, RankTable, ScoreHero } from '@/design/charts';
 import { Banner, Card, type Column, EmptyState, PageHeader, Pill, Skeleton, Stat, statusVariant, Table, Tag } from '@/design/primitives';
 import { QueryError } from '@/design/primitives/QueryError/QueryError';
-import { formatInt, formatPct, formatRating, humanise } from '@/lib/format';
+import { formatInt, formatRating, humanise } from '@/lib/format';
+import { formatShare } from '@/lib/share';
 
 import { airportCategoryBars, airportOperatorRows, coverageCaption } from './derive';
 import { ExportButton } from './ExportButton';
@@ -17,7 +18,7 @@ import styles from './reports.module.css';
 const CATEGORY_COLUMNS: Column<AirportReport['categories'][number]>[] = [
   { id: 'name', header: 'Category', cell: (c) => c.name },
   { id: 'mean', header: 'Score', width: 90, align: 'right', mono: true, cell: (c) => formatRating(c.mean) },
-  { id: 'covered', header: 'Covered', width: 96, align: 'right', mono: true, hideBelow: 'sm', cell: (c) => formatPct(c.coveredSharePct) },
+  { id: 'covered', header: 'Covered', width: 96, align: 'right', mono: true, hideBelow: 'sm', cell: (c) => formatShare(c.coveredSharePct) },
   { id: 'weighting', header: 'Weighting', width: 120, hideBelow: 'md', cell: (c) => (c.marketShareApplied ? 'Market share' : 'Equal') },
 ];
 
@@ -36,7 +37,7 @@ function AirportBody({ report }: { report: AirportReport }) {
           provisional={report.provisional}
           aside={
             <div className={styles.tiles}>
-              <Stat className={styles.tile} label="Covered share" value={formatPct(report.overall.coveredSharePct)} hint={report.overall.marketShareApplied ? 'of the airport’s market share' : 'of participating operators'} />
+              <Stat className={styles.tile} label="Covered share" value={formatShare(report.overall.coveredSharePct)} hint={report.overall.marketShareApplied ? 'of the airport’s market share' : 'of participating operators'} />
               {report.operators ? (
                 <Stat className={styles.tile} label="Operators scored" value={`${formatInt(scored)} / ${formatInt(report.operators.length)}`} hint="with a published rating" />
               ) : (
@@ -53,7 +54,7 @@ function AirportBody({ report }: { report: AirportReport }) {
         </Card>
       ) : (
         <Banner tone="info" className={styles.span12} title="Operator figures are shared with the airport and ACFI only">
-          This roll-up covers {formatPct(report.overall.coveredSharePct)} of the operators at {report.airport.name}; individual operator ratings are not shown here.
+          This roll-up covers {formatShare(report.overall.coveredSharePct)} of the operators at {report.airport.name}; individual operator ratings are not shown here.
         </Banner>
       )}
       <Card className={styles.span6} title="Categories" subtitle="Weighted score per category">

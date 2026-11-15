@@ -3,7 +3,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { type MarketShare } from '@/api/marketshare.types';
 import { type Operator } from '@/api/operators.types';
 
-import { parseShare, sumShares, totalFit } from './shareMath';
+import { parseShareInput } from '@/lib/share';
+
+import { sumShares, totalFit } from './shareMath';
 
 export type ShareRow = {
   acoId: string;
@@ -13,6 +15,8 @@ export type ShareRow = {
   input: string;
   /** Parsed value; null when the input is invalid. */
   value: number | null;
+  /** Why the input is not a share ("A share can’t be negative"); null when it is one. */
+  error: string | null;
   /** Operator is at the airport but not in the saved set. */
   added: boolean;
 };
@@ -52,7 +56,8 @@ export function useShareEditor(share: MarketShare | undefined, operators: Operat
     });
     return Array.from(byId.entries()).map(([acoId, meta]) => {
       const input = draft[acoId] ?? '';
-      return { acoId, code: meta.code, name: meta.name, input, value: parseShare(input), added: !meta.saved };
+      const parsed = parseShareInput(input);
+      return { acoId, code: meta.code, name: meta.name, input, value: parsed.value, error: parsed.error, added: !meta.saved };
     });
   }, [share, operators, draft]);
 
