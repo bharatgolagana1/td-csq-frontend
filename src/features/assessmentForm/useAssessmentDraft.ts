@@ -8,7 +8,8 @@ import { type AnswerPatch, type FormStep, type LocalAnswer, type SaveStatus, typ
 
 /* Local answer state with debounced, batched autosave (ARCHITECTURE §6: "Saved ·
    12:04 / Saving… / Offline — kept on this device" and a localStorage replay
-   queue). Transport-agnostic: the caller injects `save(answers)`, which is the
+   queue). A draft reopened from the server starts at "Last saved 7 Oct 2026,
+   12:04 IST" (its `lastSavedAt`) until this visit saves. Transport-agnostic: the caller injects `save(answers)`, which is the
    signed-in PATCH for the self-assessment and the link-token PATCH for the
    public flow.
 
@@ -52,6 +53,8 @@ export type UseAssessmentDraftOptions = {
   readOnly?: boolean;
   /** The assessment's answer mode (default SINGLE); IMPORT_EXPORT counts and validates both directions of every question. */
   answerMode?: AnswerMode;
+  /** When the server last saved this draft (`lastSavedAt` of the loaded payload): the status reads "Last saved …" until this visit saves. Read once. */
+  lastSavedAt?: string | null;
 };
 
 export type UseAssessmentDraftResult = {
@@ -124,7 +127,7 @@ function withRemarks(readiness: StepReadiness, missing: string[]): SectionReadin
   return { ...readiness, missingRemarks: missing, complete: readiness.complete && missing.length === 0 };
 }
 
-export function useAssessmentDraft({ form, draft, save, remarks: savedRemarks = [], saveRemarks, storageKey, debounceMs = 800, readOnly = false, answerMode = 'SINGLE' }: UseAssessmentDraftOptions): UseAssessmentDraftResult {
+export function useAssessmentDraft({ form, draft, save, remarks: savedRemarks = [], saveRemarks, storageKey, debounceMs = 800, readOnly = false, answerMode = 'SINGLE', lastSavedAt = null }: UseAssessmentDraftOptions): UseAssessmentDraftResult {
   const steps = useMemo(() => formSteps(form), [form]);
   const allQuestions = useMemo(() => stepQuestions(steps), [steps]);
   const questionById = useMemo(() => new Map(allQuestions.map((q) => [q.question.id, q.question])), [allQuestions]);
@@ -157,7 +160,7 @@ export function useAssessmentDraft({ form, draft, save, remarks: savedRemarks = 
     saveRemarksRef.current = saveRemarks;
   }, [save, saveRemarks]);
   const [pending, setPending] = useState(0);
-  const [status, setStatus] = useState<SaveStatus>({ kind: 'idle' });
+  const [status, setStatus] = useState<SaveStatus>(() => (lastSavedAt ? { kind: 'lastSaved', at: lastSavedAt } : { kind: 'idle' }));
 
   /** Changed answers and remarks the server has not confirmed. */
   const unsaved = useCallback(() => dirtyRef.current.size + remarkDirtyRef.current.size, []);

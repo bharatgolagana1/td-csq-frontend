@@ -65,6 +65,21 @@ describe('useAssessmentDraft', () => {
     expect(localStorage.getItem(KEY)).toBeNull();
   });
 
+  it('starts from the draft’s last save on the server, then reports the saves of this visit', async () => {
+    const save = vi.fn().mockResolvedValue({ lastSavedAt: '2026-10-07T06:34:00.000Z' });
+    const hook = renderHook(() => useAssessmentDraft({ form: FORM, draft: [answer('q2')], save, storageKey: KEY, lastSavedAt: '2026-10-05T06:30:00.000Z' }));
+    expect(hook.result.current.status).toEqual({ kind: 'lastSaved', at: '2026-10-05T06:30:00.000Z' });
+    act(() => hook.result.current.setAnswer('q4', { rating: 5 }));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(800);
+    });
+    expect(hook.result.current.status).toEqual({ kind: 'saved', at: '2026-10-07T06:34:00.000Z' });
+
+    // A draft never saved before starts silent.
+    const fresh = renderHook(() => useAssessmentDraft({ form: FORM, draft: [], save, lastSavedAt: null }));
+    expect(fresh.result.current.status).toEqual({ kind: 'idle' });
+  });
+
   it('keeps an incomplete answer local (Fair without the required comment) and counts progress', async () => {
     const { hook, save } = setup();
     act(() => hook.result.current.setAnswer('q1', { rating: 2 }));

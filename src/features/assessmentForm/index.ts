@@ -16,6 +16,7 @@
  *     onSubmit={() => submit()}         // POST …/submit; reject with the ApiError
  *     storageKey={`csq.assess.${token}`}    // localStorage replay queue (omit = memory only)
  *     tz={cycle.tz}
+ *     lastSavedAt={draft.lastSavedAt}  // "Last saved 7 Oct 2026, 12:04 IST" until this visit saves
  *     submitNote="Your answers reach the operator only in aggregate."
  *     onProgress={(p) => …} onStatus={(s) => …} onSubmitted={() => …}
  *   />

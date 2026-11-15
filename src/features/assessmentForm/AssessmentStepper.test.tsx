@@ -41,6 +41,15 @@ describe('AssessmentStepper', () => {
     expect(document.activeElement?.id).toBe('q-q3');
   });
 
+  it('says when a reopened draft was last saved, in the cycle’s zone, until this visit saves', async () => {
+    const { onSave } = renderStepper([answer('q1'), answer('q2')], { lastSavedAt: '2026-10-05T06:30:00.000Z', tz: 'Asia/Kolkata' });
+    expect(screen.getByRole('status')).toHaveTextContent('Last saved 5 Oct 2026, 12:00 IST');
+    await userEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await userEvent.click(screen.getAllByRole('radio', { name: 'Very good' })[1] as HTMLElement);
+    await waitFor(() => expect(onSave).toHaveBeenCalled(), { timeout: 2000 });
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Saved · 12:04'));
+  });
+
   it('reports progress as answers are made and enables Submit once complete', async () => {
     const onProgress = vi.fn();
     const { onSave } = renderStepper([answer('q1'), answer('q2'), answer('q3', { comment: 'Fine' })], { onProgress });

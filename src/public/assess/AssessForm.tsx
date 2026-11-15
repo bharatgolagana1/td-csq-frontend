@@ -177,6 +177,7 @@ export function AssessForm({ token, session, invitation, resumed, actions, onPro
         onProgress={progress}
         storageKey={draftStorageKey(token)}
         tz={cycleTz(invitation)}
+        lastSavedAt={draft.data.lastSavedAt ?? form.data.assessment.lastSavedAt}
         readOnly={draft.data.status === 'SUBMITTED'}
         submitNote={`Your answers reach ${invitation.operator.name} only in aggregate. Nobody there sees an individual response.`}
       />

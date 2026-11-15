@@ -145,6 +145,14 @@ describe('SelfAssessmentPage', () => {
     expect(screen.getByText(/closes 14 Nov 2026, 23:59/)).toBeInTheDocument();
   });
 
+  it('a reopened draft says when it was last saved', () => {
+    current.mockReturnValue({ isPending: false, isError: false, data: [CYCLE] } as unknown as ReturnType<typeof useCurrentCycles>);
+    const draft = self('DRAFT');
+    selfQuery.mockReturnValue({ isPending: false, isError: false, data: { ...draft, assessment: { ...draft.assessment, lastSavedAt: '2026-10-05T06:30:00.000Z' } } } as unknown as ReturnType<typeof useSelfAssessment>);
+    mount();
+    expect(screen.getByRole('status')).toHaveTextContent('Last saved 5 Oct 2026, 12:00 IST');
+  });
+
   it('autosaves a section remark through the self-assessment remarks PATCH', async () => {
     const mutateAsync = vi.fn().mockResolvedValue({ sectionRemarks: [], lastSavedAt: '2026-10-07T06:35:00.000Z' });
     vi.mocked(useSaveSelfRemarks).mockReturnValue({ mutateAsync } as unknown as ReturnType<typeof useSaveSelfRemarks>);

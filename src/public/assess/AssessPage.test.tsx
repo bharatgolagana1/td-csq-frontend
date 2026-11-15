@@ -110,6 +110,14 @@ describe('/assess/:token state machine', () => {
     expect(screen.queryByRole('button', { name: 'Send me a code' })).toBeNull();
   });
 
+  it('a reopened draft says when it was last saved', async () => {
+    sessionStorage.setItem(`csq.assess.${TOKEN}`, JSON.stringify(session));
+    mockApi(happyBackend({ draft: { ...emptyDraft, lastSavedAt: '2026-10-07T10:04:00.000Z' } }));
+    renderAssess();
+    await screen.findByText('Domestic cargo service quality', { exact: false });
+    expect(screen.getByText('Last saved', { exact: false }).closest('[role="status"]')).toHaveTextContent('Last saved 7 Oct 2026, 15:34 IST');
+  });
+
   it('an expired stored session is ignored and the landing shows', async () => {
     sessionStorage.setItem(`csq.assess.${TOKEN}`, JSON.stringify({ ...session, expiresAt: '2020-01-01T00:00:00Z' }));
     mockApi(happyBackend());
