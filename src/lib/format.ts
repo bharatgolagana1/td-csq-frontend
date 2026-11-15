@@ -4,10 +4,14 @@ import { formatInTimeZone } from 'date-fns-tz';
 
 export const DEFAULT_TZ = 'Asia/Kolkata';
 
-/** Numbers to one decimal place (ratings), "—" when missing. */
-export function formatRating(value: number | null | undefined): string {
+/**
+ * Ratings to one decimal place, "—" when missing. Beside a rank, pass 2: ranks
+ * are dense on the 2 dp mean (scoring, ARCHITECTURE §7), so at 1 dp two rows
+ * could read "3.8 · rank 4" and "3.8 · rank 5".
+ */
+export function formatRating(value: number | null | undefined, digits: 1 | 2 = 1): string {
   if (value === null || value === undefined || Number.isNaN(value)) return '—';
-  return value.toFixed(1);
+  return value.toFixed(digits);
 }
 
 export function formatInt(value: number | null | undefined): string {

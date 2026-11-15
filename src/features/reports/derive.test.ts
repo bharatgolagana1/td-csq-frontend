@@ -17,6 +17,13 @@ describe('reports derive', () => {
     expect(rows[2]?.sublabel).toBe('X · suppressed');
   });
 
+  it('gives operators whose ratings read the same (2 dp) the same rank', () => {
+    const op = (acoId: string, mean: number | null) => ({ acoId, code: acoId.toUpperCase(), name: acoId, mean, sharePct: 25, suppressed: mean === null });
+    const rows = airportOperatorRows([op('a', 4.251), op('b', 4.249), op('c', 4.1), op('d', null)]);
+    expect(rows.map((r) => r.rank)).toEqual([1, 1, 2, null]);
+    expect(rows.every((r) => r.rank === null || r.rankOf === 3)).toBe(true);
+  });
+
   it('shapes the national rows and the funnel', () => {
     expect(nationalAirportBars(NATIONAL_REPORT.airports)).toHaveLength(12);
     const ops = nationalOperatorRows(NATIONAL_REPORT.operators);

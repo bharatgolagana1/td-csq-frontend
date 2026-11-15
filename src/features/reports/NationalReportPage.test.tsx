@@ -48,6 +48,8 @@ describe('NationalReportPage', () => {
     expect(within(airports).getByText('Mumbai')).toBeInTheDocument();
     expect(within(airports).getByText('1 / 12')).toBeInTheDocument();
     expect(within(operators).getByText('Mumbai Cargo Terminal')).toBeInTheDocument();
+    // Beside a rank the rating shows the 2 dp the rank was taken at.
+    expect(within(operators).getByText('4.42')).toBeInTheDocument();
     expect(within(operators).getByText('2 · suppressed')).toBeInTheDocument();
     expect(screen.getByText('Category averages')).toBeInTheDocument();
   });

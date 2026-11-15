@@ -30,7 +30,11 @@ export type RankTableProps = {
   className?: string;
 };
 
-/** Plain table for the All-India ranking: airport, rating, rank; own row highlighted (§7). */
+/**
+ * Plain table for the All-India ranking: airport, rating, rank; own row
+ * highlighted (§7). The rating shows 2 dp, the precision ranks are taken at,
+ * so tied-looking rows never carry different ranks.
+ */
 export function RankTable({ rows, highlightId, labelHeader = 'Airport', extraHeader, loading, emptyTitle = 'No ranking yet', className }: RankTableProps) {
   const columns: Column<RankRow>[] = [
     {
@@ -51,7 +55,7 @@ export function RankTable({ rows, highlightId, labelHeader = 'Airport', extraHea
         </span>
       ),
     },
-    { id: 'rating', header: 'Rating', width: 90, align: 'right', mono: true, cell: (r) => formatRating(r.rating) },
+    { id: 'rating', header: 'Rating', width: 90, align: 'right', mono: true, cell: (r) => formatRating(r.rating, 2) },
     { id: 'band', header: 'Band', width: 120, hideBelow: 'sm', cell: (r) => <RatingPill rating={r.rating} size="sm" /> },
   ];
   if (extraHeader) columns.push({ id: 'extra', header: extraHeader, align: 'right', mono: true, cell: (r) => r.extra ?? '—' });
