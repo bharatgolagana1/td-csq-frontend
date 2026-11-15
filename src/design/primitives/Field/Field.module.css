@@ -22,3 +22,8 @@
 .error {
   color: var(--danger);
 }
+/* Where a cleared error was: keeps its height (one line until measured) so the form below does not move. */
+.reserved {
+  display: block;
+  min-height: 16px;
+}

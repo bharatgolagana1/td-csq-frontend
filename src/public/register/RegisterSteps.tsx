@@ -1,7 +1,7 @@
 import { type UseFormReturn } from 'react-hook-form';
 
 import { type LinkOrgType } from '@/api/onboarding.types';
-import { Button, Checkbox, Input } from '@/design/primitives';
+import { Button, Checkbox, ErrorLine, Input } from '@/design/primitives';
 
 import styles from './register.module.css';
 import { type RegisterOutput, type RegisterValues } from './registerSchema';
@@ -19,11 +19,7 @@ export function StepOrganisation({ form, orgType }: { form: Form; orgType: LinkO
         <span className={styles.groupLabel}>Operations</span>
         <Checkbox label="Domestic cargo" {...register('operations.domestic')} />
         <Checkbox label="International cargo" {...register('operations.international')} />
-        {e.operations?.domestic?.message ? (
-          <p className={styles.fieldError} role="alert">
-            {e.operations.domestic.message}
-          </p>
-        ) : null}
+        <ErrorLine className={styles.fieldError} error={e.operations?.domestic?.message} />
       </div>
       {orgType === 'ACO' ? (
         <Input
