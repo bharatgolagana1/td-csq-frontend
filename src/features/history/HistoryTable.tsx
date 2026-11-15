@@ -7,7 +7,7 @@ import { formatInt, formatRating } from '@/lib/format';
 
 import { HiddenScore } from './HiddenScore';
 import styles from './history.module.css';
-import { assessorLabel, canOpenAssessment, isIdentityHidden, isScoreHidden, KIND_LABELS, kindVariant, rowAnswerMode, STATUS_LABELS, statusPillVariant, submittedCell, TYPE_LABELS } from './historyLabels';
+import { assessorLabel, canOpenAssessment, isIdentityHidden, isScoreHidden, KIND_LABELS, kindVariant, rowAnswerMode, STATUS_LABELS, statusPillVariant, submittedCell, SURVEY_LABELS, surveyVariant, TYPE_LABELS } from './historyLabels';
 import { useMediaQuery } from './useMediaQuery';
 
 export type HistoryTableProps = {
@@ -48,6 +48,14 @@ function cardStatusLine(row: HistoryRow, tz: string): string {
   return `${saved ? `Last saved ${text}` : text} · ${formatInt(row.progress.answered)} of ${formatInt(row.progress.total)} answered`;
 }
 
+function SurveyPill({ row }: { row: HistoryRow }) {
+  return (
+    <Pill variant={surveyVariant(row.surveyType)} dot={false} size="sm">
+      {SURVEY_LABELS[row.surveyType]}
+    </Pill>
+  );
+}
+
 /** The single score, or the import and the export score of an IMPORT_EXPORT assessment; a dash when it is withheld. */
 function Score({ row, hidden }: { row: HistoryRow; hidden: boolean }) {
   if (hidden) return <HiddenScore />;
@@ -81,7 +89,10 @@ function Empty({ filtered, onClearFilters }: { filtered: boolean; onClearFilters
   );
 }
 
-/** Cycle · kind · customer type · assessor (masked e-mail) · status · submitted (a draft's last save) · score (import and export for an IMPORT_EXPORT assessment). Cards under 760px. */
+/**
+ * Cycle · survey (Domestic / International) · kind · customer type · assessor (masked e-mail) · status ·
+ * submitted (a draft's last save) · score (import and export for an IMPORT_EXPORT assessment). Cards under 760px.
+ */
 export function HistoryTable({ rows, loading, sort, onSortChange, onOpen, canViewScores, canViewDetails, tzOf, filtered, onClearFilters }: HistoryTableProps) {
   const phone = useMediaQuery('(max-width: 760px)');
   const canOpen = (row: HistoryRow) => canOpenAssessment(row, canViewDetails);
@@ -113,6 +124,7 @@ export function HistoryTable({ rows, loading, sort, onSortChange, onOpen, canVie
               <span className={cn(styles.cardName, isIdentityHidden(row) && styles.identityHidden)}>{assessorLabel(row)}</span>
               {row.assessorEmailMasked ? <span className={styles.cardEmail}>{row.assessorEmailMasked}</span> : null}
               <span className={styles.cardMeta}>
+                <SurveyPill row={row} />
                 <Pill variant={kindVariant(row.kind)} dot={false} size="sm">
                   {KIND_LABELS[row.kind]}
                 </Pill>
@@ -153,6 +165,7 @@ export function HistoryTable({ rows, loading, sort, onSortChange, onOpen, canVie
         </span>
       ),
     },
+    { id: 'surveyType', header: 'Survey', width: 130, sortable: true, cell: (r) => <SurveyPill row={r} /> },
     {
       id: 'kind',
       header: 'Kind',

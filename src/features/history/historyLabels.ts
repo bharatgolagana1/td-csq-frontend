@@ -7,6 +7,11 @@ export const STATUS_LABELS: Record<AssessmentStatus, string> = { DRAFT: 'Draft',
 export const TYPE_LABELS: Record<CustomerType, string> = { FF: 'Freight forwarder', CB: 'Customs broker' };
 export const SURVEY_LABELS: Record<SurveyType, string> = { DOMESTIC: 'Domestic', INTERNATIONAL: 'International' };
 
+/** The same pills as the sampling and invitation screens: International in the info tone, Domestic neutral. */
+export function surveyVariant(surveyType: SurveyType): PillVariant {
+  return surveyType === 'INTERNATIONAL' ? 'info' : 'neutral';
+}
+
 export function kindVariant(kind: AssessmentKind): PillVariant {
   return kind === 'SELF' ? 'neutral' : 'info';
 }

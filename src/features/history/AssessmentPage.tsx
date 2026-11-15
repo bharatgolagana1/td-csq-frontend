@@ -12,7 +12,7 @@ import { DEFAULT_TZ, describeTimeZone, formatDateTime, formatInt, formatRating, 
 
 import { HiddenScore } from './HiddenScore';
 import styles from './history.module.css';
-import { assessorLabel, isIdentityHidden, isScoreHidden, KIND_LABELS, kindVariant, rowAnswerMode, STATUS_LABELS, statusPillVariant, SURVEY_LABELS, TYPE_LABELS } from './historyLabels';
+import { assessorLabel, isIdentityHidden, isScoreHidden, KIND_LABELS, kindVariant, rowAnswerMode, STATUS_LABELS, statusPillVariant, SURVEY_LABELS, surveyVariant, TYPE_LABELS } from './historyLabels';
 
 function DetailSkeleton() {
   return (
@@ -38,7 +38,7 @@ function NoCustomerAccess() {
   );
 }
 
-/** /history/:id — one read-only return: identity (masked per setting), status, score (hidden without assessments.scores), answers and the remark by category. */
+/** /history/:id — one read-only return: its survey (Domestic / International, beside the title), identity (masked per setting), status, score (hidden without assessments.scores), answers and the remark by category. */
 export default function AssessmentPage() {
   const { id } = useParams<{ id: string }>();
   const { hasTask } = useSession();
@@ -59,6 +59,13 @@ export default function AssessmentPage() {
         eyebrow="History"
         title={title}
         context={data ? `${data.operator.name} · ${data.cycle.name}` : undefined}
+        meta={
+          data ? (
+            <Pill variant={surveyVariant(data.surveyType)} dot={false}>
+              {SURVEY_LABELS[data.surveyType]}
+            </Pill>
+          ) : undefined
+        }
         breadcrumbs={[{ label: 'History', to: '..' }, { label: data?.cycle.code ?? '…' }]}
         actions={
           <Link to=".." className={styles.backLink}>

@@ -82,7 +82,7 @@ const ROWS: HistoryRow[] = [
     cycle: { id: 'cy1', code: 'CSQ-26H2', name: 'CSQ 2026 H2' },
     operator: { id: 'org-csc', code: 'CSC-DEL', name: 'Cargo Service Center' },
     kind: 'CUSTOMER',
-    surveyType: 'DOMESTIC',
+    surveyType: 'INTERNATIONAL',
     answerMode: 'IMPORT_EXPORT',
     customerType: 'CB',
     customerId: null,
@@ -194,6 +194,17 @@ describe('HistoryPage', () => {
     list.mockReturnValue({ isPending: false, isError: false, data: { data: rows, meta: { page: 1, pageSize: 25, total: 1 } } } as unknown as ReturnType<typeof useAssessments>);
     mount();
     expect(within(screen.getByRole('row', { name: /Priya Natarajan/ })).getByText('Not saved yet')).toBeInTheDocument();
+  });
+
+  it('names the survey of every row, so the domestic and international returns of one customer or operator tell apart', () => {
+    const domesticSelf: HistoryRow = { ...(ROWS[1] as HistoryRow), id: 'a4', status: 'SUBMITTED', submittedAt: '2026-10-06T06:34:00.000Z' };
+    const internationalSelf: HistoryRow = { ...(ROWS[1] as HistoryRow), id: 'a5', surveyType: 'INTERNATIONAL' };
+    list.mockReturnValue({ isPending: false, isError: false, data: { data: [domesticSelf, internationalSelf], meta: { page: 1, pageSize: 25, total: 2 } } } as unknown as ReturnType<typeof useAssessments>);
+    mount();
+    expect(screen.getByRole('columnheader', { name: /Survey/ })).toBeInTheDocument();
+    const [first, second] = screen.getAllByRole('row', { name: /Priya Natarajan/ }) as [HTMLElement, HTMLElement];
+    expect(within(first).getByText('Domestic')).toBeInTheDocument();
+    expect(within(second).getByText('International')).toBeInTheDocument();
   });
 
   it('shows the request id and a retry when the list fails', async () => {

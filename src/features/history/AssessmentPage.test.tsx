@@ -76,6 +76,10 @@ function mount(session: Session = SESSION) {
 
 const detail = vi.mocked(useAssessment);
 
+/** The page title with what sits beside it (PageHeader `meta`). */
+function titleRow(title: string): HTMLElement {
+  return screen.getByRole('heading', { level: 1, name: title }).parentElement as HTMLElement;
+}
 
 describe('AssessmentPage', () => {
   beforeEach(() => vi.clearAllMocks());
@@ -92,6 +96,8 @@ describe('AssessmentPage', () => {
     mount();
     expect(detail).toHaveBeenCalledWith('a1');
     expect(screen.getByRole('heading', { level: 1, name: 'Customer assessment' })).toBeInTheDocument();
+    // The survey sits beside the title, so a BOTH customer's two returns tell apart.
+    expect(within(titleRow('Customer assessment')).getByText('Domestic')).toBeInTheDocument();
     expect(screen.getByText('Identity hidden')).toBeInTheDocument();
     expect(screen.getByText('Privacy setting')).toBeInTheDocument();
     expect(screen.queryByText(/@/)).toBeNull();
@@ -146,6 +152,7 @@ describe('AssessmentPage', () => {
     const draft: AssessmentDetail = { ...DETAIL, kind: 'SELF', surveyType: 'INTERNATIONAL', status: 'DRAFT', submittedAt: null, lastSavedAt: '2026-10-04T05:00:00.000Z', assessorName: 'Priya Natarajan', assessor: { name: 'Priya Natarajan', email: 'priya@csc.example', revealed: true } };
     detail.mockReturnValue({ isPending: false, isError: false, data: draft } as unknown as ReturnType<typeof useAssessment>);
     mount();
+    expect(within(titleRow('Self-assessment')).getByText('International')).toBeInTheDocument();
     expect(screen.getByText('Last saved').nextElementSibling).toHaveTextContent('4 Oct 2026, 10:30 IST (UTC+05:30)');
     expect(screen.queryByText('Submitted', { selector: 'dt' })).toBeNull();
   });

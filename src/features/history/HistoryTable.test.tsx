@@ -60,11 +60,13 @@ describe('HistoryTable cards', () => {
     expect(within(self).queryByText('Score hidden')).toBeNull();
   });
 
-  it('a draft card says when it was last saved', () => {
+  it('each card names its survey, and a draft card says when it was last saved', () => {
     const draft: HistoryRow = { ...SELF, id: 'a3', surveyType: 'INTERNATIONAL', status: 'DRAFT', submittedAt: null, lastSavedAt: '2026-10-04T05:00:00.000Z', progress: { answered: 9, total: 23, pct: 39 } };
     mount({ rows: [CUSTOMER, draft] });
     const [customer, self] = within(screen.getByRole('list', { name: 'Assessments' })).getAllByRole('listitem') as [HTMLElement, HTMLElement];
+    expect(within(customer).getByText('Domestic')).toBeInTheDocument();
     expect(within(customer).getByText('Submitted 5 Oct 2026, 12:04 IST')).toBeInTheDocument();
+    expect(within(self).getByText('International')).toBeInTheDocument();
     expect(within(self).getByText('Last saved 4 Oct 2026, 10:30 IST · 9 of 23 answered')).toBeInTheDocument();
   });
 });
