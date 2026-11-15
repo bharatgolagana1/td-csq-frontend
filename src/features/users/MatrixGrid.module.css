@@ -1,5 +1,7 @@
+/* The table scrolls inside this box, never the page: the task column and the header stay put. */
 .wrap {
   position: relative;
+  max-width: 100%;
   max-height: calc(100dvh - 420px);
   min-height: 320px;
   overflow: auto;
@@ -31,8 +33,8 @@
   position: sticky;
   left: 0;
   z-index: 3;
-  min-width: 260px;
-  max-width: 360px;
+  width: 260px;
+  min-width: 220px;
   background: var(--surface);
   border-right: 1px solid var(--line);
   text-align: left;
@@ -41,31 +43,33 @@
   z-index: 4;
   background: var(--surface-2);
 }
+/* Role headers stack name, code and scope, so the six seeded roles fit beside the tasks at 1440 px. */
 .roleCol {
-  min-width: 140px;
+  width: 120px;
+  min-width: 112px;
   text-align: center;
 }
 .roleName {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
   color: var(--ink);
+  line-height: 1.25;
 }
 .roleMeta {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
+  gap: 4px;
   margin-top: 4px;
 }
 .roleCode {
   font-size: 11px;
   color: var(--muted);
+  white-space: nowrap;
 }
 .moduleRow .moduleCell {
-  position: sticky;
-  left: 0;
-  z-index: 1;
   padding: 8px 12px 6px;
   background: var(--bg);
   border-bottom: 1px solid var(--line);
@@ -75,6 +79,12 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted);
+}
+/* The row spans every column, so the label (not the cell) sticks while the table scrolls sideways. */
+.moduleLabel {
+  display: inline-block;
+  position: sticky;
+  left: 12px;
 }
 .td {
   height: var(--row-h);
@@ -144,11 +154,31 @@ tbody tr:last-child .td {
   display: flex;
   gap: var(--space-2);
 }
+/* Phone: a narrower task column and role columns, so two roles and the edge of a third show beside the tasks. */
 @media (max-width: 760px) {
   .wrap {
     max-height: none;
   }
+  .table {
+    min-width: 0;
+  }
   .taskCol {
-    min-width: 200px;
+    width: 136px;
+    min-width: 136px;
+  }
+  .th,
+  .td {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .roleCol {
+    width: 92px;
+    min-width: 92px;
+  }
+  .roleCode {
+    display: none;
+  }
+  .taskCode {
+    overflow-wrap: anywhere;
   }
 }

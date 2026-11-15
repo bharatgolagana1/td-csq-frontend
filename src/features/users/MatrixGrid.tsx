@@ -32,7 +32,7 @@ export function groupByModule(tasks: TaskDefinition[]): { module: string; tasks:
   return Array.from(groups, ([module, list]) => ({ module, tasks: list }));
 }
 
-/** Tasks grouped by module as rows; roles as columns; sticky header and first column. */
+/** Tasks grouped by module as rows; roles as columns; sticky header and first column; scrolls sideways inside its box. */
 export function MatrixGrid({ tasks, roles, isChecked, onToggle, readOnly, search }: MatrixGridProps) {
   const groups = useMemo(() => groupByModule(tasks), [tasks]);
 
@@ -71,7 +71,7 @@ export function MatrixGrid({ tasks, roles, isChecked, onToggle, readOnly, search
             <Fragment key={group.module}>
               <tr className={styles.moduleRow}>
                 <th scope="rowgroup" colSpan={roles.length + 1} className={styles.moduleCell}>
-                  {humanise(group.module)}
+                  <span className={styles.moduleLabel}>{humanise(group.module)}</span>
                 </th>
               </tr>
               {group.tasks.map((task) => (
