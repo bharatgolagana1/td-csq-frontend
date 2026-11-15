@@ -123,3 +123,20 @@ export function pct(part: number, whole: number): number {
   if (!whole || whole <= 0) return 0;
   return Math.max(0, Math.min(100, (part / whole) * 100));
 }
+
+/**
+ * Where the cycle's market shares stand (backend §6 publish, REQUIREMENTS §21):
+ * publishing copies every participating airport's current shares into the
+ * cycle's own snapshot, which ACFI may still adjust until the assessment
+ * opens; from then on it is frozen.
+ */
+export function marketShareState(cycle: { status: CycleStatus; marketShareFrozen: boolean }): string {
+  if (cycle.status === 'DRAFT') return 'Copied from the current shares when the cycle is published';
+  if (cycle.marketShareFrozen) return 'Snapshot frozen since the assessment opened';
+  return 'Snapshot taken at publish · adjustable until the assessment opens';
+}
+
+/** Manual sampling reminders: the API sends them only while sampling is open (412 otherwise). */
+export function canSendSamplingReminders(status: CycleStatus): boolean {
+  return status === 'SAMPLING_OPEN';
+}

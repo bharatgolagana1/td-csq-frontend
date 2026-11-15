@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { allowedTransitions, cycleSurveyTypes, isActiveStatus, nextCycleDeadline, participantSurveyTypes, pct, phaseOf } from './cycleLabels';
+import { allowedTransitions, canSendSamplingReminders, cycleSurveyTypes, isActiveStatus, marketShareState, nextCycleDeadline, participantSurveyTypes, pct, phaseOf } from './cycleLabels';
 import { cycleSummary } from './fixtures';
 
 describe('cycle status machine', () => {
@@ -40,5 +40,22 @@ describe('survey types and percentages', () => {
     expect(pct(1, 4)).toBe(25);
     expect(pct(5, 4)).toBe(100);
     expect(pct(3, 0)).toBe(0);
+  });
+});
+
+describe('marketShareState', () => {
+  it('says what the backend holds: nothing before publish, an adjustable snapshot after, frozen from the assessment on', () => {
+    expect(marketShareState({ status: 'DRAFT', marketShareFrozen: false })).toBe('Copied from the current shares when the cycle is published');
+    expect(marketShareState({ status: 'PUBLISHED', marketShareFrozen: false })).toBe('Snapshot taken at publish · adjustable until the assessment opens');
+    expect(marketShareState({ status: 'SAMPLING_CLOSED', marketShareFrozen: false })).toBe('Snapshot taken at publish · adjustable until the assessment opens');
+    expect(marketShareState({ status: 'ASSESSMENT_OPEN', marketShareFrozen: true })).toBe('Snapshot frozen since the assessment opened');
+    expect(marketShareState({ status: 'SCORED', marketShareFrozen: true })).toBe('Snapshot frozen since the assessment opened');
+  });
+});
+
+describe('canSendSamplingReminders', () => {
+  it('only while sampling is open, as the API allows', () => {
+    expect(canSendSamplingReminders('SAMPLING_OPEN')).toBe(true);
+    for (const status of ['DRAFT', 'PUBLISHED', 'SAMPLING_CLOSED', 'ASSESSMENT_OPEN', 'SCORED'] as const) expect(canSendSamplingReminders(status)).toBe(false);
   });
 });
