@@ -151,12 +151,13 @@ Rules:
 
 ## 6. Public assessor flow (`/assess/:token`)
 
-A state machine: `landing` (operator, airport, cycle, closes-on, masked
-e-mail, confidentiality line, "Send me a code") → `otp` (six boxes, paste,
-resend with 30 s cooldown, attempts hint) → `form` (one category per step,
-sticky progress "14 of 23", question cards with the six-option segmented
-rating, follow-up on Fair/Poor, comment per question, autosave with
-"Saved · 12:04 / Saving… / Offline — kept on this device" and a localStorage
+A state machine: `landing` (operator, airport, cycle and survey — "· Domestic
+survey" —, closes-on, masked e-mail, confidentiality line, "Send me a code")
+→ `otp` (six boxes, paste, resend with 30 s cooldown, attempts hint) → `form`
+(one category per step, sticky progress "14 of 23", question cards with the
+six-option segmented rating, follow-up on Fair/Poor, comment per question,
+autosave with "Last saved 5 Oct 2026, 12:04 IST" for a reopened draft, then
+"Saved · 12:04 / Saving… / Offline — kept on this device", and a localStorage
 replay queue) → `review` (missing items with jump links, Submit enabled only
 when complete, confirm sheet) → `done`. `expired`, `submitted`, `revoked`
 states each have a calm full-screen message. No app shell, no sign-in.
@@ -166,9 +167,11 @@ states each have a calm full-screen message. No app shell, no sign-in.
 Score hero (rating to 1 dp, rank of n, assessments count) · Self vs Customer
 grouped bars for Overall / Current / Previous · Feedback distribution (five
 bands + NA, count and %) · Category ratings with delta chips vs previous ·
-Assessor stats (total / completed / in progress / yet to start, click-through)
-· FF vs CB split · All-India table (airport, rating, rank; own airport
-highlighted). Airport and national reports reuse the same primitives.
+Assessor stats (total / completed / in progress / yet to start, and "27 ready
+to send" until the assessment opens; click-through) · FF vs CB split. No
+airport ranking: the operator sees its own rank only (the All-India table was
+removed in Nov 2026; the airport ranking is ACFI's national report). Airport
+and national reports reuse the same primitives.
 
 ## 8. Implementation notes and deviations (foundation, Oct 2026)
 
