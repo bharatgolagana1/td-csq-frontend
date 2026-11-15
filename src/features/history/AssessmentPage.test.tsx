@@ -158,6 +158,18 @@ describe('AssessmentPage', () => {
     expect(within(titleRow('Self-assessment')).getByText('International')).toBeInTheDocument();
     expect(screen.getByText('Last saved').nextElementSibling).toHaveTextContent('4 Oct 2026, 10:30 IST (UTC+05:30)');
     expect(screen.queryByText('Submitted', { selector: 'dt' })).toBeNull();
+    // A draft has no score yet, even from an older API that still sent one.
+    expect(screen.getByText('Score').nextElementSibling).toHaveTextContent('No score until submitted');
+    expect(screen.queryByText('3.0')).toBeNull();
+  });
+
+  it('an IMPORT_EXPORT draft shows neither side’s score', () => {
+    const draft: AssessmentDetail = { ...DETAIL, answerMode: 'IMPORT_EXPORT', status: 'DRAFT', submittedAt: null, score: null, importScore: 4.2, exportScore: 3.8 };
+    detail.mockReturnValue({ isPending: false, isError: false, data: draft } as unknown as ReturnType<typeof useAssessment>);
+    mount();
+    expect(screen.getByText('Import score').nextElementSibling).toHaveTextContent('No score until submitted');
+    expect(screen.getByText('Export score').nextElementSibling).toHaveTextContent('No score until submitted');
+    expect(screen.queryByText('4.2')).toBeNull();
   });
 
   it('a 403 says the role may not open individual customer assessments, without a retry', () => {

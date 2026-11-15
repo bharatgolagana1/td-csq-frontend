@@ -11,7 +11,7 @@ import { AnswerSummary, groupsFromDetail } from '@/features/assessmentForm';
 import { DIRECTION_LABELS } from '@/lib/directionLabels';
 import { DEFAULT_TZ, describeTimeZone, formatDateTime, formatInt, formatRating, humanise } from '@/lib/format';
 
-import { HiddenScore } from './HiddenScore';
+import { DRAFT_SCORE_LABEL, HiddenScore } from './HiddenScore';
 import styles from './history.module.css';
 import { assessorLabel, isIdentityHidden, isScoreHidden, KIND_LABELS, kindVariant, rowAnswerMode, STATUS_LABELS, statusPillVariant, SURVEY_LABELS, surveyVariant, TYPE_LABELS } from './historyLabels';
 
@@ -50,7 +50,8 @@ export default function AssessmentPage() {
   const tz = cycle.data?.tz ?? DEFAULT_TZ;
   const zone = describeTimeZone(tz);
   const scoreHidden = data !== undefined && isScoreHidden(data, hasTask('assessments.scores'));
-  const rating = (value: number | null) => (scoreHidden ? <HiddenScore /> : formatRating(value));
+  const draft = data !== undefined && data.status !== 'SUBMITTED';
+  const rating = (value: number | null) => (draft ? <HiddenScore label={DRAFT_SCORE_LABEL} /> : scoreHidden ? <HiddenScore /> : formatRating(value));
 
   const title = data ? (data.kind === 'SELF' ? 'Self-assessment' : 'Customer assessment') : 'Assessment';
 
