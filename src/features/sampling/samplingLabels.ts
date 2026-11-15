@@ -32,12 +32,18 @@ export function lockReasonText(state: Pick<SelectionState, 'reason' | 'required'
   }
 }
 
-/** Caption beside the progress bar: what is left to do. */
+/**
+ * Caption beside the progress bar: what is left to do. `remaining` is how many
+ * selections are still needed (it reaches 0 at the minimum), so it reads
+ * "13 still needed", never as the minimum itself (that is `required`).
+ */
 export function progressCaption(state: Pick<SelectionState, 'lockable' | 'reason' | 'remaining' | 'shortfallRule' | 'selectedCount'>): string {
   if (state.reason === 'ALREADY_LOCKED') return 'Locked';
   if (state.lockable) return state.shortfallRule === 'SELECT_ALL' ? 'All eligible selected' : 'Ready to lock';
   if (state.selectedCount === 0) return 'Nothing selected yet';
-  return `${formatInt(state.remaining)} more to lock`;
+  // Enough selected while the window is not open (closed, or not started): nothing is still needed.
+  if (state.remaining === 0) return 'Minimum reached';
+  return `${formatInt(state.remaining)} still needed`;
 }
 
 /** The fixed banner wording (DEMO-PLAN sampling banner). */

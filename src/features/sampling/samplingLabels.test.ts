@@ -14,7 +14,9 @@ describe('sampling labels', () => {
   });
 
   it('captions the progress bar', () => {
-    expect(progressCaption(IN_PROGRESS)).toBe('13 more to lock');
+    // `remaining` is what is still needed, not the minimum: it reads as such.
+    expect(progressCaption(IN_PROGRESS)).toBe('13 still needed');
+    expect(progressCaption({ ...LOCKABLE, lockable: false, reason: 'SAMPLING_CLOSED' })).toBe('Minimum reached');
     expect(progressCaption(LOCKABLE)).toBe('Ready to lock');
     expect(progressCaption({ ...LOCKABLE, shortfallRule: 'SELECT_ALL' })).toBe('All eligible selected');
     expect(progressCaption(LOCKED)).toBe('Locked');
