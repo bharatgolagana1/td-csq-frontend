@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { OPERATOR_REPORT, OPERATOR_REPORT_SUPPRESSED } from '@/api/reports.fixtures';
 
-import { answersTotal, feedbackSegments, heroCounts, heroDelta, levelRows, nationalRows, nationalSplit, overallSeries, pairedRows, parameterCount, pendingFootnote, unlistedAirports } from './derive';
+import { answersTotal, feedbackSegments, heroCounts, heroDelta, levelRows, overallSeries, pairedRows, parameterCount } from './derive';
 
 describe('dashboard derive', () => {
   it('shapes overall / this cycle / previous cycle into two series', () => {
@@ -55,23 +55,5 @@ describe('dashboard derive', () => {
     expect(bars[5]).toMatchObject({ id: 'cat-DIG', previous: null, delta: null });
     expect(pairedRows(subs)[0]?.sublabel).toBe('Infrastructure & facilities');
     expect(pairedRows(levelRows(OPERATOR_REPORT_SUPPRESSED.categories, 'categories'))[0]?.suppressed).toBe(true);
-  });
-
-  it('ranks the national table and footnotes the airports without a rating', () => {
-    const rows = nationalRows(OPERATOR_REPORT.nationalTable);
-    expect(rows[2]).toMatchObject({ id: 'DEL', label: 'Delhi', rank: 3, rankOf: 12 });
-    expect(rows[rows.length - 1]?.rank).toBeNull();
-
-    const { ranked, pending } = nationalSplit(OPERATOR_REPORT.nationalTable);
-    expect(ranked.map((r) => r.rank)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
-    expect(pending.map((r) => r.airportIata)).toEqual(['CCU', 'NAG']);
-    expect(unlistedAirports(OPERATOR_REPORT)).toBe(0);
-    expect(pendingFootnote(pending)).toBe('Kolkata, Nagpur live under Phase I · not rated this cycle');
-    expect(pendingFootnote(pending, 4)).toBe('Kolkata, Nagpur + 4 more airports live under Phase I · not rated this cycle');
-    expect(pendingFootnote([...pending, ...pending, ...pending], 0)).toBe('Kolkata, Nagpur, Kolkata + 3 more airports live under Phase I · not rated this cycle');
-    expect(pendingFootnote([], 1)).toBe('1 airport lives under Phase I · not rated this cycle');
-    expect(pendingFootnote([], 14)).toBe('14 airports live under Phase I · not rated this cycle');
-    expect(pendingFootnote([])).toBeNull();
-    expect(unlistedAirports({ nationalTable: OPERATOR_REPORT.nationalTable, airportsTotal: 18 })).toBe(4);
   });
 });

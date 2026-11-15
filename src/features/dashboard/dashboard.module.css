@@ -139,11 +139,7 @@
   grid-row: 1;
 }
 .categories {
-  grid-column: 1 / span 7;
-  grid-row: 2;
-}
-.national {
-  grid-column: 8 / span 5;
+  grid-column: 1 / -1;
   grid-row: 2;
 }
 .assessors {
@@ -164,11 +160,7 @@
     grid-row: 2;
   }
   .categories {
-    grid-column: 1 / span 7;
-    grid-row: 3;
-  }
-  .national {
-    grid-column: 8 / span 5;
+    grid-column: 1 / -1;
     grid-row: 3;
   }
   .assessors {
@@ -181,7 +173,6 @@
   .overall,
   .feedback,
   .categories,
-  .national,
   .assessors {
     grid-column: 1 / -1;
     grid-row: auto;
@@ -429,158 +420,6 @@
   margin-top: var(--space-3);
   font-size: var(--text-xs);
   color: var(--muted);
-}
-
-/* --- All-India table ------------------------------------------------------------ */
-.rankTable {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  font-size: 14px;
-}
-.rankTable th {
-  height: 36px;
-  padding: 0 12px;
-  background: var(--surface-2);
-  border-bottom: 1px solid var(--line);
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  text-align: left;
-  white-space: nowrap;
-}
-.rankTable td {
-  height: 36px;
-  padding: 0 12px;
-  border-bottom: 1px solid var(--line);
-  vertical-align: middle;
-}
-.rankTable th:first-child,
-.rankTable td:first-child {
-  padding-left: 20px;
-}
-.rankTable th:last-child,
-.rankTable td:last-child {
-  padding-right: 20px;
-}
-.rankTable tbody tr:last-child td {
-  border-bottom: 0;
-}
-.rankCol {
-  width: 64px;
-}
-.rankCell {
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-  font-size: 13px;
-  color: var(--muted);
-}
-.airport {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 8px;
-  min-width: 0;
-}
-.airportName {
-  font-weight: 700;
-  color: var(--ink);
-}
-.airportIata {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--muted);
-}
-.you {
-  display: inline-flex;
-  align-items: center;
-  height: 18px;
-  padding: 0 7px;
-  border-radius: var(--radius-pill);
-  background: var(--accent);
-  color: var(--accent-ink);
-  font-size: 10.5px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-.ratingCol,
-.ratingCell {
-  width: 84px;
-  text-align: right;
-}
-.ratingCell {
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-  font-weight: 700;
-  color: var(--ink);
-}
-.highlight td {
-  background: var(--accent-soft);
-}
-.highlight td:first-child {
-  box-shadow: inset 3px 0 0 var(--accent);
-}
-.highlight .rankCell,
-.highlight .airportName,
-.highlight .ratingCell {
-  color: var(--accent);
-}
-.nationalEmpty {
-  padding: 8px 20px 20px;
-}
-.nationalFoot {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: var(--text-xs);
-  line-height: 16px;
-}
-@media (max-width: 520px) {
-  .rankTable thead {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-  }
-  .rankTable,
-  .rankTable tbody {
-    display: block;
-  }
-  .rankTable tr {
-    display: grid;
-    grid-template-columns: 36px minmax(0, 1fr) auto;
-    align-items: center;
-    column-gap: 8px;
-    padding: 9px 16px;
-    border-bottom: 1px solid var(--line);
-  }
-  .rankTable tbody tr:last-child {
-    border-bottom: 0;
-  }
-  .rankTable td,
-  .rankTable td:first-child,
-  .rankTable td:last-child {
-    display: block;
-    height: auto;
-    padding: 0;
-    border: 0;
-  }
-  .highlight td,
-  .highlight td:first-child {
-    background: transparent;
-    box-shadow: none;
-  }
-  .highlight {
-    background: var(--accent-soft);
-    box-shadow: inset 3px 0 0 var(--accent);
-  }
-  .airport {
-    flex-wrap: wrap;
-    gap: 2px 8px;
-  }
 }
 
 /* --- skeleton / misc ----------------------------------------------------------- */

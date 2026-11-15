@@ -1,6 +1,6 @@
 import { deltaOf } from '@/api/reports';
-import { type AssessmentCounts, type CategoryReport, type FeedbackBucket, type LevelFigures, type NationalTableRow, type OperatorReport, type SurveyNode } from '@/api/reports.types';
-import { type BandSegment, type GroupedBarSeries, type PairedBarRow, type RankRow } from '@/design/charts';
+import { type AssessmentCounts, type CategoryReport, type FeedbackBucket, type LevelFigures, type OperatorReport, type SurveyNode } from '@/api/reports.types';
+import { type BandSegment, type GroupedBarSeries, type PairedBarRow } from '@/design/charts';
 import { formatInt, formatRating } from '@/lib/format';
 
 /* Pure shaping of the operator report into what the chart wrappers take. */
@@ -69,37 +69,6 @@ export function feedbackSegments(buckets: readonly FeedbackBucket[]): BandSegmen
 
 export function answersTotal(buckets: readonly FeedbackBucket[]): number {
   return buckets.reduce((sum, b) => sum + b.count, 0);
-}
-
-/** The national table as rank rows; `rankOf` (airports with a figure) comes from the API. */
-export function nationalRows(table: readonly NationalTableRow[]): RankRow[] {
-  return table.map((r) => ({ id: r.airportIata, label: r.airportName, sublabel: r.airportIata, rating: r.rating, rank: r.rank, rankOf: r.rankOf }));
-}
-
-/** Ranked airports for the table, by rank; the rest (no rating yet) for the footnote. */
-export function nationalSplit(table: readonly NationalTableRow[]): { ranked: NationalTableRow[]; pending: NationalTableRow[] } {
-  const ranked = table.filter((r) => r.rank !== null).sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0));
-  const pending = table.filter((r) => r.rank === null);
-  return { ranked, pending };
-}
-
-/**
- * "Kolkata, Nagpur + 2 more airports live under Phase I" for the airports without a
- * rank this cycle: the unranked table rows by name (up to `shown`), plus `unlisted`
- * airports live on the platform but absent from the table (`airportsTotal` − rows).
- */
-export function pendingFootnote(pending: readonly NationalTableRow[], unlisted = 0, shown = 3): string | null {
-  const names = pending.slice(0, shown).map((r) => r.airportName);
-  const more = pending.length - names.length + Math.max(0, unlisted);
-  if (names.length === 0 && more === 0) return null;
-  if (names.length === 0) return `${formatInt(more)} ${more === 1 ? 'airport lives' : 'airports live'} under Phase I · not rated this cycle`;
-  const tail = more > 0 ? ` + ${formatInt(more)} more ${more === 1 ? 'airport' : 'airports'}` : '';
-  return `${names.join(', ')}${tail} live under Phase I · not rated this cycle`;
-}
-
-/** Airports live under Phase I that the national table does not list at all. */
-export function unlistedAirports(report: Pick<OperatorReport, 'nationalTable' | 'airportsTotal'>): number {
-  return Math.max(0, report.airportsTotal - report.nationalTable.length);
 }
 
 export function heroDelta(report: OperatorReport): number | null {
