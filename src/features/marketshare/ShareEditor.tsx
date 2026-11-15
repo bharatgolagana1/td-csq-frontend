@@ -27,7 +27,7 @@ export function ShareEditor({ share, operators, canEdit, saving, onSave }: Share
       cell: (r) => (
         <span className={styles.nameCell}>
           <span className={styles.nameMain}>{r.name}</span>
-          {r.added ? <span className={styles.nameSub}>Not in this set yet</span> : null}
+          {r.added ? <span className={styles.nameSub}>{share.frozen ? 'Not in this snapshot' : 'Not in this set yet'}</span> : null}
         </span>
       ),
     },

@@ -177,6 +177,10 @@ describe('MarketSharePage', () => {
     expect(screen.queryByRole('textbox', { name: /Share for/ })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Save shares' })).toBeNull();
     expect(screen.getByText('55 %')).toBeInTheDocument();
+    // An operator outside the frozen snapshot is not "not in it yet": the set will not change.
+    const newRow = screen.getByText('New Operator').closest('tr') as HTMLElement;
+    expect(within(newRow).getByText('Not in this snapshot')).toBeInTheDocument();
+    expect(screen.queryByText('Not in this set yet')).toBeNull();
   });
 
   it('shows the error state', async () => {
