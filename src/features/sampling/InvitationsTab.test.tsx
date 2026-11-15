@@ -33,6 +33,25 @@ describe('InvitationsTab', () => {
     expect(screen.getByText('3 invitations')).toBeInTheDocument();
   });
 
+  it('shows only the skeleton while loading: no "No results" under it', async () => {
+    let release: () => void = () => undefined;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const reply = async () => {
+      await gate;
+      return list(INVITATIONS);
+    };
+    mockApi([{ method: 'GET', path: /^\/invitations$/, reply }]);
+    renderPage(<InvitationsTab cycleId="cy-26h2" acoId="" tz="Asia/Kolkata" canResend canRevoke />);
+    expect(await screen.findByRole('status')).toHaveTextContent('Loading');
+    expect(screen.queryByText('No results')).toBeNull();
+    expect(screen.queryByRole('navigation', { name: 'Pagination' })).toBeNull();
+    expect(screen.queryByText('No invitations yet')).toBeNull();
+    release();
+    expect(await screen.findByText('1–3 of 3')).toBeInTheDocument();
+  });
+
   it('filters by state', async () => {
     const api = mockApi([{ method: 'GET', path: /^\/invitations$/, reply: ({ url }) => list(INVITATIONS.filter((i) => !url.searchParams.get('state') || i.state === url.searchParams.get('state'))) }]);
     renderPage(<InvitationsTab cycleId="cy-26h2" acoId="" tz="Asia/Kolkata" canResend={false} canRevoke={false} />);

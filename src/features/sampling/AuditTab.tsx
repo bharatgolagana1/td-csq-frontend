@@ -32,7 +32,7 @@ export function AuditTab({ cycleId, acoId, tz }: AuditTabProps) {
     },
     { id: 'detail', header: 'Details', cell: (e) => <span className={styles.detail}>{describeAudit(e).detail || '—'}</span> },
     { id: 'actor', header: 'By', hideBelow: 'md', cell: (e) => <span className={styles.actor}>{e.actorEmail ?? e.actorUserId ?? 'System'}</span> },
-    { id: 'requestId', header: 'Request', width: 150, mono: true, hideBelow: 'md', cell: (e) => <span className={styles.muted}>{e.requestId}</span> },
+    { id: 'requestId', header: 'Request', width: 150, mono: true, hideBelow: 'md', cell: (e) => <span className={styles.muted}>{e.requestId || '—'}</span> },
   ];
 
   if (query.isError) return <QueryError error={query.error} title="Could not load the audit trail" onRetry={() => void query.refetch()} />;
@@ -47,16 +47,18 @@ export function AuditTab({ cycleId, acoId, tz }: AuditTabProps) {
         loading={query.isPending}
         empty={<EmptyState icon="clock" title="No sampling activity yet" description="Selection changes, locks and unlocks for this cycle appear here." />}
       />
-      <Pagination
-        page={page}
-        pageSize={pageSize}
-        total={total}
-        onPageChange={setPage}
-        onPageSizeChange={(n) => {
-          setPageSize(n);
-          setPage(1);
-        }}
-      />
+      {query.isPending ? null : (
+        <Pagination
+          page={page}
+          pageSize={pageSize}
+          total={total}
+          onPageChange={setPage}
+          onPageSizeChange={(n) => {
+            setPageSize(n);
+            setPage(1);
+          }}
+        />
+      )}
     </>
   );
 }
