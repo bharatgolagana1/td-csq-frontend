@@ -51,6 +51,7 @@ const ROWS: HistoryRow[] = [
     status: 'SUBMITTED',
     progress: { answered: 23, total: 23, pct: 100 },
     startedAt: '2026-10-02T04:00:00.000Z',
+    lastSavedAt: '2026-10-05T06:33:00.000Z',
     submittedAt: '2026-10-05T06:34:00.000Z',
     score: 4.25,
     importScore: null,
@@ -70,6 +71,7 @@ const ROWS: HistoryRow[] = [
     status: 'DRAFT',
     progress: { answered: 9, total: 23, pct: 39 },
     startedAt: '2026-10-03T04:00:00.000Z',
+    lastSavedAt: '2026-10-04T05:00:00.000Z',
     submittedAt: null,
     score: null,
     importScore: null,
@@ -90,6 +92,7 @@ const ROWS: HistoryRow[] = [
     status: 'SUBMITTED',
     progress: { answered: 46, total: 46, pct: 100 },
     startedAt: '2026-10-02T05:00:00.000Z',
+    lastSavedAt: '2026-10-05T07:30:00.000Z',
     submittedAt: '2026-10-05T07:34:00.000Z',
     score: null,
     importScore: 4.2,
@@ -161,14 +164,36 @@ describe('HistoryPage', () => {
     expect(within(customerRow).getByText('5 Oct 2026, 12:04 IST')).toBeInTheDocument();
     const selfRow = screen.getByRole('row', { name: /Priya Natarajan/ });
     expect(within(selfRow).getByText('Draft')).toBeInTheDocument();
-    // No customer type, no submitted time, no score yet.
-    expect(within(selfRow).getAllByText('—')).toHaveLength(3);
+    // A draft says when it was last saved where a submitted row has its submission; no customer type, no score yet.
+    expect(within(selfRow).getByText('Last saved')).toBeInTheDocument();
+    expect(within(selfRow).getByText('4 Oct 2026, 10:30 IST')).toBeInTheDocument();
+    expect(within(selfRow).getAllByText('—')).toHaveLength(2);
 
     await userEvent.selectOptions(screen.getByLabelText('Cycle'), 'cy1');
     expect(screen.getByRole('button', { name: 'Export CSV' })).toBeEnabled();
 
     await userEvent.click(screen.getByText('Identity hidden'));
     expect(await screen.findByText('detail a1')).toBeInTheDocument();
+  });
+
+  it('sorts by submission, newest first, unless the URL says otherwise, and shows it on the Submitted header', async () => {
+    list.mockReturnValue({ isPending: false, isError: false, data: { data: ROWS, meta: { page: 1, pageSize: 25, total: 3 } } } as unknown as ReturnType<typeof useAssessments>);
+    mount();
+    expect(list).toHaveBeenLastCalledWith(expect.objectContaining({ sort: '-submittedAt' }));
+    const submitted = screen.getByRole('columnheader', { name: /Submitted/ });
+    expect(submitted).toHaveAttribute('aria-sort', 'descending');
+    expect(screen.getByRole('columnheader', { name: /Kind/ })).toHaveAttribute('aria-sort', 'none');
+
+    await userEvent.click(within(submitted).getByRole('button'));
+    expect(list).toHaveBeenLastCalledWith(expect.objectContaining({ sort: 'submittedAt' }));
+    expect(screen.getByRole('columnheader', { name: /Submitted/ })).toHaveAttribute('aria-sort', 'ascending');
+  });
+
+  it('a draft never saved says so in the Submitted column', () => {
+    const rows: HistoryRow[] = [{ ...(ROWS[1] as HistoryRow), lastSavedAt: null, progress: { answered: 0, total: 23, pct: 0 } }];
+    list.mockReturnValue({ isPending: false, isError: false, data: { data: rows, meta: { page: 1, pageSize: 25, total: 1 } } } as unknown as ReturnType<typeof useAssessments>);
+    mount();
+    expect(within(screen.getByRole('row', { name: /Priya Natarajan/ })).getByText('Not saved yet')).toBeInTheDocument();
   });
 
   it('shows the request id and a retry when the list fails', async () => {

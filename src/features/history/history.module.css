@@ -38,6 +38,17 @@
 .dash {
   color: var(--muted);
 }
+/* A draft's Submitted cell: "Last saved" over the instant. */
+.lastSaved {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.lastSavedLabel {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
 .linkButton {
   border: 0;
   background: transparent;

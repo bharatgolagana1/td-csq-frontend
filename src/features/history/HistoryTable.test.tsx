@@ -17,6 +17,7 @@ const BASE = {
   status: 'SUBMITTED',
   progress: { answered: 23, total: 23, pct: 100 },
   startedAt: '2026-10-02T04:00:00.000Z',
+  lastSavedAt: '2026-10-05T06:30:00.000Z',
   submittedAt: '2026-10-05T06:34:00.000Z',
   importScore: null,
   exportScore: null,
@@ -27,7 +28,7 @@ const SELF: HistoryRow = { ...BASE, id: 'a2', kind: 'SELF', customerType: null, 
 
 function mount(props: Partial<HistoryTableProps>) {
   const onOpen = vi.fn();
-  render(<HistoryTable rows={[CUSTOMER, SELF]} loading={false} sort={{ id: 'startedAt', dir: 'desc' }} onSortChange={vi.fn()} onOpen={onOpen} canViewScores canViewDetails tzOf={() => 'Asia/Kolkata'} filtered={false} onClearFilters={vi.fn()} {...props} />);
+  render(<HistoryTable rows={[CUSTOMER, SELF]} loading={false} sort={{ id: 'submittedAt', dir: 'desc' }} onSortChange={vi.fn()} onOpen={onOpen} canViewScores canViewDetails tzOf={() => 'Asia/Kolkata'} filtered={false} onClearFilters={vi.fn()} {...props} />);
   return onOpen;
 }
 
@@ -57,5 +58,13 @@ describe('HistoryTable cards', () => {
     expect(within(customer).getByTitle('Score hidden')).toHaveTextContent('—');
     expect(within(self).getByText('3.5')).toBeInTheDocument();
     expect(within(self).queryByText('Score hidden')).toBeNull();
+  });
+
+  it('a draft card says when it was last saved', () => {
+    const draft: HistoryRow = { ...SELF, id: 'a3', surveyType: 'INTERNATIONAL', status: 'DRAFT', submittedAt: null, lastSavedAt: '2026-10-04T05:00:00.000Z', progress: { answered: 9, total: 23, pct: 39 } };
+    mount({ rows: [CUSTOMER, draft] });
+    const [customer, self] = within(screen.getByRole('list', { name: 'Assessments' })).getAllByRole('listitem') as [HTMLElement, HTMLElement];
+    expect(within(customer).getByText('Submitted 5 Oct 2026, 12:04 IST')).toBeInTheDocument();
+    expect(within(self).getByText('Last saved 4 Oct 2026, 10:30 IST · 9 of 23 answered')).toBeInTheDocument();
   });
 });

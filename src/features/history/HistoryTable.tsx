@@ -3,11 +3,11 @@ import { type ReactNode } from 'react';
 import { type HistoryRow } from '@/api/assessments.types';
 import { type Column, EmptyState, Pill, type SortState, Table } from '@/design/primitives';
 import { cn } from '@/lib/cn';
-import { formatDateTime, formatRating } from '@/lib/format';
+import { formatInt, formatRating } from '@/lib/format';
 
 import { HiddenScore } from './HiddenScore';
 import styles from './history.module.css';
-import { assessorLabel, canOpenAssessment, isIdentityHidden, isScoreHidden, KIND_LABELS, kindVariant, rowAnswerMode, STATUS_LABELS, statusPillVariant, TYPE_LABELS, zoneAbbr } from './historyLabels';
+import { assessorLabel, canOpenAssessment, isIdentityHidden, isScoreHidden, KIND_LABELS, kindVariant, rowAnswerMode, STATUS_LABELS, statusPillVariant, submittedCell, TYPE_LABELS } from './historyLabels';
 import { useMediaQuery } from './useMediaQuery';
 
 export type HistoryTableProps = {
@@ -27,9 +27,25 @@ export type HistoryTableProps = {
   onClearFilters: () => void;
 };
 
-function submittedLabel(row: HistoryRow, tz: string): string {
-  if (!row.submittedAt) return '—';
-  return `${formatDateTime(row.submittedAt, tz)} ${zoneAbbr(tz, new Date(row.submittedAt))}`;
+/** When it was submitted; a draft says when it was last saved instead. */
+function Submitted({ row, tz }: { row: HistoryRow; tz: string }) {
+  const { saved, text } = submittedCell(row, tz);
+  if (row.submittedAt) return <>{text}</>;
+  return saved ? (
+    <span className={styles.lastSaved}>
+      <span className={styles.lastSavedLabel}>Last saved</span>
+      <span>{text}</span>
+    </span>
+  ) : (
+    <span className={styles.lastSavedLabel}>{text}</span>
+  );
+}
+
+/** The phone card's last line: when it was submitted, or a draft's last save and progress. */
+function cardStatusLine(row: HistoryRow, tz: string): string {
+  const { saved, text } = submittedCell(row, tz);
+  if (row.submittedAt) return `Submitted ${text}`;
+  return `${saved ? `Last saved ${text}` : text} · ${formatInt(row.progress.answered)} of ${formatInt(row.progress.total)} answered`;
 }
 
 /** The single score, or the import and the export score of an IMPORT_EXPORT assessment; a dash when it is withheld. */
@@ -65,7 +81,7 @@ function Empty({ filtered, onClearFilters }: { filtered: boolean; onClearFilters
   );
 }
 
-/** Cycle · kind · customer type · assessor (masked e-mail) · status · submitted · score (import and export for an IMPORT_EXPORT assessment). Cards under 760px. */
+/** Cycle · kind · customer type · assessor (masked e-mail) · status · submitted (a draft's last save) · score (import and export for an IMPORT_EXPORT assessment). Cards under 760px. */
 export function HistoryTable({ rows, loading, sort, onSortChange, onOpen, canViewScores, canViewDetails, tzOf, filtered, onClearFilters }: HistoryTableProps) {
   const phone = useMediaQuery('(max-width: 760px)');
   const canOpen = (row: HistoryRow) => canOpenAssessment(row, canViewDetails);
@@ -107,7 +123,7 @@ export function HistoryTable({ rows, loading, sort, onSortChange, onOpen, canVie
                 ) : null}
                 <span className={styles.cardScore}>{scoreOf(row)}</span>
               </span>
-              <span className={styles.cardSubmitted}>{row.submittedAt ? `Submitted ${submittedLabel(row, tz)}` : `${row.progress.answered} of ${row.progress.total} answered`}</span>
+              <span className={styles.cardSubmitted}>{cardStatusLine(row, tz)}</span>
             </>
           );
           return (
@@ -184,7 +200,7 @@ export function HistoryTable({ rows, loading, sort, onSortChange, onOpen, canVie
         </Pill>
       ),
     },
-    { id: 'submittedAt', header: 'Submitted', width: 190, sortable: true, mono: true, hideBelow: 'md', cell: (r) => submittedLabel(r, tzOf(r.cycle.id)) },
+    { id: 'submittedAt', header: 'Submitted', width: 190, sortable: true, mono: true, hideBelow: 'md', cell: (r) => <Submitted row={r} tz={tzOf(r.cycle.id)} /> },
     { id: 'score', header: 'Score', width: 110, align: 'right', mono: true, cell: scoreOf },
   ];
 

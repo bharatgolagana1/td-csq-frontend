@@ -112,7 +112,9 @@ export default function AssessmentPage() {
                   ),
                 },
                 { key: 'Started', value: `${formatDateTime(data.startedAt, tz)} ${zone}`, mono: true },
-                { key: 'Submitted', value: data.submittedAt ? `${formatDateTime(data.submittedAt, tz)} ${zone}` : '—', mono: true },
+                data.submittedAt || !data.lastSavedAt
+                  ? { key: 'Submitted', value: data.submittedAt ? `${formatDateTime(data.submittedAt, tz)} ${zone}` : '—', mono: true }
+                  : { key: 'Last saved', value: `${formatDateTime(data.lastSavedAt, tz)} ${zone}`, mono: true },
                 { key: 'Answered', value: `${formatInt(data.progress.answered)} of ${formatInt(data.progress.total)}`, mono: true },
                 ...(rowAnswerMode(data) === 'IMPORT_EXPORT'
                   ? [
