@@ -3,7 +3,7 @@
 .customer {
   display: flex;
   flex-direction: column;
-  min-width: 180px;
+  min-width: 160px;
   line-height: 1.25;
 }
 .customerName {
@@ -26,7 +26,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 220px;
+  max-width: 160px;
   display: inline-block;
   vertical-align: middle;
 }
@@ -34,6 +34,18 @@
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
+  max-width: 112px;
+}
+/* A long tag ellipsises (its full text is the button's label) so the row menu stays on screen at 1440. */
+.tags .tagButton {
+  max-width: 100%;
+}
+.tags .tagButton > span {
+  max-width: 100%;
+}
+.tags .tagButton > span > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .muted {
   color: var(--muted);

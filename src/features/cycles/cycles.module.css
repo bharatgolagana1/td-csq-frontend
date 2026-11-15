@@ -32,6 +32,10 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* Cycles list: a long name ellipsises (full name in the title) instead of squeezing the windows column. */
+.rowName.listName {
+  max-width: 220px;
+}
 /*
  * An operator name in a table with many fixed columns: it wraps to two lines
  * (then ellipsis; the full name is the title) instead of widening the table
@@ -61,6 +65,10 @@
 .windowCell b {
   font-weight: 700;
   color: var(--ink-2);
+}
+/* A date range never breaks inside: the line wraps after "Sampling" / "Assessment" if it must. */
+.windowDates {
+  white-space: nowrap;
 }
 .pills {
   display: inline-flex;

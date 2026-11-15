@@ -84,7 +84,7 @@ export function CustomersTable({ rows, loading, sort, onSortChange, canManage, c
         <span className={styles.tags}>
           {c.tags.length === 0 ? <span className={styles.muted}>—</span> : null}
           {c.tags.map((t) => (
-            <button key={t} type="button" className={styles.tagButton} onClick={() => onTagClick(t)} aria-label={`Filter by tag ${t}`}>
+            <button key={t} type="button" className={styles.tagButton} onClick={() => onTagClick(t)} aria-label={`Filter by tag ${t}`} title={t}>
               <Tag tone="neutral">{t}</Tag>
             </button>
           ))}

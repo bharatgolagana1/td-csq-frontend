@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { type CycleSummary } from '@/api/cycles.types';
 import { Icon } from '@/design/icons';
 import { Card, type Column, EmptyState, type MenuItem, Pill, Skeleton, type SortState, statusVariant, Table } from '@/design/primitives';
+import { cn } from '@/lib/cn';
 import { formatInt } from '@/lib/format';
 
 import { CYCLE_STATUS_LABELS, CYCLE_TYPE_LABELS, formatWindow, TYPE_PILL } from './cycleLabels';
@@ -24,7 +25,9 @@ export type CyclesTableProps = {
 function Title({ cycle }: { cycle: CycleSummary }) {
   return (
     <span className={styles.rowTitle}>
-      <span className={styles.rowName}>{cycle.name}</span>
+      <span className={cn(styles.rowName, styles.listName)} title={cycle.name}>
+        {cycle.name}
+      </span>
       <span className={styles.rowCode}>{cycle.code}</span>
     </span>
   );
@@ -34,10 +37,10 @@ function Windows({ cycle }: { cycle: CycleSummary }) {
   return (
     <span className={styles.windowCell}>
       <span>
-        <b>Sampling</b> {formatWindow(cycle.sampling, cycle.tz)}
+        <b>Sampling</b> <span className={styles.windowDates}>{formatWindow(cycle.sampling, cycle.tz)}</span>
       </span>
       <span>
-        <b>Assessment</b> {formatWindow(cycle.assessment, cycle.tz)}
+        <b>Assessment</b> <span className={styles.windowDates}>{formatWindow(cycle.assessment, cycle.tz)}</span>
       </span>
     </span>
   );
