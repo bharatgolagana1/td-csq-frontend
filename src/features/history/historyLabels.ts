@@ -1,11 +1,16 @@
 import { type AnswerMode, type AssessmentKind, type AssessmentStatus, type CustomerType, type HistoryRow, type SurveyType } from '@/api/assessments.types';
 import { type PillVariant } from '@/design/primitives';
-import { describeTimeZone } from '@/lib/format';
+import { formatDateTimeZone } from '@/lib/format';
 
 export const KIND_LABELS: Record<AssessmentKind, string> = { CUSTOMER: 'Customer', SELF: 'Self' };
 export const STATUS_LABELS: Record<AssessmentStatus, string> = { DRAFT: 'Draft', SUBMITTED: 'Submitted' };
 export const TYPE_LABELS: Record<CustomerType, string> = { FF: 'Freight forwarder', CB: 'Customs broker' };
 export const SURVEY_LABELS: Record<SurveyType, string> = { DOMESTIC: 'Domestic', INTERNATIONAL: 'International' };
+
+/** The same pills as the sampling and invitation screens: International in the info tone, Domestic neutral. */
+export function surveyVariant(surveyType: SurveyType): PillVariant {
+  return surveyType === 'INTERNATIONAL' ? 'info' : 'neutral';
+}
 
 export function kindVariant(kind: AssessmentKind): PillVariant {
   return kind === 'SELF' ? 'neutral' : 'info';
@@ -45,7 +50,9 @@ export function rowAnswerMode(row: Pick<HistoryRow, 'answerMode' | 'importScore'
   return (row.importScore ?? null) !== null || (row.exportScore ?? null) !== null ? 'IMPORT_EXPORT' : 'SINGLE';
 }
 
-/** "IST" from "IST (UTC+05:30)" for table cells. */
-export function zoneAbbr(tz: string, at?: Date): string {
-  return describeTimeZone(tz, at).split(' ')[0] ?? tz;
+/** The Submitted column: when the row was submitted; for a draft, when it was last saved (`saved: true`), or that nothing has been saved yet. */
+export function submittedCell(row: Pick<HistoryRow, 'submittedAt' | 'lastSavedAt'>, tz: string): { saved: boolean; text: string } {
+  if (row.submittedAt) return { saved: false, text: formatDateTimeZone(row.submittedAt, tz) };
+  if (row.lastSavedAt) return { saved: true, text: formatDateTimeZone(row.lastSavedAt, tz) };
+  return { saved: false, text: 'Not saved yet' };
 }

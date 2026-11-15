@@ -136,7 +136,7 @@ export type SelfAssessment = AssessmentFormResponse & { answers: Answer[]; secti
 
 export type AssessorView = { name: string | null; email: string | null; revealed: boolean };
 
-/** `GET /assessments` rows. */
+/** `GET /assessments` rows; by default submitted ones newest first, then drafts by their latest save (`sort=-submittedAt`). */
 export type HistoryRow = {
   id: string;
   cycle: { id: string; code: string; name: string };
@@ -153,6 +153,8 @@ export type HistoryRow = {
   status: AssessmentStatus;
   progress: Progress;
   startedAt: string;
+  /** The latest autosave (answers or remarks); null until something is saved. */
+  lastSavedAt: string | null;
   submittedAt: string | null;
   /** The assessment's own NA-excluding mean rating, 1 dp; null until something is rated (SINGLE). */
   score: number | null;

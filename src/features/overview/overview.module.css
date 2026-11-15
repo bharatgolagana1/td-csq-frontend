@@ -127,6 +127,12 @@
   text-align: right;
   min-width: 56px;
 }
+/* "27 ready to send when the assessment opens": why Invited still reads 0. */
+.funnelNote {
+  margin: 8px 0 0;
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
 
 /* Needs attention */
 .attention {

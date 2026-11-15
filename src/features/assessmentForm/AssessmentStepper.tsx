@@ -36,8 +36,10 @@ export type AssessmentStepperProps = {
   onSubmit: () => Promise<unknown>;
   /** localStorage key of the offline replay queue. */
   storageKey?: string;
-  /** Time zone for "Saved · 12:04" (the cycle's). */
+  /** Time zone for "Saved · 12:04" and "Last saved …" (the cycle's). */
   tz?: string;
+  /** When the server last saved the draft (`lastSavedAt` of the loaded payload); shown as "Last saved …" until this visit saves. */
+  lastSavedAt?: string | null;
   readOnly?: boolean;
   initialStep?: number;
   /** Line under the submit confirm (confidentiality, "self scores are reported separately"…). */
@@ -74,8 +76,8 @@ function focusRemark(categoryId: string): boolean {
  * (answers and remarks) with jump links; Submit is enabled only when the whole
  * form is complete, flushes the draft, then confirms.
  */
-export function AssessmentStepper({ form, draft, answerMode = 'SINGLE', remarks, onSave, onSaveRemarks, onSubmit, storageKey, tz, readOnly = false, initialStep = 0, submitNote, onProgress, onStatus, onSubmitted, className }: AssessmentStepperProps) {
-  const d = useAssessmentDraft({ form, draft, remarks, save: onSave, saveRemarks: onSaveRemarks, storageKey, readOnly, answerMode });
+export function AssessmentStepper({ form, draft, answerMode = 'SINGLE', remarks, onSave, onSaveRemarks, onSubmit, storageKey, tz, lastSavedAt, readOnly = false, initialStep = 0, submitNote, onProgress, onStatus, onSubmitted, className }: AssessmentStepperProps) {
+  const d = useAssessmentDraft({ form, draft, remarks, save: onSave, saveRemarks: onSaveRemarks, storageKey, readOnly, answerMode, lastSavedAt });
   const stepCount = d.steps.length;
   const reviewIndex = stepCount;
   const [step, setStep] = useState(() => Math.min(Math.max(0, initialStep), reviewIndex));

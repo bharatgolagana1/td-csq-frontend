@@ -1,4 +1,5 @@
 import { type CycleSummary } from '@/api/cycles.types';
+import { readyToSendHint } from '@/api/invitations.types';
 import { formatInt } from '@/lib/format';
 
 import { pct } from './cycleLabels';
@@ -11,7 +12,8 @@ export type CycleMetersProps = {
 /**
  * Locked operators (of participating), invitations sent (against the expected
  * sample of operators × minimum size) and assessments completed (of invited).
- * One hue, thin tracks, the number beside each bar is the label.
+ * One hue, thin tracks, the number beside each bar is the label. Until the
+ * assessment opens, a note says how many invitations are ready to send.
  */
 export function CycleMeters({ cycle }: CycleMetersProps) {
   const { participants, progress, minSampleSize } = cycle;
@@ -29,6 +31,11 @@ export function CycleMeters({ cycle }: CycleMetersProps) {
       {rows.map((r) => (
         <MeterRow key={r.id} {...r} />
       ))}
+      {progress.readyToSend ? (
+        <span className={styles.meterNote} title={readyToSendHint(progress.readyToSend) ?? undefined}>
+          {formatInt(progress.readyToSend)} ready to send
+        </span>
+      ) : null}
     </div>
   );
 }

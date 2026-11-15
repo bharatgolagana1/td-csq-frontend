@@ -18,7 +18,6 @@ import { CategoriesCard } from './CategoriesCard';
 import { ExportButton } from './ExportButton';
 import { FeedbackCard } from './FeedbackCard';
 import { HeroCard } from './HeroCard';
-import { NationalCard } from './NationalCard';
 import { OverallCard } from './OverallCard';
 import { useDashboardSelection } from './useDashboardSelection';
 
@@ -45,9 +44,6 @@ function DashboardSkeleton() {
       </Card>
       <Card className={styles.categories}>
         <Skeleton height={300} radius={8} />
-      </Card>
-      <Card className={styles.national}>
-        <Skeleton height={440} radius={8} />
       </Card>
       <Card className={styles.assessors}>
         <Skeleton height={120} radius={8} />
@@ -91,7 +87,6 @@ export default function DashboardPage() {
         <OverallCard report={data} />
         <FeedbackCard report={data} />
         <CategoriesCard report={data} questionsTo={questionsTo} />
-        <NationalCard report={data} />
         <AssessorCard report={data} />
       </div>
     );

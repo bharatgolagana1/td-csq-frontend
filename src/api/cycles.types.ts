@@ -39,8 +39,11 @@ export type CycleSummary = {
   assessment: CycleWindow;
   minSampleSize: number;
   participants: { airports: number; operators: number };
-  /** Over the participants the caller may see: operators locked, invitations sent, assessments completed. */
-  progress: { locked: number; invited: number; completed: number };
+  /**
+   * Over the participants the caller may see: operators locked, invitations e-mailed, assessments completed.
+   * `readyToSend`: invitations prepared at lock that go out when the assessment window opens (absent on older payloads).
+   */
+  progress: { locked: number; invited: number; readyToSend?: number; completed: number };
   publishedAt: string | null;
   scoredAt: string | null;
   createdAt: string;
@@ -92,7 +95,8 @@ export type CycleMonitoring = {
   cycleId: string;
   status: CycleStatus;
   sampling: { airports: number; operators: number; sampleRequired: number; sampleLocked: number; lockedOperators: number };
-  assessment: { invited: number; started: number; completed: number; pending: number; completionRate: number };
+  /** `invited`: invitations e-mailed; `readyToSend`: prepared at lock, e-mailed when the assessment opens; `pending`: invited, not completed. */
+  assessment: { invited: number; readyToSend?: number; started: number; completed: number; pending: number; completionRate: number };
   byAirport: MonitoringAirport[];
 };
 
@@ -109,6 +113,7 @@ export type MonitoringOperator = {
   name: string;
   sampling: { status: SamplingStatus; selectedCount: number; required: number };
   invited: number;
+  readyToSend?: number;
   started: number;
   completed: number;
 };

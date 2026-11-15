@@ -8,7 +8,7 @@ import { Button, EmptyState, Skeleton } from '@/design/primitives';
 import { AssessmentStepper } from '@/features/assessmentForm';
 
 import styles from './assess.module.css';
-import { cycleTz } from './format';
+import { cycleTz, surveyTypeLabel } from './format';
 import { type AssessActions, routeFlowError } from './useAssessFlow';
 import { useFocusHeading } from './useFocusHeading';
 
@@ -142,7 +142,9 @@ export function AssessForm({ token, session, invitation, resumed, actions, onPro
   return (
     <div className={styles.formWrap}>
       <header className={styles.formHead}>
-        <p className={styles.eyebrow}>{invitation.cycle.name}</p>
+        <p className={styles.eyebrow}>
+          {invitation.cycle.name} · {surveyTypeLabel(invitation.surveyType)} survey
+        </p>
         <h1 id="assess-form-title" className={`${styles.title} ${styles.formTitle}`} tabIndex={-1} ref={heading}>
           {form.data.survey.name}
         </h1>
@@ -177,6 +179,7 @@ export function AssessForm({ token, session, invitation, resumed, actions, onPro
         onProgress={progress}
         storageKey={draftStorageKey(token)}
         tz={cycleTz(invitation)}
+        lastSavedAt={draft.data.lastSavedAt ?? form.data.assessment.lastSavedAt}
         readOnly={draft.data.status === 'SUBMITTED'}
         submitNote={`Your answers reach ${invitation.operator.name} only in aggregate. Nobody there sees an individual response.`}
       />

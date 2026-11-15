@@ -3,7 +3,7 @@ import { type ReactNode } from 'react';
 
 import { Icon } from '@/design/icons';
 import { cn } from '@/lib/cn';
-import { DEFAULT_TZ } from '@/lib/format';
+import { DEFAULT_TZ, formatDateTimeZone } from '@/lib/format';
 
 import styles from './parts.module.css';
 import { type SaveStatus as SaveStatusValue } from './types';
@@ -11,7 +11,7 @@ import { type SaveStatus as SaveStatusValue } from './types';
 export type SaveStatusProps = {
   status: SaveStatusValue;
   onRetry?: () => void;
-  /** Time zone for "Saved · 12:04" (the cycle's). */
+  /** Time zone for "Saved · 12:04" and "Last saved 7 Oct 2026, 12:04 IST" (the cycle's). */
   tz?: string;
   className?: string;
 };
@@ -24,13 +24,24 @@ function timeOf(iso: string, tz: string): string {
   }
 }
 
-/** "Saved · 12:04" / "Saving…" / "Offline — kept on this device" / "Could not save · Retry". */
+/** "Last saved 7 Oct 2026, 12:04 IST" (an earlier visit) / "Saved · 12:04" / "Saving…" / "Offline — kept on this device" / "Could not save · Retry". */
 export function SaveStatus({ status, onRetry, tz = DEFAULT_TZ, className }: SaveStatusProps) {
   let body: ReactNode = null;
   let tone: string | undefined;
   switch (status.kind) {
     case 'idle':
       body = null;
+      break;
+    case 'lastSaved':
+      tone = cn(styles.saveSaved, styles.saveEarlier);
+      body = (
+        <>
+          <Icon name="check" size={16} className={styles.saveIcon} />
+          <span>
+            Last saved <span className={styles.saveTime}>{formatDateTimeZone(status.at, tz)}</span>
+          </span>
+        </>
+      );
       break;
     case 'saving':
       tone = styles.saveSaving;

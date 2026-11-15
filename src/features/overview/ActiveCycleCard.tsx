@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 
 import { type CycleSummary } from '@/api/cycles.types';
+import { readyToSendHint } from '@/api/invitations.types';
 import { Card, Pill, statusVariant } from '@/design/primitives';
 import { useShell } from '@/shell/ShellContext';
 import { formatCountdown, formatDateTime, formatInt, humanise } from '@/lib/format';
@@ -49,12 +50,13 @@ export function funnelStages(c: CycleSummary): FunnelStage[][] {
   ];
 }
 
-/** One active cycle: status, next deadline countdown and the sampling → assessment funnel. */
+/** One active cycle: status, next deadline countdown and the sampling → assessment funnel; until the assessment opens, how many invitations are ready to send. */
 export function ActiveCycleCard({ cycle }: { cycle: CycleSummary }) {
   const { href } = useShell();
   const deadline = deadlineOf(cycle);
   const groups = funnelStages(cycle);
   const stages = groups.flat();
+  const ready = readyToSendHint(cycle.progress.readyToSend);
   return (
     <Link to={href(`/cycles/${cycle.id}`)} className={styles.cardLink} aria-label={`${cycle.name}, ${humanise(cycle.status)}`}>
       <Card as="article">
@@ -90,6 +92,7 @@ export function ActiveCycleCard({ cycle }: { cycle: CycleSummary }) {
             </div>
           ))}
         </div>
+        {ready ? <p className={styles.funnelNote}>{ready}</p> : null}
       </Card>
     </Link>
   );

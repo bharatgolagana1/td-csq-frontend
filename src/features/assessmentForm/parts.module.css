@@ -56,6 +56,13 @@
 .saveSaved {
   color: var(--muted);
 }
+/* "Last saved 7 Oct 2026, 12:04 IST" is long: on a phone it wraps before the date rather than squeezing the progress bar. */
+.saveEarlier {
+  white-space: normal;
+}
+.saveEarlier .saveTime {
+  white-space: nowrap;
+}
 .saveSaved .saveIcon {
   color: var(--success);
 }

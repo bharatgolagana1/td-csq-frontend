@@ -48,7 +48,7 @@ describe('DashboardPage', () => {
     expect(fetchMock.mock.calls.some(([input]) => String(input).includes('/reports/operator'))).toBe(false);
   });
 
-  it('renders the scored dashboard: hero, bands, paired bars and the ranking with the operator’s own airport highlighted', async () => {
+  it('renders the scored dashboard: hero with the own rank, bands and paired bars, and no airport ranking table', async () => {
     const fetchMock = mockApi({ '/cycles': CYCLE_OPTIONS, '/settings': SETTINGS, '/reports/operator/org-csc': OPERATOR_REPORT });
     renderPage(<DashboardPage />);
 
@@ -85,17 +85,10 @@ describe('DashboardPage', () => {
     expect(screen.getByRole('link', { name: /Open sampling/ })).toHaveAttribute('href', '/sampling');
     expect(screen.getByRole('link', { name: /Question-level table/ })).toHaveAttribute('href', expect.stringContaining('/reports/operator/org-csc/questions'));
 
-    // All-India: ranked rows, own row highlighted, the unranked airports in the footnote.
-    const ranking = screen.getByRole('table', { name: 'Ranking' });
-    expect(within(ranking).getAllByRole('row')).toHaveLength(13);
-    const own = within(ranking).getByText('Delhi').closest('tr');
-    expect(own).toHaveClass('highlight');
-    expect(own).toHaveAttribute('aria-current', 'true');
-    expect(within(own as HTMLElement).getByText('You')).toBeInTheDocument();
-    expect(within(ranking).getByText('Mumbai').closest('tr')).not.toHaveClass('highlight');
-    expect(within(ranking).queryByText('Kolkata')).toBeNull();
-    expect(screen.getByText('Kolkata, Nagpur live under Phase I · not rated this cycle')).toBeInTheDocument();
-    expect(screen.getByText(/other operators’ figures are never shared/)).toBeInTheDocument();
+    // No airport rankings on the operator dashboard: the own rank stays on the hero, the All-India table is gone.
+    expect(screen.queryByText('All-India ratings & rankings')).toBeNull();
+    expect(screen.queryByRole('table', { name: 'Ranking' })).toBeNull();
+    expect(screen.queryByText('Mumbai')).toBeNull();
     expect(screen.queryByText('Provisional')).toBeNull();
 
     // The selection the cycle list resolved (newest SCORED) is what was requested.
@@ -172,13 +165,21 @@ describe('DashboardPage', () => {
     expect(screen.getByText('No answers to show')).toBeInTheDocument();
   });
 
+  it('explains an Invited of 0 on the assessor card while the invitations wait for the assessment window', async () => {
+    const waiting = { ...OPERATOR_REPORT_PROVISIONAL, assessorStats: { total: 0, completed: 0, inProgress: 0, yetToStart: 0, readyToSend: 27 } };
+    mockApi({ '/cycles': CYCLE_OPTIONS, '/settings': SETTINGS, '/reports/operator/org-csc': waiting });
+    renderPage(<DashboardPage />, { path: '/dashboard?cycleId=c-26h2' });
+    const invited = (await screen.findByText('Invited')).parentElement as HTMLElement;
+    expect(invited).toHaveTextContent(/^Invited0/);
+    expect(within(invited).getByText('27 ready to send when the assessment opens')).toBeInTheDocument();
+  });
+
   it('flags a live cycle as provisional', async () => {
     mockApi({ '/cycles': CYCLE_OPTIONS, '/settings': SETTINGS, '/reports/operator/org-csc': OPERATOR_REPORT_PROVISIONAL });
     renderPage(<DashboardPage />, { path: '/dashboard?cycleId=c-26h2' });
     expect(await screen.findByText('41 assessments · 0 self · 41 customer')).toBeInTheDocument();
     expect(screen.getAllByText('Provisional').length).toBeGreaterThan(1);
     expect(screen.getByText('Not ranked')).toBeInTheDocument();
-    expect(screen.getByText('Ranked once the cycle is scored')).toBeInTheDocument();
   });
 
   it('shows the request id and a retry on failure', async () => {

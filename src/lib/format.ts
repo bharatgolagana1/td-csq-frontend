@@ -72,6 +72,14 @@ export function describeTimeZone(tz: string, at = new Date()): string {
   }
 }
 
+/** ISO instant → "7 Oct 2026, 14:30 IST": the date and time in `tz` with the zone's abbreviation (its UTC offset where the runtime names none). */
+export function formatDateTimeZone(iso: string | Date | null | undefined, tz = DEFAULT_TZ): string {
+  if (!iso) return '—';
+  const d = typeof iso === 'string' ? parseISO(iso) : iso;
+  if (Number.isNaN(d.getTime())) return '—';
+  return `${formatDateTime(d, tz)} ${describeTimeZone(tz, d).split(' ')[0] ?? tz}`;
+}
+
 const ACRONYMS = new Set(['aco', 'acfi', 'ff', 'cb', 'na', 'otp', 'csq', 'cto', 'rbac', 'csv']);
 
 /** SUPER_ADMIN → "Super admin"; ACO_ADMIN → "ACO admin"; ASSESSMENT_OPEN → "Assessment open". */

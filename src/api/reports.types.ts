@@ -61,19 +61,8 @@ export type FeedbackBucket = {
   pct: number;
 };
 
-export type AssessorStats = { total: number; completed: number; inProgress: number; yetToStart: number };
-
-/** What an operator sees of the country: airport ratings and ranks, never another operator's figures. */
-export type NationalTableRow = {
-  airportIata: string;
-  airportName: string;
-  rating: number | null;
-  rank: number | null;
-  /** Airports with a figure in this table. */
-  rankOf: number;
-  /** True on the airport the operator works at. */
-  isOwn: boolean;
-};
+/** `total`: invitations e-mailed; `readyToSend`: prepared at lock, e-mailed when the assessment window opens (absent on older payloads). */
+export type AssessorStats = { total: number; completed: number; inProgress: number; yetToStart: number; readyToSend?: number };
 
 /** GET /reports/operator/:acoId */
 export type OperatorReport = {
@@ -91,9 +80,6 @@ export type OperatorReport = {
   assessorStats: AssessorStats;
   /** Submitted assessments behind the figures: customer returns + the self-assessment. */
   assessments: AssessmentCounts;
-  nationalTable: NationalTableRow[];
-  /** Airports live on the platform (Phase I), whether or not they are in the table. */
-  airportsTotal: number;
 };
 
 export type AssessmentCounts = { total: number; customer: number; self: number };
@@ -161,7 +147,10 @@ export type Participation = {
   airports: number;
   operators: number;
   sampleLocked: number;
+  /** Invitations e-mailed. */
   invited: number;
+  /** Invitations prepared at lock, e-mailed when the assessment window opens (absent on older payloads). */
+  readyToSend?: number;
   started: number;
   completed: number;
   pending: number;

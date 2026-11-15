@@ -52,6 +52,13 @@ describe('NationalReportPage', () => {
     expect(screen.getByText('Category averages')).toBeInTheDocument();
   });
 
+  it('says how many invitations are ready to send beside an Invited of 0', async () => {
+    mockApi({ '/cycles': CYCLE_OPTIONS, '/reports/national': { ...NATIONAL_REPORT, participation: { ...NATIONAL_REPORT.participation, invited: 0, readyToSend: 27, started: 0, completed: 0, pending: 0, completionRate: 0 } } });
+    renderPage(<NationalReportPage />);
+    const invited = (await screen.findByText('Invited')).parentElement as HTMLElement;
+    expect(within(invited).getByText('27 ready to send when the assessment opens')).toBeInTheDocument();
+  });
+
   it('shows an empty state without a reportable cycle', async () => {
     mockApi({ '/cycles': [] });
     renderPage(<NationalReportPage />);

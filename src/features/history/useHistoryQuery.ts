@@ -11,7 +11,8 @@ export const FILTER_KEYS = ['cycleId', 'kind', 'status', 'customerType', 'survey
 export type FilterKey = (typeof FILTER_KEYS)[number];
 export type HistoryFilters = Record<FilterKey, string>;
 
-const DEFAULT_SORT: SortState = { id: 'startedAt', dir: 'desc' };
+/** Newest submission first, drafts after by their latest save (the API's order for `-submittedAt`); the Submitted header shows it. */
+export const DEFAULT_SORT: SortState = { id: 'submittedAt', dir: 'desc' };
 
 function parseSort(raw: string | null): SortState {
   if (!raw) return DEFAULT_SORT;

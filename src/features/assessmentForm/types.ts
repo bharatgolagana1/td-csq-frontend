@@ -14,8 +14,10 @@ export type LocalAnswer = {
 
 export type AnswerPatch = Partial<Omit<LocalAnswer, 'questionId' | 'direction'>>;
 
+/** `lastSaved`: nothing saved in this visit yet, but the server holds an earlier save (`lastSavedAt` of the loaded draft). */
 export type SaveStatus =
   | { kind: 'idle' }
+  | { kind: 'lastSaved'; at: string }
   | { kind: 'saving' }
   | { kind: 'saved'; at: string }
   | { kind: 'offline'; pending: number }

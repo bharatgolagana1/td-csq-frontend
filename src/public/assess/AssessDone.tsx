@@ -2,7 +2,7 @@ import { type PublicInvitation } from '@/api/publicAssess.types';
 import { Icon } from '@/design/icons';
 
 import styles from './assess.module.css';
-import { cycleTz, formatZoned } from './format';
+import { cycleTz, formatZoned, surveyTypeLabel } from './format';
 import { useFocusHeading } from './useFocusHeading';
 
 export type AssessDoneProps = {
@@ -10,7 +10,7 @@ export type AssessDoneProps = {
   submittedAt: string;
 };
 
-/** State `done`: the thank-you with the submission time in the cycle's zone. */
+/** State `done`: the thank-you with the survey it was for and the submission time in the cycle's zone. */
 export function AssessDone({ invitation, submittedAt }: AssessDoneProps) {
   const heading = useFocusHeading<HTMLHeadingElement>();
   const airport = invitation.operator.airport;
@@ -19,7 +19,7 @@ export function AssessDone({ invitation, submittedAt }: AssessDoneProps) {
       <span className={`${styles.closedIcon} ${styles.success}`} aria-hidden="true">
         <Icon name="check" size={24} />
       </span>
-      <p className={styles.eyebrow}>Submitted</p>
+      <p className={styles.eyebrow}>Submitted · {surveyTypeLabel(invitation.surveyType)} survey</p>
       <h1 id="assess-done-title" className={styles.title} tabIndex={-1} ref={heading}>
         Thank you
       </h1>

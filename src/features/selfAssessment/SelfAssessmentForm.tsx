@@ -72,6 +72,7 @@ export function SelfAssessmentForm({ cycle, surveyType }: SelfAssessmentFormProp
         onSubmit={() => submit.mutateAsync()}
         storageKey={`csq.self.${org.id}.${cycle.id}.${surveyType}`}
         tz={cycle.tz}
+        lastSavedAt={data.assessment.lastSavedAt}
         submitNote={SELF_NOTE}
         onSubmitted={() => toast.success('Self-assessment submitted', { description: 'Your answers are now locked.' })}
       />

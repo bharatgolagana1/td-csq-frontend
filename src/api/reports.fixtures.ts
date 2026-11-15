@@ -67,22 +67,22 @@ export const AIRPORT_OPTIONS: AirportOption[] = [
 const DEL = { id: 'ap-del', iata: 'DEL', name: 'Delhi' };
 const CSC = { id: 'org-csc', code: 'CSC-DEL', name: 'Cargo Service Center', airport: DEL };
 
-/** `rankOf` = airports with a figure (12); `isOwn` marks the operator's airport (DEL). */
-const NATIONAL_TABLE: OperatorReport['nationalTable'] = [
-  { airportIata: 'BOM', airportName: 'Mumbai', rating: 4.42, rank: 1, rankOf: 12, isOwn: false },
-  { airportIata: 'BLR', airportName: 'Bengaluru', rating: 4.31, rank: 2, rankOf: 12, isOwn: false },
-  { airportIata: 'DEL', airportName: 'Delhi', rating: 4.08, rank: 3, rankOf: 12, isOwn: true },
-  { airportIata: 'HYD', airportName: 'Hyderabad', rating: 3.98, rank: 4, rankOf: 12, isOwn: false },
-  { airportIata: 'MAA', airportName: 'Chennai', rating: 3.91, rank: 5, rankOf: 12, isOwn: false },
-  { airportIata: 'AMD', airportName: 'Ahmedabad', rating: 3.86, rank: 6, rankOf: 12, isOwn: false },
-  { airportIata: 'COK', airportName: 'Kochi', rating: 3.8, rank: 7, rankOf: 12, isOwn: false },
-  { airportIata: 'PNQ', airportName: 'Pune', rating: 3.74, rank: 8, rankOf: 12, isOwn: false },
-  { airportIata: 'GOI', airportName: 'Goa', rating: 3.66, rank: 9, rankOf: 12, isOwn: false },
-  { airportIata: 'ATQ', airportName: 'Amritsar', rating: 3.61, rank: 10, rankOf: 12, isOwn: false },
-  { airportIata: 'LKO', airportName: 'Lucknow', rating: 3.52, rank: 11, rankOf: 12, isOwn: false },
-  { airportIata: 'JAI', airportName: 'Jaipur', rating: 3.4, rank: 12, rankOf: 12, isOwn: false },
-  { airportIata: 'CCU', airportName: 'Kolkata', rating: null, rank: null, rankOf: 12, isOwn: false },
-  { airportIata: 'NAG', airportName: 'Nagpur', rating: null, rank: null, rankOf: 12, isOwn: false },
+/** The national airport ranking: IATA, name, weighted rating and rank (12 airports with a figure, two without). */
+const AIRPORT_RANKING: [string, string, number | null, number | null][] = [
+  ['BOM', 'Mumbai', 4.42, 1],
+  ['BLR', 'Bengaluru', 4.31, 2],
+  ['DEL', 'Delhi', 4.08, 3],
+  ['HYD', 'Hyderabad', 3.98, 4],
+  ['MAA', 'Chennai', 3.91, 5],
+  ['AMD', 'Ahmedabad', 3.86, 6],
+  ['COK', 'Kochi', 3.8, 7],
+  ['PNQ', 'Pune', 3.74, 8],
+  ['GOI', 'Goa', 3.66, 9],
+  ['ATQ', 'Amritsar', 3.61, 10],
+  ['LKO', 'Lucknow', 3.52, 11],
+  ['JAI', 'Jaipur', 3.4, 12],
+  ['CCU', 'Kolkata', null, null],
+  ['NAG', 'Nagpur', null, null],
 ];
 
 function category(code: string, name: string, customer: number, n: number, self: number | null, previous: number | null, subs: [string, string, number, number | null, number | null][]): CategoryReport {
@@ -170,8 +170,6 @@ export const OPERATOR_REPORT: OperatorReport = {
   byStakeholder: { FF: { mean: 4.21, n: 84 }, CB: { mean: 4.03, n: 44 } },
   assessorStats: { total: 150, completed: 128, inProgress: 9, yetToStart: 13 },
   assessments: { total: 129, customer: 128, self: 1 },
-  nationalTable: NATIONAL_TABLE,
-  airportsTotal: 14,
 };
 
 /** The same operator while the live cycle runs: provisional figures, no rank yet. */
@@ -186,7 +184,6 @@ export const OPERATOR_REPORT_PROVISIONAL: OperatorReport = {
   },
   assessorStats: { total: 150, completed: 41, inProgress: 22, yetToStart: 87 },
   assessments: { total: 41, customer: 41, self: 0 },
-  nationalTable: [],
 };
 
 /** Below the minimum-responses rule: every figure hidden. */
@@ -298,15 +295,15 @@ export const NATIONAL_REPORT: NationalReport = {
   surveyType: 'DOMESTIC',
   direction: 'SINGLE',
   provisional: false,
-  airports: NATIONAL_TABLE.map((row) => ({
-    id: `ap-${row.airportIata.toLowerCase()}`,
-    iata: row.airportIata,
-    name: row.airportName,
-    rating: row.rating,
-    rank: row.rank,
+  airports: AIRPORT_RANKING.map(([iata, name, rating, rank]) => ({
+    id: `ap-${iata.toLowerCase()}`,
+    iata,
+    name,
+    rating,
+    rank,
     rankOf: 12,
-    coveredSharePct: row.rating === null ? 0 : 100,
-    marketShareApplied: row.rating !== null,
+    coveredSharePct: rating === null ? 0 : 100,
+    marketShareApplied: rating !== null,
   })),
   operators: [
     { acoId: 'org-mial', code: 'MCT-BOM', name: 'Mumbai Cargo Terminal', airport: { id: 'ap-bom', iata: 'BOM', name: 'Mumbai' }, rating: 4.42, n: 141, rank: 1, rankOf: 14 },
