@@ -163,7 +163,9 @@ export function HistoryTable({ rows, loading, sort, onSortChange, onOpen, canVie
       cell: (r) => (
         <span className={styles.cycle}>
           <span className={styles.cycleCode}>{r.cycle.code}</span>
-          <span className={styles.cycleName}>{r.cycle.name}</span>
+          <span className={styles.cycleName} title={r.cycle.name}>
+            {r.cycle.name}
+          </span>
         </span>
       ),
     },
@@ -200,7 +202,11 @@ export function HistoryTable({ rows, loading, sort, onSortChange, onOpen, canVie
       cell: (r) => (
         <span className={styles.assessor}>
           <span className={cn(styles.assessorName, isIdentityHidden(r) && styles.identityHidden)}>{assessorLabel(r)}</span>
-          {r.assessorEmailMasked ? <span className={styles.assessorEmail}>{r.assessorEmailMasked}</span> : null}
+          {r.assessorEmailMasked ? (
+            <span className={styles.assessorEmail} title={r.assessorEmailMasked}>
+              {r.assessorEmailMasked}
+            </span>
+          ) : null}
         </span>
       ),
     },
@@ -215,7 +221,7 @@ export function HistoryTable({ rows, loading, sort, onSortChange, onOpen, canVie
         </Pill>
       ),
     },
-    { id: 'submittedAt', header: 'Submitted', width: 190, sortable: true, mono: true, hideBelow: 'md', cell: (r) => <Submitted row={r} tz={tzOf(r.cycle.id)} /> },
+    { id: 'submittedAt', header: 'Submitted', width: 172, sortable: true, mono: true, hideBelow: 'md', cell: (r) => <Submitted row={r} tz={tzOf(r.cycle.id)} /> },
     { id: 'score', header: 'Score', width: 110, align: 'right', mono: true, cell: scoreOf },
   ];
 
