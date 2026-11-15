@@ -45,7 +45,9 @@ export function AssessLanding({ token, invitation, note, onCodeSent, onExpired }
           <span>Your session ended. Request a new code to continue — your saved answers are kept.</span>
         </p>
       ) : null}
-      <p className={styles.eyebrow}>Cargo Service Quality · {invitation.cycle.name}</p>
+      <p className={styles.eyebrow}>
+        Cargo Service Quality · {invitation.cycle.name} · {surveyTypeLabel(invitation.surveyType)} survey
+      </p>
       <h1 id="assess-landing-title" className={styles.title} tabIndex={-1} ref={heading}>
         {invitation.operator.name}
       </h1>

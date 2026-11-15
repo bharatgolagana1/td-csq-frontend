@@ -118,6 +118,17 @@ describe('/assess/:token state machine', () => {
     expect(screen.getByText('Last saved', { exact: false }).closest('[role="status"]')).toHaveTextContent('Last saved 7 Oct 2026, 15:34 IST');
   });
 
+  it('names the survey on the landing and the form', async () => {
+    const user = userEvent.setup();
+    mockApi(happyBackend({ invitation: { surveyType: 'INTERNATIONAL' } }));
+    renderAssess();
+    expect(await screen.findByText('Cargo Service Quality · CSQ 2026 · Q4 · International survey')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Send me a code' }));
+    await screen.findByRole('heading', { name: 'Enter the code' });
+    await user.keyboard('123456');
+    expect(await screen.findByText('CSQ 2026 · Q4 · International survey')).toBeInTheDocument();
+  });
+
   it('an expired stored session is ignored and the landing shows', async () => {
     sessionStorage.setItem(`csq.assess.${TOKEN}`, JSON.stringify({ ...session, expiresAt: '2020-01-01T00:00:00Z' }));
     mockApi(happyBackend());
@@ -217,6 +228,7 @@ describe('/assess/:token state machine', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Submit' }));
 
     expect(await screen.findByRole('heading', { name: 'Thank you' })).toBeInTheDocument();
+    expect(screen.getByText('Submitted · Domestic survey')).toBeInTheDocument();
     expect(screen.getByText(/Submitted 7 Oct 2026, 15:35/)).toBeInTheDocument();
 
     const saves = calls.filter((c) => c.method === 'PATCH' && c.path === `${base}/answers`);
