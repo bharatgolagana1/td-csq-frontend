@@ -37,7 +37,7 @@ export function PublishDialog({ open, onClose, onConfirm, loading, code, name, a
       title={refused ? 'Not published yet' : `Publish ${code}?`}
       description={
         refused
-          ? 'The server refused the publish. Fix the items below and try again; the draft is saved.'
+          ? 'Your cycle is saved as a draft — nothing is lost. Fix the items below, then try again.'
           : `${name} · ${airports} airports · ${operators} operators`
       }
       dismissible={!loading}

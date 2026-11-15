@@ -86,22 +86,30 @@ export type Registration = {
 };
 
 /**
- * The airport's current share set for the reviewer. `projectedTotal` is the
- * total after approving a SUBMITTED registration as requested.
+ * The airport's current share set for the reviewer. `operators` are the
+ * operators ACTIVE at the airport with their current share (0 when unset):
+ * the rows an approval rebalances. `projectedTotal` is the total after
+ * approving a SUBMITTED registration as requested with the others unchanged.
  */
 export type RegistrationMarketShare = {
   entries: MarketShareEntry[];
   total: number;
   projectedTotal: number;
+  operators: MarketShareEntry[];
 };
 
 /** GET /registrations/:id and the approve/reject responses. Null share for AIRPORT registrations. */
 export type RegistrationDetail = Registration & { marketShare: RegistrationMarketShare | null };
 
+/** One operator's share in a set sent with a new operator (approval, operator creation). */
+export type ShareEntryInput = { acoId: string; sharePct: number };
+
 export type ApproveRegistrationInput = {
   code: string;
-  /** Overrides the requested share (ACO only). */
+  /** The new operator's share (ACO only); omitted = the requested share. */
   marketSharePct?: number;
+  /** ACO only: every operator already active at the airport with its new share. With the new one the set must total 100. */
+  shares?: ShareEntryInput[];
   note?: string;
 };
 

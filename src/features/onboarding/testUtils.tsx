@@ -121,5 +121,18 @@ export const SUBMITTED_DETAIL: RegistrationDetail = {
     ],
     total: 100,
     projectedTotal: 110,
+    operators: [
+      { acoId: 'org-clb', code: 'CLB-DEL', name: 'Çelebi Delhi Cargo', sharePct: 45 },
+      { acoId: 'org-csc', code: 'CSC-DEL', name: 'Cargo Service Center', sharePct: 55 },
+    ],
   },
+};
+
+/** The first operator at an airport: nobody to rebalance, so it must hold 100. */
+export const FIRST_AT_AIRPORT: RegistrationDetail = {
+  ...SUBMITTED,
+  id: 'reg-2',
+  organisation: { ...SUBMITTED.organisation, name: 'Jaipur Cargo Services' },
+  marketSharePct: 40,
+  marketShare: { entries: [], total: 0, projectedTotal: 40, operators: [] },
 };

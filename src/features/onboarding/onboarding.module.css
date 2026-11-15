@@ -184,6 +184,25 @@
   font-variant-numeric: tabular-nums;
   font-weight: 500;
 }
+.shareEditRow {
+  align-items: center;
+}
+.shareInput {
+  width: 120px;
+  flex: none;
+}
+.shareHint {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+.shareFitRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
 .shareTotals {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -214,6 +233,12 @@
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   background: var(--surface-2);
+}
+.decisionHint {
+  margin-right: auto;
+  align-self: center;
+  font-size: var(--text-sm);
+  color: var(--warn);
 }
 .decisionActions {
   display: flex;

@@ -2,14 +2,16 @@ import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/rea
 
 import { airportKeys } from './airports';
 import { api } from './client';
-import { type MarketShare, type MarketShareCycle, type MarketShareInput } from './marketshare.types';
+import { type MarketShare, type MarketShareCycle, type MarketShareInput, type ShareTotal } from './marketshare.types';
 
-/* market-share hooks (§6 organisations: GET/PUT /airports/:id/market-share). Keys: ['marketshare', ...]. */
+/* market-share hooks (§6 organisations: GET/PUT /airports/:id/market-share,
+   GET /market-share/totals). Keys: ['marketshare', ...]. */
 
 export const marketShareKeys = {
   all: ['marketshare'] as const,
   airport: (airportId: string, cycleId: string | null) => ['marketshare', airportId, cycleId ?? 'current'] as const,
   cycles: ['marketshare', 'cycles'] as const,
+  totals: (airportIds: readonly string[]) => ['marketshare', 'totals', airportIds] as const,
 };
 
 function fetchMarketShare(airportId: string, cycleId: string | null, signal?: AbortSignal) {
@@ -22,6 +24,19 @@ export function useMarketShare(airportId: string | undefined, cycleId: string | 
     queryKey: marketShareKeys.airport(airportId ?? '', cycleId),
     queryFn: ({ signal }) => fetchMarketShare(airportId ?? '', cycleId, signal),
     enabled: enabled && Boolean(airportId),
+  });
+}
+
+/**
+ * Current share totals for many airports in one request (what publishing a
+ * cycle checks per airport), as airportId → total. Pass a stable, sorted list.
+ */
+export function useShareTotals(airportIds: readonly string[], enabled = true) {
+  return useQuery({
+    queryKey: marketShareKeys.totals(airportIds),
+    queryFn: ({ signal }) => api.get<ShareTotal[]>('/market-share/totals', { query: { airportIds: airportIds.join(',') }, signal }),
+    select: (rows) => new Map(rows.map((row) => [row.airportId, row.total])),
+    enabled: enabled && airportIds.length > 0,
   });
 }
 

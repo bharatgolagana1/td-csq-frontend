@@ -1,8 +1,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render } from '@testing-library/react';
 import { type ReactNode } from 'react';
-import { MemoryRouter, Routes } from 'react-router-dom';
-import { vi } from 'vitest';
+import { createMemoryRouter, createRoutesFromElements, MemoryRouter, Outlet, Route, RouterProvider, Routes } from 'react-router-dom';
+import { onTestFinished, vi } from 'vitest';
 
 import { AuthProvider, type Session } from '@/auth/session';
 import { ToastProvider } from '@/design/primitives/Toast/Toast';
@@ -114,4 +114,44 @@ export function renderWithProviders(ui: ReactNode, { path = '/', session = platf
       </ToastProvider>
     </QueryClientProvider>,
   );
+}
+
+/**
+ * jsdom's AbortSignal is not Node's, and the data router builds every navigation
+ * as `new Request(url, { signal })`, which undici then rejects. Dropping the
+ * signal keeps navigation working in tests (nothing here aborts a loader).
+ */
+class SignalFreeRequest extends Request {
+  constructor(input: RequestInfo | URL, init?: RequestInit) {
+    super(input, init ? { ...init, signal: undefined } : undefined);
+  }
+}
+
+/** Like `renderWithProviders`, on a data router: the cycle builder's leave guard needs `useBlocker`. */
+export function renderInDataRouter(ui: ReactNode, { path = '/', session = platformSession() }: { path?: string; session?: Session } = {}) {
+  vi.stubGlobal('Request', SignalFreeRequest);
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 }, mutations: { retry: false } } });
+  onTestFinished(() => qc.clear());
+  const router = createMemoryRouter(
+    createRoutesFromElements(
+      <Route
+        element={
+          <AuthProvider session={session}>
+            <Outlet />
+          </AuthProvider>
+        }
+      >
+        {ui}
+      </Route>,
+    ),
+    { initialEntries: [path], future: { v7_relativeSplatPath: true } },
+  );
+  const result = render(
+    <QueryClientProvider client={qc}>
+      <ToastProvider>
+        <RouterProvider router={router} future={{ v7_startTransition: true }} />
+      </ToastProvider>
+    </QueryClientProvider>,
+  );
+  return { ...result, router };
 }

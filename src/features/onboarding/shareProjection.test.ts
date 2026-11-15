@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { describeShareFit, projectedTotal, shareFit } from './shareProjection';
+import { describeShareFit, formatShare, parseShare, projectedTotal, scaleToFit, shareFit } from './shareProjection';
 
 describe('shareProjection', () => {
   it('adds the requested share to the current total, to two decimals', () => {
@@ -22,5 +22,29 @@ describe('shareProjection', () => {
     expect(describeShareFit(100)).toBe('Totals 100 %');
     expect(describeShareFit(110)).toBe('10 % over 100');
     expect(describeShareFit(95.5)).toBe('4.5 % short of 100');
+  });
+
+  it('parses what the reviewer types: blank is 0, at most two decimals, never above 100', () => {
+    expect(parseShare('')).toBe(0);
+    expect(parseShare(' 12.5 ')).toBe(12.5);
+    expect(parseShare('100')).toBe(100);
+    expect(parseShare('100.5')).toBeNull();
+    expect(parseShare('1.234')).toBeNull();
+    expect(parseShare('-3')).toBeNull();
+    expect(parseShare('abc')).toBeNull();
+    expect(formatShare(49.5)).toBe('49.5 %');
+    expect(formatShare(100)).toBe('100 %');
+  });
+
+  it('scales the others into the room the new operator leaves, summing to it exactly', () => {
+    expect(scaleToFit([55, 45], 90)).toEqual([49.5, 40.5]);
+    // Thirds: the rounding drift lands on the largest so the set still sums to the room.
+    const thirds = scaleToFit([1, 1, 1], 100);
+    expect(thirds.reduce((a, b) => a + b, 0)).toBeCloseTo(100, 10);
+    expect(thirds).toEqual([33.34, 33.33, 33.33]);
+    // Nobody holds anything yet: split evenly.
+    expect(scaleToFit([0, 0], 60)).toEqual([30, 30]);
+    expect(scaleToFit([60, 40], 0)).toEqual([0, 0]);
+    expect(scaleToFit([], 50)).toEqual([]);
   });
 });

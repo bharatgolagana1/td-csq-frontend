@@ -32,25 +32,26 @@ const plan = z.object({
   everyDays: count.min(1, 'At least every day').max(60, 'At most every 60 days'),
 });
 
-export const builderSchema = z
-  .object({
-    name: z.string().trim().min(1, 'Give the cycle a name').max(200, 'At most 200 characters'),
-    code: z.string().trim().toUpperCase().regex(CODE_RE, '2–30 characters: letters, digits, _ or -'),
-    type: z.enum(['DOMESTIC', 'INTERNATIONAL', 'BOTH']),
-    answerMode: z.enum(['IMPORT_EXPORT', 'SINGLE']),
-    tz: z.string().trim().min(1, 'Choose a time zone'),
-    /** Calendar date the windows were derived from; informational once the windows exist. */
-    initiationDate: z.string().refine((v) => v === '' || isCalendarDate(v), 'Enter a real date'),
-    sampling: z.object({ start: wall, end: wall }),
-    assessment: z.object({ start: wall, end: wall }),
-    minSampleSize: count.min(0, 'At least 0').max(100000, 'At most 100 000'),
-    reminders: z.object({ sampling: plan, assessment: plan }),
-    participatingAirportIds: z.array(z.string()),
-    participatingAcoIds: z.array(z.string()),
-  })
-  .superRefine((v, ctx) => {
-    for (const p of validateWindows(v)) ctx.addIssue({ code: 'custom', path: p.path.split('.'), message: p.message });
-  });
+/** The fields one by one (autosave validates them separately); `builderSchema` adds the window ordering. */
+export const builderFields = z.object({
+  name: z.string().trim().min(1, 'Give the cycle a name').max(200, 'At most 200 characters'),
+  code: z.string().trim().toUpperCase().regex(CODE_RE, '2–30 characters: letters, digits, _ or -'),
+  type: z.enum(['DOMESTIC', 'INTERNATIONAL', 'BOTH']),
+  answerMode: z.enum(['IMPORT_EXPORT', 'SINGLE']),
+  tz: z.string().trim().min(1, 'Choose a time zone'),
+  /** Calendar date the windows were derived from; informational once the windows exist. */
+  initiationDate: z.string().refine((v) => v === '' || isCalendarDate(v), 'Enter a real date'),
+  sampling: z.object({ start: wall, end: wall }),
+  assessment: z.object({ start: wall, end: wall }),
+  minSampleSize: count.min(0, 'At least 0').max(100000, 'At most 100 000'),
+  reminders: z.object({ sampling: plan, assessment: plan }),
+  participatingAirportIds: z.array(z.string()),
+  participatingAcoIds: z.array(z.string()),
+});
+
+export const builderSchema = builderFields.superRefine((v, ctx) => {
+  for (const p of validateWindows(v)) ctx.addIssue({ code: 'custom', path: p.path.split('.'), message: p.message });
+});
 
 export type BuilderValues = z.infer<typeof builderSchema>;
 

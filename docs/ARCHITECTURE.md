@@ -236,3 +236,21 @@ from the sections above and why.
   the API e-mails (`/assess/:token`, `/register/:token`,
   `/registrations/:id`) are built by the backend from `PUBLIC_WEB_URL`,
   which carries the same base path.
+- **Cycle builder autosave** (`features/cycles/useDraftAutosave`, pure rules
+  in `autosave.ts`). The draft is created (POST) when the user moves on from
+  a valid Basics; the server derives provisional windows from today until the
+  user sets them. After that each part of the form (name, code, windows,
+  reminders, participants, …) is PATCHed on its own once it is valid — 0.8 s
+  after the last edit and on every step change — so an unfinished field never
+  blocks saving the rest. The header shows "Saving… / Draft saved · 14:02 /
+  Couldn't save — Retry"; `DraftLeaveGuard` (router blocker + `beforeunload`,
+  so the builder needs the data router) asks before leaving while anything is
+  unsaved and goes on by itself once pending edits land. Save as draft saves
+  in place. The Participants step reads every airport's share total in one
+  `GET /market-share/totals` call and offers only airports with an active
+  operator.
+- **Approving an operator registration** edits the airport's whole share set
+  (`features/onboarding/ApprovalShares`): the active operators' current shares
+  and the new operator's requested one, a live total, "Scale the others to
+  fit", and Approve held until the set totals 100 % (the API refuses anything
+  else).

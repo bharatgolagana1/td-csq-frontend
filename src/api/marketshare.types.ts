@@ -27,3 +27,12 @@ export type MarketShareCycle = {
   status: string;
   type?: string;
 };
+
+/** GET /market-share/totals?airportIds= — one row per listed airport the caller may see. */
+export type ShareTotal = {
+  airportId: string;
+  /** Sum of the current (cycle-less) shares, two decimals; 0 when none are set. */
+  total: number;
+  /** How many operators hold a current share entry. */
+  entries: number;
+};

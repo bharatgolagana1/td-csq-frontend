@@ -63,7 +63,7 @@ function toProblem(raw: Raw): PublishProblem {
     const label = airportLabel(raw);
     if (!message) message = label ? `Market shares at ${label} do not total 100 %` : 'Market shares do not total 100 %';
     if (typeof raw.total === 'number' && !/\d/.test(message)) message += ` (currently ${raw.total} %)`;
-    return { kind, message, fixPath: '/market-share', fixLabel: 'Fix market shares' };
+    return { kind, message, fixPath: raw.airportId ? `/market-share?airportId=${encodeURIComponent(raw.airportId)}` : '/market-share', fixLabel: 'Fix market shares' };
   }
   if (kind === 'SURVEY') {
     if (!message) message = raw.surveyType ? `The ${raw.surveyType.toLowerCase()} survey has no published version` : 'A survey has no published version';

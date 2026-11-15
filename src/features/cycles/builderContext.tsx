@@ -20,6 +20,8 @@ export type BuilderCtx = {
   goTo: (step: BuilderStepId) => void;
   airports: Airport[];
   operators: Operator[];
+  /** airportId → current share total from the server; null when unknown (the steps then sum the operators' shares). */
+  shareTotals: ReadonlyMap<string, number> | null;
   referenceLoading: boolean;
   referenceError: unknown;
 };

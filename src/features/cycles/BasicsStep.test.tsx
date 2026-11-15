@@ -13,7 +13,7 @@ import { cycleDetail } from './fixtures';
 function Basics({ cycle }: { cycle: CycleDetail | null }) {
   const form = useForm<BuilderValues>({ resolver: zodResolver(builderSchema), defaultValues: cycle ? valuesFromCycle(cycle) : defaultBuilderValues() });
   return (
-    <BuilderProvider value={{ form, settings: undefined, cycle, step: 'basics', goTo: () => undefined, airports: [], operators: [], referenceLoading: false, referenceError: null }}>
+    <BuilderProvider value={{ form, settings: undefined, cycle, step: 'basics', goTo: () => undefined, airports: [], operators: [], shareTotals: null, referenceLoading: false, referenceError: null }}>
       <BasicsStep />
     </BuilderProvider>
   );

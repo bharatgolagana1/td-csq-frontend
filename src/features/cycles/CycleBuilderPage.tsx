@@ -1,24 +1,24 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { type FieldErrors, useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useAirports } from '@/api/airports';
-import { errorMessage, errorRequestId, isApiError } from '@/api/client';
-import { useCreateCycle, useCycle, usePublishCycle, useUpdateCycle } from '@/api/cycles';
+import { errorMessage, errorRequestId } from '@/api/client';
+import { useCycle, usePublishCycle } from '@/api/cycles';
 import { type CycleDetail } from '@/api/cycles.types';
+import { useShareTotals } from '@/api/marketshare';
 import { useOperators } from '@/api/organisations';
 import { useSettings } from '@/api/settings';
 import { useSession } from '@/auth/session';
 import { Banner, Button, Card, PageHeader, Skeleton, Stepper, useToast } from '@/design/primitives';
-import { ConfirmDialog } from '@/design/primitives/ConfirmDialog/ConfirmDialog';
 import { QueryError } from '@/design/primitives/QueryError/QueryError';
 import { useShell } from '@/shell/ShellContext';
 
+import { PART_FORM_FIELDS } from './autosave';
 import { BasicsStep } from './BasicsStep';
 import { BuilderProvider } from './builderContext';
 import {
-  applyBuilderServerErrors,
   BUILDER_STEPS,
   type BuilderField,
   builderSchema,
@@ -28,16 +28,17 @@ import {
   STEP_FIELDS,
   stepIndex,
   stepOfField,
-  toCreateInput,
-  toPatchInput,
   valuesFromCycle,
 } from './builderSchema';
 import styles from './cycles.module.css';
+import { DraftLeaveGuard } from './DraftLeaveGuard';
+import { DraftSaveStatus } from './DraftSaveStatus';
 import { ParticipantsStep } from './ParticipantsStep';
 import { PublishDialog } from './PublishDialog';
 import { type PublishProblem, publishProblems } from './publishProblems';
 import { ReviewStep } from './ReviewStep';
 import { SamplingStep } from './SamplingStep';
+import { useDraftAutosave } from './useDraftAutosave';
 import { WindowsStep } from './WindowsStep';
 
 /** The earliest step that holds a validation error (so the builder can jump there). */
@@ -57,9 +58,11 @@ export function firstErrorStep(errors: FieldErrors<BuilderValues>): BuilderStepI
 
 /**
  * /cycles/new and /cycles/:id/edit (DRAFT only). One form across five steps;
- * each step validates its own fields before moving on; Save as draft and
- * Publish validate everything. A created draft is remembered so a refused
- * publish retries with a PATCH rather than a second create.
+ * each step validates its own fields before moving on; Publish validates
+ * everything. The draft saves itself (useDraftAutosave): it is created when
+ * the user moves on from a valid Basics, then every change is saved after a
+ * short pause and on every step change. Save as draft saves at once.
+ * Leaving with anything unsaved asks first (DraftLeaveGuard).
  */
 export default function CycleBuilderPage() {
   const { id } = useParams();
@@ -72,48 +75,65 @@ export default function CycleBuilderPage() {
   const cycleQuery = useCycle(id);
   const airports = useAirports({ active: true, pageSize: 200, sort: 'iata' });
   const operators = useOperators({ status: 'ACTIVE', pageSize: 200, sort: 'name' });
-  const create = useCreateCycle();
-  const update = useUpdateCycle();
   const publish = usePublishCycle();
 
   const [step, setStep] = useState<BuilderStepId>('basics');
-  const [createdId, setCreatedId] = useState<string | null>(null);
   const [publishOpen, setPublishOpen] = useState(false);
   const [problems, setProblems] = useState<PublishProblem[]>([]);
-  const [cancelOpen, setCancelOpen] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
   const seeded = useRef(false);
 
+  // Only airports with an operator can take part; one request totals their shares.
+  const shareAirportIds = useMemo(
+    () =>
+      (airports.data?.data ?? [])
+        .filter((a) => a.operatorCount > 0)
+        .map((a) => a.id)
+        .sort(),
+    [airports.data],
+  );
+  const shareTotals = useShareTotals(shareAirportIds, hasTask('marketshare.view'));
+
   const form = useForm<BuilderValues>({ resolver: zodResolver(builderSchema), defaultValues: defaultBuilderValues(), mode: 'onTouched' });
-  const { reset, formState, trigger, handleSubmit, getValues, setError } = form;
+  const { formState, trigger, handleSubmit, getValues } = form;
+  const fallback = useMemo(() => defaultBuilderValues(settings.data), [settings.data]);
+  const autosave = useDraftAutosave(form, fallback, setStep);
+  const { begin, flush } = autosave;
 
   // Seed once: the draft being edited, or the platform defaults for a new cycle (unless the user already typed).
   useEffect(() => {
     if (seeded.current) return;
     if (editing) {
       if (cycleQuery.data) {
-        reset(valuesFromCycle(cycleQuery.data));
+        begin(valuesFromCycle(cycleQuery.data), cycleQuery.data);
         seeded.current = true;
       }
     } else if (settings.data) {
-      if (!formState.isDirty) reset(defaultBuilderValues(settings.data));
+      if (!formState.isDirty) begin(defaultBuilderValues(settings.data), null);
       seeded.current = true;
     }
-  }, [editing, cycleQuery.data, settings.data, formState.isDirty, reset]);
+  }, [editing, cycleQuery.data, settings.data, formState.isDirty, begin]);
 
-  const effectiveId = id ?? createdId;
   const current = stepIndex(step);
-  const goTo = useCallback((s: BuilderStepId) => setStep(s), []);
+  /** Every step change saves; leaving a valid Basics creates the draft. */
+  const goTo = useCallback(
+    (s: BuilderStepId) => {
+      setStep(s);
+      void flush(true);
+    },
+    [flush],
+  );
 
   const next = async () => {
     if (step === 'review') return;
     const ok = await trigger(STEP_FIELDS[step]);
     if (!ok) return;
     const n = BUILDER_STEPS[current + 1];
-    if (n) setStep(n.id);
+    if (n) goTo(n.id);
   };
   const back = () => {
     const p = BUILDER_STEPS[current - 1];
-    if (p) setStep(p.id);
+    if (p) goTo(p.id);
   };
 
   const onInvalid = (errors: FieldErrors<BuilderValues>) => {
@@ -122,47 +142,43 @@ export default function CycleBuilderPage() {
     toast.error('Check the highlighted fields');
   };
 
-  /** Create or update the draft; maps server validation back onto the form. Null on failure. */
-  const save = async (values: BuilderValues): Promise<CycleDetail | null> => {
-    try {
-      if (effectiveId) return await update.mutateAsync({ id: effectiveId, ...toPatchInput(values, cycleQuery.data?.status) });
-      const created = await create.mutateAsync(toCreateInput(values));
-      setCreatedId(created.id);
-      return created;
-    } catch (e) {
-      const s = applyBuilderServerErrors(e, setError);
-      if (s) {
-        setStep(s);
-        toast.error('Check the highlighted fields', { requestId: errorRequestId(e) });
-      } else if (isApiError(e, 'CONFLICT')) {
-        setError('code', { type: 'server', message: e.message });
-        setStep('basics');
-      } else {
-        toast.error(errorMessage(e), { requestId: errorRequestId(e) });
-      }
-      return null;
-    }
+  /** Shows what keeps a part from saving: its fields' messages, on its step. */
+  const showBlocked = async (): Promise<boolean> => {
+    const fields: BuilderField[] = autosave.blockedNow().flatMap((part) => [...PART_FORM_FIELDS[part]]);
+    if (fields.length === 0) return false;
+    await trigger(fields);
+    setStep(stepOfField(fields[0] as BuilderField));
+    return true;
   };
 
-  const leaveTo = (saved: CycleDetail) => navigate(editing ? '..' : `../${saved.id}`, { relative: 'path' });
-
-  const onSaveDraft = handleSubmit(async (values) => {
-    const saved = await save(values);
-    if (saved) {
-      toast.success(`Draft ${saved.code} saved`);
-      leaveTo(saved);
+  /** Save as draft: saves now (creating the draft if needed) and stays on the page. */
+  const onSaveDraft = async () => {
+    setSavingDraft(true);
+    const saved = await flush(true, true);
+    setSavingDraft(false);
+    if (!saved) {
+      if (!(await trigger(STEP_FIELDS.basics))) {
+        setStep('basics');
+        toast.error('Give the cycle a name, a code and a time zone to save a draft');
+      } else toast.error('The draft could not be saved', { description: 'See the save status for why, then retry.' });
+      return;
     }
-  }, onInvalid);
+    if (await showBlocked()) toast.error(`Draft ${saved.code} saved, except the highlighted fields`);
+    else toast.success(`Draft ${saved.code} saved`);
+  };
 
   const onPublishClick = handleSubmit(() => {
     setProblems([]);
     setPublishOpen(true);
   }, onInvalid);
 
+  const leaveTo = (saved: CycleDetail) => navigate(editing ? '..' : `../${saved.id}`, { relative: 'path' });
+
   const confirmPublish = async () => {
-    const saved = await save(getValues());
+    const saved = await flush(true, true);
     if (!saved) {
       setPublishOpen(false);
+      toast.error('The draft could not be saved, so it was not published', { description: 'See the save status for why, then retry.' });
       return;
     }
     try {
@@ -180,10 +196,8 @@ export default function CycleBuilderPage() {
     }
   };
 
-  const onCancel = () => {
-    if (formState.isDirty && !createdId) setCancelOpen(true);
-    else navigate('..', { relative: 'path' });
-  };
+  // The guard asks first when something is unsaved.
+  const onCancel = () => navigate('..', { relative: 'path' });
 
   const title = editing ? (cycleQuery.data ? `Edit ${cycleQuery.data.code}` : 'Edit cycle') : 'New cycle';
   const crumbs = [{ label: 'Cycles', to: href('/cycles') }, { label: title }];
@@ -227,7 +241,6 @@ export default function CycleBuilderPage() {
   }
 
   const values = getValues();
-  const saving = create.isPending || update.isPending;
 
   return (
     <BuilderProvider
@@ -239,6 +252,7 @@ export default function CycleBuilderPage() {
         goTo,
         airports: airports.data?.data ?? [],
         operators: operators.data?.data ?? [],
+        shareTotals: shareTotals.data ?? null,
         referenceLoading: airports.isPending || operators.isPending,
         referenceError: airports.error ?? operators.error ?? null,
       }}
@@ -246,21 +260,19 @@ export default function CycleBuilderPage() {
       <PageHeader
         eyebrow="Cycles"
         title={title}
-        context="Windows, minimum sample, reminders and participants. Save a draft at any point; publishing needs every check to pass."
+        context="Windows, minimum sample, reminders and participants. The draft saves itself as you go; publishing needs every check to pass."
         breadcrumbs={crumbs}
         actions={
-          <Button variant="ghost" onClick={onCancel}>
-            Cancel
-          </Button>
+          <span className={styles.headerStatus}>
+            <DraftSaveStatus state={autosave.state} unsaved={autosave.unsaved} hasDraft={autosave.draftId !== null} onRetry={() => void flush(true, true)} tz={values.tz} />
+            <Button variant="ghost" onClick={onCancel}>
+              {autosave.draftId ? 'Close' : 'Cancel'}
+            </Button>
+          </span>
         }
       />
       <div className={styles.builder}>
-        <Stepper steps={BUILDER_STEPS.map((s) => ({ id: s.id, label: s.label, description: s.description }))} current={current} onStepClick={(i) => setStep(BUILDER_STEPS[i]?.id ?? 'basics')} />
-        {createdId && !editing ? (
-          <Banner tone="success" title={`Draft ${values.code} saved`}>
-            Further changes update this draft.
-          </Banner>
-        ) : null}
+        <Stepper steps={BUILDER_STEPS.map((s) => ({ id: s.id, label: s.label, description: s.description }))} current={current} onStepClick={(i) => goTo(BUILDER_STEPS[i]?.id ?? 'basics')} />
         <Card as="section" aria-label={BUILDER_STEPS[current]?.label}>
           <form
             className={styles.stepCard}
@@ -275,13 +287,13 @@ export default function CycleBuilderPage() {
             {step === 'sampling' ? <SamplingStep /> : null}
             {step === 'participants' ? <ParticipantsStep /> : null}
             {step === 'review' ? (
-              <ReviewStep onSaveDraft={() => void onSaveDraft()} onPublish={() => void onPublishClick()} saving={saving} publishing={publish.isPending} canPublish={hasTask('cycles.publish')} />
+              <ReviewStep onSaveDraft={() => void onSaveDraft()} onPublish={() => void onPublishClick()} saving={savingDraft} publishing={publish.isPending} canPublish={hasTask('cycles.publish')} />
             ) : (
               <div className={styles.stepNav}>
                 <Button variant="ghost" onClick={back} disabled={current === 0}>
                   Back
                 </Button>
-                <Button variant="secondary" onClick={() => void onSaveDraft()} loading={saving}>
+                <Button variant="secondary" onClick={() => void onSaveDraft()} loading={savingDraft}>
                   Save as draft
                 </Button>
                 <Button variant="primary" type="submit">
@@ -297,7 +309,7 @@ export default function CycleBuilderPage() {
         open={publishOpen}
         onClose={() => setPublishOpen(false)}
         onConfirm={() => void confirmPublish()}
-        loading={saving || publish.isPending}
+        loading={autosave.state.kind === 'saving' || publish.isPending}
         code={values.code}
         name={values.name}
         airports={values.participatingAirportIds.length}
@@ -308,15 +320,7 @@ export default function CycleBuilderPage() {
           setStep(s);
         }}
       />
-      <ConfirmDialog
-        open={cancelOpen}
-        onClose={() => setCancelOpen(false)}
-        onConfirm={() => navigate('..', { relative: 'path' })}
-        title="Discard this cycle?"
-        description="Nothing has been saved yet."
-        confirmLabel="Discard"
-        danger
-      />
+      <DraftLeaveGuard autosave={autosave} />
     </BuilderProvider>
   );
 }
