@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { type DetailAnswer } from '@/api/assessments.types';
 
-import { answerIssues, answersToMap, formSteps, groupsFromDetail, groupsFromForm, missingRemarks, ownScore, readinessOf, remarkReviewItems, remarksToMap, reviewItems, stepQuestions, toAnswerInput } from './rules';
+import { answerIssues, answersToMap, formSteps, groupsFromDetail, groupsFromForm, missingRemarks, ownScore, readinessOf, remarkReviewItems, remarksToMap, reviewItems, stepQuestions, takesComment, toAnswerInput } from './rules';
 import { answer, COMPLETE, FORM, Q1, Q2, Q3, REMARKS } from './testFixtures';
 
 describe('form rules', () => {
@@ -45,16 +45,31 @@ describe('form rules', () => {
 
   it('IMPORT_EXPORT: every question counts twice, keyed and reviewed per direction, and sends its direction', () => {
     const steps = formSteps(FORM);
+    // Export Fair on q1 (REQUIRED_ON_LOW) without a comment: answered, and valid — the form takes none.
     const answers = answersToMap([...COMPLETE.map((a) => ({ ...a, direction: 'IMPORT' as const })), answer('q1', { direction: 'EXPORT', rating: 2 }), answer('q2', { direction: 'EXPORT' })]);
-    expect(readinessOf(stepQuestions(steps), answers, 'IMPORT_EXPORT')).toEqual({ answered: 6, total: 8, missing: ['q3:EXPORT', 'q4:EXPORT'], invalid: ['q1:EXPORT'], complete: false });
+    expect(readinessOf(stepQuestions(steps), answers, 'IMPORT_EXPORT')).toEqual({ answered: 6, total: 8, missing: ['q3:EXPORT', 'q4:EXPORT'], invalid: [], complete: false });
     expect(reviewItems(steps, answers, 'IMPORT_EXPORT').map((i) => [i.questionId, i.direction, i.reason])).toEqual([
-      ['q1', 'EXPORT', 'comment'],
       ['q3', 'EXPORT', 'missing'],
       ['q4', 'EXPORT', 'missing'],
     ]);
     // A SINGLE reading of the same answers finds none of them.
     expect(readinessOf(stepQuestions(steps), answers).answered).toBe(0);
-    expect(toAnswerInput(Q2, { questionId: 'q2', direction: 'EXPORT', rating: 4, na: false, comment: '', followUp: [] })).toEqual({ questionId: 'q2', direction: 'EXPORT', rating: 4, na: false, comment: null, followUp: [] });
+    expect(toAnswerInput(Q2, { questionId: 'q2', direction: 'EXPORT', rating: 4, na: false, comment: '', followUp: [] })).toEqual({ questionId: 'q2', direction: 'EXPORT', rating: 4, na: false, followUp: [] });
+  });
+
+  it('IMPORT_EXPORT: no comment rule and no comment sent, whatever the comment mode; the follow-up rule per direction', () => {
+    expect(takesComment(Q3)).toBe(true);
+    expect(takesComment(Q3, 'IMPORT')).toBe(false);
+    // An unanswered slot only lacks its rating, even on a REQUIRED question.
+    expect(answerIssues(Q3, undefined, 'EXPORT')).toEqual([{ field: 'rating', message: 'Choose a rating or NA' }]);
+    expect(answerIssues(Q3, { questionId: 'q3', direction: 'IMPORT', rating: 5, na: false, comment: '', followUp: [] })).toEqual([]);
+    expect(answerIssues(Q1, { questionId: 'q1', direction: 'EXPORT', rating: 1, na: false, comment: '', followUp: [] })).toEqual([]);
+    // A comment left in an older draft is not sent (the server would refuse it).
+    const sent = toAnswerInput(Q3, { questionId: 'q3', direction: 'EXPORT', rating: 2, na: false, comment: 'Typed before comments went', followUp: [] });
+    expect(sent).toEqual({ questionId: 'q3', direction: 'EXPORT', rating: 2, na: false, followUp: [] });
+    expect(sent).not.toHaveProperty('comment');
+    expect(toAnswerInput(Q1, { questionId: 'q1', direction: 'IMPORT', rating: 2, na: false, comment: '', followUp: ['Staff', 'Nope'] }).followUp).toEqual(['Staff']);
+    expect(toAnswerInput(Q1, { questionId: 'q1', direction: 'EXPORT', rating: 4, na: false, comment: '', followUp: ['Staff'] }).followUp).toEqual([]);
   });
 
   it('scores the NA-excluding mean to 1 dp', () => {

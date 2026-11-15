@@ -227,28 +227,43 @@ describe('/assess/:token state machine', () => {
     expect(window.sessionStorage.getItem(`csq.assess.${TOKEN}`)).toBeNull();
   });
 
-  it('IMPORT_EXPORT form → done: rates every question for import and export, saves each direction and submits', async () => {
+  it('IMPORT_EXPORT form → done: rates every question for import and export in compact rows, no comments, follow-ups on low only, and submits', async () => {
     const user = userEvent.setup();
     window.sessionStorage.setItem(`csq.assess.${TOKEN}`, JSON.stringify(session));
-    const { calls } = mockApi(happyBackend({ form: importExportForm }));
+    // q2 asks for a comment on Fair / Poor and q3 always does on a single-answer form; here neither does.
+    const strict = {
+      ...importExportForm,
+      categories: importExportForm.categories.map((c) => ({ ...c, questions: c.questions.map((q) => (q.id === 'q3' ? { ...q, commentMode: 'REQUIRED' as const } : q)) })),
+    };
+    const { calls } = mockApi(happyBackend({ form: strict }));
     renderAssess();
     await screen.findByText('Domestic cargo service quality', { exact: false });
     expect(screen.getByText('0 of 8 answered')).toBeInTheDocument();
 
-    // Step 1 · Operations (q1, q2): an Import and an Export rating each.
+    // Step 1 · Operations (q1, q2): an Import and an Export rating row each, on one card per question.
+    expect(screen.getAllByRole('article')).toHaveLength(2);
     expect(screen.getByRole('radiogroup', { name: 'Speed of cargo acceptance — Import' })).toBeInTheDocument();
     expect(screen.getByRole('radiogroup', { name: 'Speed of cargo acceptance — Export' })).toBeInTheDocument();
-    const step1 = screen.getAllByRole('radio', { name: 'Excellent' });
-    expect(step1).toHaveLength(4);
-    for (const radio of step1) await user.click(radio);
-    // One remark per section, whatever the answer mode.
-    expect(screen.getAllByRole('textbox', { name: /^Remarks for/ })).toHaveLength(1);
-    await writeRemark(user, 'Operations', 'Import and export desks are equally quick.');
+    // One remark per section, whatever the answer mode, and no comment field.
+    expect(screen.getAllByRole('textbox')).toEqual([screen.getByRole('textbox', { name: 'Remarks for Operations' })]);
+    for (const group of screen.getAllByRole('radiogroup', { name: / — Import$/ })) await user.click(within(group).getByRole('radio', { name: 'Excellent' }));
+    await user.click(within(screen.getByRole('radiogroup', { name: 'Speed of cargo acceptance — Export' })).getByRole('radio', { name: 'Excellent' }));
+    // Poor on export for q2: its follow-up opens under that row only, and still no comment.
+    const q2Export = screen.getByRole('radiogroup', { name: 'Accuracy of documentation checks — Export' });
+    await user.click(within(q2Export).getByRole('radio', { name: 'Poor' }));
+    const followUps = screen.getAllByRole('group', { name: 'What went wrong?' });
+    expect(followUps).toHaveLength(1);
+    expect(q2Export.parentElement).toContainElement(followUps[0] as HTMLElement);
+    await user.click(within(followUps[0] as HTMLElement).getByRole('checkbox', { name: 'Long queues' }));
+    expect(screen.getAllByRole('textbox')).toHaveLength(1);
+    await writeRemark(user, 'Operations', 'Equally quick.');
     await user.click(screen.getByRole('button', { name: 'Next' }));
-    // Step 2 · Security (q3, q4): Import rated Very good, Export rated Fair (q3 asks for no comment on Fair: OPTIONAL).
+
+    // Step 2 · Security (q3 comment required on a single form, q4 none): Import rated Very good, Export Fair.
     for (const group of await screen.findAllByRole('radiogroup', { name: / — Import$/ })) await user.click(within(group).getByRole('radio', { name: 'Very good' }));
     for (const group of screen.getAllByRole('radiogroup', { name: / — Export$/ })) await user.click(within(group).getByRole('radio', { name: 'Fair' }));
-    await writeRemark(user, 'Security', 'Export screening queues are long.');
+    expect(screen.queryByRole('alert')).toBeNull();
+    await writeRemark(user, 'Security', 'Export queues.');
     await user.click(screen.getByRole('button', { name: 'Review' }));
 
     expect(await screen.findByText('Everything is answered')).toBeInTheDocument();
@@ -258,9 +273,12 @@ describe('/assess/:token state machine', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Submit' }));
     expect(await screen.findByRole('heading', { name: 'Thank you' })).toBeInTheDocument();
 
-    const sent = calls.filter((c) => c.method === 'PATCH' && c.path === `${base}/answers`).flatMap((c) => (c.body as { answers: { questionId: string; direction?: string; rating: number }[] }).answers);
-    const last = new Map(sent.map((a) => [`${a.questionId}:${a.direction}`, a.rating]));
-    expect(Object.fromEntries(last)).toEqual({ 'q1:IMPORT': 5, 'q1:EXPORT': 5, 'q2:IMPORT': 5, 'q2:EXPORT': 5, 'q3:IMPORT': 4, 'q3:EXPORT': 2, 'q4:IMPORT': 4, 'q4:EXPORT': 2 });
+    type Sent = { questionId: string; direction?: string; rating: number; followUp: string[] };
+    const sent = calls.filter((c) => c.method === 'PATCH' && c.path === `${base}/answers`).flatMap((c) => (c.body as { answers: Sent[] }).answers);
+    sent.forEach((a) => expect(a).not.toHaveProperty('comment'));
+    const last = new Map(sent.map((a) => [`${a.questionId}:${a.direction}`, a]));
+    expect(Object.fromEntries([...last].map(([key, a]) => [key, a.rating]))).toEqual({ 'q1:IMPORT': 5, 'q1:EXPORT': 5, 'q2:IMPORT': 5, 'q2:EXPORT': 1, 'q3:IMPORT': 4, 'q3:EXPORT': 2, 'q4:IMPORT': 4, 'q4:EXPORT': 2 });
+    expect(Object.fromEntries([...last].filter(([, a]) => a.followUp.length > 0).map(([key, a]) => [key, a.followUp]))).toEqual({ 'q2:EXPORT': ['Long queues'] });
     const remarks = calls.filter((c) => c.method === 'PATCH' && c.path === `${base}/remarks`).flatMap((c) => (c.body as { sectionRemarks: { categoryId: string }[] }).sectionRemarks);
     expect(new Set(remarks.map((r) => r.categoryId))).toEqual(new Set(['cat_ops', 'cat_sec']));
     expect(calls.some((c) => c.method === 'POST' && c.path === `${base}/submit`)).toBe(true);

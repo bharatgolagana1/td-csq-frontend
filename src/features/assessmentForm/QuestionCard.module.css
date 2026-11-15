@@ -69,6 +69,16 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+/* Import / export rows: six across at any width (≥ 48px cells at 390), short labels. */
+.scale.scaleCompact {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 4px;
+}
+.scaleCompact .face {
+  min-height: 44px;
+  padding: 5px 2px;
+  white-space: nowrap;
+}
 .cell {
   position: relative;
   display: block;
@@ -196,6 +206,15 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+}
+.followUpInline {
+  gap: 6px;
+  padding: 10px 12px;
+}
+.followUpInline .followUpOptions {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 6px var(--space-4);
 }
 
 .comment {

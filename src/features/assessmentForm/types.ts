@@ -2,7 +2,7 @@ import { type AnswerDirection, type FormCategory, type FormQuestion, type FormSu
 
 /* Local (unsaved) shapes used by the question-form components and the draft hook. */
 
-/** An answer as the form holds it: `comment` is always a string so textareas stay controlled. IMPORT_EXPORT forms hold one per question and direction. */
+/** An answer as the form holds it: `comment` is always a string so textareas stay controlled. IMPORT_EXPORT forms hold one per question and direction, and never send its comment (that form takes none). */
 export type LocalAnswer = {
   questionId: string;
   direction?: AnswerDirection;
@@ -30,7 +30,7 @@ export type StepReadiness = {
   total: number;
   /** Unanswered answer keys (`answerKey`: the question id, plus `:IMPORT` / `:EXPORT` per direction), in form order. */
   missing: string[];
-  /** Answered but breaking a rule (a required comment left empty), in form order. */
+  /** Answered but breaking a rule (a required comment left empty — SINGLE forms only), in form order. */
   invalid: string[];
   /** `missing` and `invalid` are both empty. */
   complete: boolean;
@@ -81,7 +81,7 @@ export type RemarkReviewItem = {
 
 export type AnswerGroupAnswer = { rating: Rating | null; na: boolean; comment: string | null; followUp: string[] };
 
-/** Read-only grouping for the answer summary (self-assessment done state, history return). IMPORT_EXPORT returns fill `importAnswer` and `exportAnswer` instead of `answer`. */
+/** Read-only grouping for the answer summary (self-assessment done state, history return). IMPORT_EXPORT returns fill `importAnswer` and `exportAnswer` instead of `answer` (the summary shows no comment for them). */
 export type AnswerGroupItem = {
   question: { id: string; code: string; text: string };
   subcategory: string | null;
