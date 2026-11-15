@@ -29,7 +29,7 @@ function cycleRoutes(detail = cycleDetail()): MockRoute[] {
     { path: '/cycles/cy1/participants', reply: ({ url }) => list(detail.participantList.filter((p) => !url.searchParams.get('samplingStatus') || p.sampling.status === url.searchParams.get('samplingStatus'))) },
     { path: '/cycles/cy1/monitoring', reply: () => one(monitoring()) },
     { path: '/notifications', reply: () => list([notification()]) },
-    { path: '/audit', reply: () => list([auditEntry()]) },
+    { path: '/audit', reply: () => list([auditEntry(), auditEntry({ id: 'a2', action: 'scoring.run', actorUserId: null, actorEmail: null, actorOrgId: null, requestId: '', before: undefined, after: { trigger: 'ASSESSMENT_CLOSED' } })]) },
   ];
 }
 
@@ -76,6 +76,10 @@ describe('CycleDetailPage', () => {
     const log = await screen.findByRole('list', { name: 'Audit log' });
     expect(within(log).getByText('Published')).toBeInTheDocument();
     expect(within(log).getByText('req req_42')).toBeInTheDocument();
+    // A scheduler entry: a proper label, "System" as the actor and a dash for the missing request id.
+    expect(within(log).getByText('Scoring run')).toBeInTheDocument();
+    expect(within(log).getByText('System')).toBeInTheDocument();
+    expect(within(log).getByText('req —')).toBeInTheDocument();
   });
 
   it('unlocks a locked participant with a reason through the sampling endpoint', async () => {

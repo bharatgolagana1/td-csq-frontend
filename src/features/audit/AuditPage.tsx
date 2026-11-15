@@ -2,12 +2,12 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 
 import { AUDIT_EXPORT_LIMIT, fetchAuditForExport, useAudit } from '@/api/audit';
-import { AUDIT_ACTIONS, AUDIT_ENTITIES, type AuditEntry } from '@/api/audit.types';
+import { AUDIT_ACTIONS, AUDIT_ENTITIES, type AuditEntry, auditActionLabel, auditEntityLabel } from '@/api/audit.types';
 import { errorMessage, errorRequestId } from '@/api/client';
 import { Icon } from '@/design/icons';
 import { Button, Input, PageHeader, Pagination, SearchInput, Select, Toolbar, ToolbarCount, useToast } from '@/design/primitives';
 import { QueryError } from '@/design/primitives/QueryError/QueryError';
-import { formatInt, humanise } from '@/lib/format';
+import { formatInt } from '@/lib/format';
 
 import styles from './audit.module.css';
 import { auditCsv, auditCsvFilename, downloadText } from './auditCsv';
@@ -16,8 +16,8 @@ import { AuditTable } from './AuditTable';
 import { useAuditFilters } from './useAuditFilters';
 import { useOrgNames } from './useOrgNames';
 
-const ENTITY_OPTIONS = [{ value: '', label: 'All entities' }, ...AUDIT_ENTITIES.map((e) => ({ value: e, label: humanise(e.replace(/[._]/g, ' ')) }))];
-const ACTION_OPTIONS = [{ value: '', label: 'All actions' }, ...AUDIT_ACTIONS.map((a) => ({ value: a, label: humanise(a.replace(/\./g, ' ')) }))];
+const ENTITY_OPTIONS = [{ value: '', label: 'All entities' }, ...AUDIT_ENTITIES.map((e) => ({ value: e, label: auditEntityLabel(e) }))];
+const ACTION_OPTIONS = [{ value: '', label: 'All actions' }, ...AUDIT_ACTIONS.map((a) => ({ value: a, label: auditActionLabel(a) }))];
 
 /** Audit: every state change with actor, organisation, before/after; filters and a CSV export of the filtered view (§6 audit, REQUIREMENTS §26). */
 export default function AuditPage() {

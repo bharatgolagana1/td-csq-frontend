@@ -1,10 +1,10 @@
 import { useState } from 'react';
 
 import { useAudit } from '@/api/audit';
-import { type AuditEntry } from '@/api/audit.types';
+import { type AuditEntry, auditActionLabel } from '@/api/audit.types';
 import { Button, EmptyState, Pill, Skeleton } from '@/design/primitives';
 import { QueryError } from '@/design/primitives/QueryError/QueryError';
-import { formatDateTime, humanise } from '@/lib/format';
+import { formatDateTime } from '@/lib/format';
 
 import styles from './cycles.module.css';
 
@@ -17,10 +17,12 @@ function Entry({ entry, tz }: { entry: AuditEntry; tz: string }) {
       <span className={styles.auditWhen}>{formatDateTime(entry.at, tz)}</span>
       <span className={styles.auditBody}>
         <Pill variant="neutral" size="sm">
-          {humanise(entry.action.replace(/^cycle\./, ''))}
+          {auditActionLabel(entry.action.replace(/^cycle\./, ''))}
         </Pill>
-        <span className={styles.auditActor}>{entry.actorEmail ?? (entry.actorUserId ? `user ${entry.actorUserId}` : 'system')}</span>
-        <span className={styles.auditReq}>req {entry.requestId}</span>
+        <span className={styles.auditActor}>{entry.actorEmail ?? (entry.actorUserId ? `user ${entry.actorUserId}` : 'System')}</span>
+        <span className={styles.auditReq} title={entry.requestId ? undefined : 'Written by the scheduler, outside a request'}>
+          req {entry.requestId || '—'}
+        </span>
         {hasDetail ? (
           <details className={styles.auditDetail}>
             <summary>Before / after</summary>
