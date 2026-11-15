@@ -15,6 +15,8 @@ export type RatingScaleProps = {
   label?: string;
   describedBy?: string;
   invalid?: boolean;
+  /** One row of six whatever the width, each cell showing the short label ("V. good"); the full one stays the radio's name. For the import / export rows. */
+  compact?: boolean;
   className?: string;
 };
 
@@ -23,7 +25,7 @@ export type RatingScaleProps = {
  * group: Tab reaches it, arrows move the choice, every cell is ≥ 44 px. The
  * ACFI ramp colour appears only on the selected cell (ARCHITECTURE §3).
  */
-export function RatingScale({ name, value, onChange, disabled, labelledBy, label, describedBy, invalid, className }: RatingScaleProps) {
+export function RatingScale({ name, value, onChange, disabled, labelledBy, label, describedBy, invalid, compact = false, className }: RatingScaleProps) {
   return (
     <div
       role="radiogroup"
@@ -32,10 +34,11 @@ export function RatingScale({ name, value, onChange, disabled, labelledBy, label
       aria-describedby={describedBy}
       aria-invalid={invalid || undefined}
       aria-required="true"
-      className={cn(styles.scale, invalid && styles.scaleInvalid, disabled && styles.scaleDisabled, className)}
+      className={cn(styles.scale, compact && styles.scaleCompact, invalid && styles.scaleInvalid, disabled && styles.scaleDisabled, className)}
     >
       {RATING_OPTIONS.map((option) => {
         const key = String(option.value);
+        const full = option.value === 'NA' ? 'Not applicable' : option.label;
         return (
           <label key={key} className={styles.cell} data-rating={key}>
             <input
@@ -51,7 +54,14 @@ export function RatingScale({ name, value, onChange, disabled, labelledBy, label
               <span className={styles.faceNum} aria-hidden="true">
                 {key}
               </span>
-              {option.value === 'NA' ? 'Not applicable' : option.label}
+              {compact ? (
+                <>
+                  {option.short !== key ? <span aria-hidden="true">{option.short}</span> : null}
+                  <span className="visually-hidden">{full}</span>
+                </>
+              ) : (
+                full
+              )}
             </span>
           </label>
         );

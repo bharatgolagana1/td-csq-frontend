@@ -9,7 +9,7 @@
  *   <AssessmentStepper
  *     form={form}                       // AssessmentForm: { survey, categories → subcategories → questions }
  *     draft={draft.answers}             // Answer[] as GET …/draft returns them
- *     answerMode={assessment.answerMode ?? 'SINGLE'}   // IMPORT_EXPORT: every question rated for import and export
+ *     answerMode={assessment.answerMode ?? 'SINGLE'}   // IMPORT_EXPORT: every question rated for import and export, no comments
  *     remarks={draft.sectionRemarks}    // SectionRemark[]: one remark per category, required before submitting
  *     onSave={(answers) => save(answers)}   // merge PATCH …/answers; may return { lastSavedAt }
  *     onSaveRemarks={(remarks) => saveRemarks(remarks)}   // merge PATCH …/remarks, same schedule and save status
@@ -25,7 +25,7 @@
  * to api/assessments.types, so `form` and `draft.answers` pass through as-is.
  *
  * Lower-level pieces (for a custom composition): `useAssessmentDraft`,
- * `QuestionCard`, `ImportExportQuestionCard`, `AnswerControls`,
+ * `QuestionCard`, `ImportExportQuestionCard`, `AnswerControls`, `FollowUpChoices`,
  * `QuestionHead`, `RatingScale`, `SectionRemarkField`, `StepHeader`, `ProgressBar`, `SaveStatus`,
  * `StepList`, `ReviewList`, `SubmitConfirm`, `AnswerSummary`, and the pure
  * rules (`formSteps`, `readinessOf`, `reviewItems`, `groupsFromForm`, …).
@@ -34,6 +34,7 @@
 export { AnswerControls, type AnswerControlsProps } from './AnswerControls';
 export { AnswerSummary, type AnswerSummaryProps } from './AnswerSummary';
 export { AssessmentStepper, type AssessmentStepperProps } from './AssessmentStepper';
+export { FollowUpChoices, type FollowUpChoicesProps } from './FollowUpChoices';
 export { ImportExportQuestionCard, type ImportExportQuestionCardProps } from './ImportExportQuestionCard';
 export { ProgressBar, type ProgressBarProps } from './ProgressBar';
 export { QuestionCard, type QuestionCardProps } from './QuestionCard';
@@ -75,6 +76,7 @@ export {
   showsFollowUp,
   stepIndexOf,
   stepQuestions,
+  takesComment,
   toAnswerInput,
 } from './rules';
 export { SaveStatus, type SaveStatusProps } from './SaveStatus';

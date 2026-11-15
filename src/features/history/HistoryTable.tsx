@@ -3,6 +3,7 @@ import { type ReactNode } from 'react';
 import { type HistoryRow } from '@/api/assessments.types';
 import { type Column, EmptyState, Pill, type SortState, Table } from '@/design/primitives';
 import { cn } from '@/lib/cn';
+import { DIRECTION_LABELS } from '@/lib/directionLabels';
 import { formatInt, formatRating } from '@/lib/format';
 
 import { HiddenScore } from './HiddenScore';
@@ -63,10 +64,10 @@ function Score({ row, hidden }: { row: HistoryRow; hidden: boolean }) {
   return (
     <span className={styles.scores}>
       <span>
-        <span className={styles.scoreLabel}>Import</span> {formatRating(row.importScore)}
+        <span className={styles.scoreLabel}>{DIRECTION_LABELS.IMPORT}</span> {formatRating(row.importScore)}
       </span>
       <span>
-        <span className={styles.scoreLabel}>Export</span> {formatRating(row.exportScore)}
+        <span className={styles.scoreLabel}>{DIRECTION_LABELS.EXPORT}</span> {formatRating(row.exportScore)}
       </span>
     </span>
   );

@@ -1,4 +1,5 @@
 import { type Answer, type AnswerDirection, type AnswerInput, type AnswerMode, type AssessmentForm, type DetailAnswer, type FormQuestion, type Progress, type Rating, type SectionRemark } from '@/api/assessments.types';
+import { DIRECTION_LABELS } from '@/lib/directionLabels';
 
 import { type AnswerGroup, type AnswerGroupAnswer, type AnswerGroupItem, type AnswerIssue, type FormStep, type FormStepQuestion, type LocalAnswer, type RemarkReviewItem, type ReviewItem, type StepReadiness } from './types';
 
@@ -7,9 +8,10 @@ import { type AnswerGroup, type AnswerGroupAnswer, type AnswerGroupItem, type An
    every active question needs a rating or NA; a comment when the comment mode
    says so (REQUIRED_ON_LOW ⇒ Fair/Poor); follow-up options only on Fair/Poor
    and only from the question's list. An IMPORT_EXPORT form asks every question
-   twice, once per direction, and each direction follows the same rules. Every
-   section (category) also takes one remark, whatever the answer mode, and
-   submitting waits for all of them. Pure: no React, no IO. */
+   twice, once per direction, each with the rating and follow-up rules, and
+   takes no comment at all (the server refuses one): its section remarks carry
+   the free text. Every section (category) takes one remark, whatever the
+   answer mode, and submitting waits for all of them. Pure: no React, no IO. */
 
 export type RatingValue = Rating | 'NA';
 
@@ -32,7 +34,8 @@ export function isLowRating(rating: Rating | null | undefined): boolean {
 
 export const ANSWER_DIRECTIONS: readonly AnswerDirection[] = ['IMPORT', 'EXPORT'];
 
-export const DIRECTION_LABELS: Record<AnswerDirection, string> = { IMPORT: 'Import', EXPORT: 'Export' };
+/** "Import" / "Export", from the one module that names the directions. */
+export { DIRECTION_LABELS };
 
 /** The answers a question takes: one per direction under IMPORT_EXPORT, a single undirected one otherwise. */
 export function answerDirections(mode: AnswerMode = 'SINGLE'): readonly (AnswerDirection | undefined)[] {
@@ -60,7 +63,14 @@ export function isAnswered(answer: LocalAnswer | undefined): boolean {
   return Boolean(answer && (answer.rating !== null || answer.na));
 }
 
-export function commentRequired(question: FormQuestion, answer: LocalAnswer | undefined): boolean {
+/** Whether an answer takes a comment at all: never a directed (IMPORT_EXPORT) one, otherwise unless the comment mode is NONE. */
+export function takesComment(question: FormQuestion, direction?: AnswerDirection): boolean {
+  return !direction && question.commentMode !== 'NONE';
+}
+
+/** The comment mode asks for a comment on this answer (`direction`: the slot's, when the answer may not exist yet). */
+export function commentRequired(question: FormQuestion, answer: LocalAnswer | undefined, direction = answer?.direction): boolean {
+  if (!takesComment(question, direction)) return false;
   if (question.commentMode === 'REQUIRED') return true;
   if (question.commentMode === 'REQUIRED_ON_LOW') return isLowRating(answer?.rating);
   return false;
@@ -77,11 +87,11 @@ export function commentHint(question: FormQuestion, answer: LocalAnswer | undefi
   return 'Optional';
 }
 
-/** Inline validation for one question. Empty when the answer is complete and valid. */
-export function answerIssues(question: FormQuestion, answer: LocalAnswer | undefined): AnswerIssue[] {
+/** Inline validation for one answer (`direction`: the slot's, when the answer may not exist yet). Empty when it is complete and valid. */
+export function answerIssues(question: FormQuestion, answer: LocalAnswer | undefined, direction = answer?.direction): AnswerIssue[] {
   const issues: AnswerIssue[] = [];
   if (!isAnswered(answer)) issues.push({ field: 'rating', message: 'Choose a rating or NA' });
-  if (commentRequired(question, answer) && !(answer?.comment ?? '').trim()) {
+  if (commentRequired(question, answer, direction) && !(answer?.comment ?? '').trim()) {
     issues.push({ field: 'comment', message: question.commentMode === 'REQUIRED' ? 'A comment is required for this question' : 'A comment is required for a Fair or Poor rating' });
   }
   return issues;
@@ -92,12 +102,14 @@ export function isSendable(question: FormQuestion, answer: LocalAnswer | undefin
   return answer !== undefined && answerIssues(question, answer).length === 0;
 }
 
-/** The wire shape of a local answer, applying the rules the server enforces (no comment on NONE, follow-up only on low and only listed options). */
+/** The wire shape of a local answer, applying the rules the server enforces (no comment on NONE and none at all on a directed answer, follow-up only on low and only listed options). */
 export function toAnswerInput(question: FormQuestion, answer: LocalAnswer): AnswerInput {
-  const comment = question.commentMode === 'NONE' ? null : answer.comment.trim() || null;
   const listed = new Set(question.followUp?.options ?? []);
   const followUp = isLowRating(answer.rating) ? Array.from(new Set(answer.followUp.filter((o) => listed.has(o)))) : [];
-  return { questionId: answer.questionId, ...(answer.direction ? { direction: answer.direction } : {}), rating: answer.na ? null : answer.rating, na: answer.na, comment, followUp };
+  const rated = { rating: answer.na ? null : answer.rating, na: answer.na };
+  if (answer.direction) return { questionId: answer.questionId, direction: answer.direction, ...rated, followUp };
+  const comment = takesComment(question) ? answer.comment.trim() || null : null;
+  return { questionId: answer.questionId, ...rated, comment, followUp };
 }
 
 /** One step per category; questions in display order (subcategories first, then direct questions), numbered across the form. */
@@ -128,7 +140,7 @@ export function readinessOf(questions: readonly FormStepQuestion[], answers: Rea
       const key = answerKey(question.id, direction);
       const answer = answers.get(key);
       if (!isAnswered(answer)) missing.push(key);
-      else if (answerIssues(question, answer).length > 0) invalid.push(key);
+      else if (answerIssues(question, answer, direction).length > 0) invalid.push(key);
     });
   });
   const total = questions.length * directions.length;
@@ -139,14 +151,14 @@ export function progressOf(answered: number, total: number): Progress {
   return { answered, total, pct: total === 0 ? 0 : Math.round((answered / total) * 100) };
 }
 
-/** Everything the review step lists: unanswered questions and required comments left empty, in form order (import before export). */
+/** Everything the review step lists: unanswered questions (per direction on an IMPORT_EXPORT form, import before export) and, on a SINGLE one, required comments left empty, in form order. */
 export function reviewItems(steps: readonly FormStep[], answers: ReadonlyMap<string, LocalAnswer>, mode: AnswerMode = 'SINGLE'): ReviewItem[] {
   const items: ReviewItem[] = [];
   const directions = answerDirections(mode);
   steps.forEach((step, stepIndex) => {
     step.questions.forEach(({ question, index }) => {
       directions.forEach((direction) => {
-        const issues = answerIssues(question, answers.get(answerKey(question.id, direction)));
+        const issues = answerIssues(question, answers.get(answerKey(question.id, direction)), direction);
         if (issues.length === 0) return;
         const reason = issues.some((i) => i.field === 'rating') ? 'missing' : 'comment';
         items.push({ questionId: question.id, ...(direction ? { direction } : {}), code: question.code, text: question.text, index, stepIndex, stepLabel: step.label, reason });

@@ -89,12 +89,16 @@ describe('AssessmentStepper', () => {
 
   it('IMPORT_EXPORT: counts both directions, lists each missing one in the review and jumps to that direction', async () => {
     // Everything answered for import except q4; export only for the first section.
-    const draft = [answer('q1', { direction: 'IMPORT' }), answer('q2', { direction: 'IMPORT' }), answer('q3', { direction: 'IMPORT', comment: 'Fine' }), answer('q1', { direction: 'EXPORT' }), answer('q2', { direction: 'EXPORT' })];
+    const draft = [answer('q1', { direction: 'IMPORT' }), answer('q2', { direction: 'IMPORT' }), answer('q3', { direction: 'IMPORT' }), answer('q1', { direction: 'EXPORT' }), answer('q2', { direction: 'EXPORT' })];
     const onProgress = vi.fn();
     const { onSave } = renderStepper(draft, { answerMode: 'IMPORT_EXPORT', onProgress });
     expect(onProgress).toHaveBeenLastCalledWith({ answered: 5, total: 8, pct: 63 });
     expect(screen.getByText('4 of 4 answered in this section')).toBeInTheDocument();
-    expect(screen.getAllByRole('region', { name: 'Import' })).toHaveLength(2);
+    expect(screen.getAllByRole('group', { name: 'Import' })).toHaveLength(2);
+    expect(screen.getAllByRole('group', { name: 'Export' })).toHaveLength(2);
+    // No comment field anywhere: the section's remark is the only text box.
+    expect(screen.getAllByRole('textbox')).toEqual([screen.getByRole('textbox', { name: 'Remarks for Cargo handling' })]);
+    expect(screen.queryByLabelText(/Comment/)).toBeNull();
 
     await userEvent.click(screen.getByRole('button', { name: /Review & submit/ }));
     expect(screen.getByText('3 items need attention')).toBeInTheDocument();
@@ -113,8 +117,39 @@ describe('AssessmentStepper', () => {
     expect(within(document.getElementById('q-q3-import') as HTMLElement).queryByRole('alert')).toBeNull();
 
     await userEvent.click(within(screen.getByRole('radiogroup', { name: 'How would you rate the overall experience? — Export' })).getByRole('radio', { name: 'Good' }));
-    await waitFor(() => expect(onSave).toHaveBeenCalledWith([{ questionId: 'q4', direction: 'EXPORT', rating: 3, na: false, comment: null, followUp: [] }]), { timeout: 2000 });
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith([{ questionId: 'q4', direction: 'EXPORT', rating: 3, na: false, followUp: [] }]), { timeout: 2000 });
     expect(onProgress).toHaveBeenLastCalledWith({ answered: 6, total: 8, pct: 75 });
+
+    // Back to the import side of a first-section question through the review.
+    await userEvent.click(screen.getByRole('button', { name: /Review & submit/ }));
+    await userEvent.click(screen.getByRole('button', { name: /Q4.*Security · Import/ }));
+    expect(document.activeElement?.id).toBe('q-q4-import');
+  });
+
+  it('IMPORT_EXPORT: Fair and Poor ask for no comment — ratings and remarks alone complete the form and submit it', async () => {
+    // Poor on q1 (comment on low) and Fair on q3 (comment required) for export, no comment anywhere.
+    const draft = [
+      ...COMPLETE.map((a) => ({ ...a, comment: null, direction: 'IMPORT' as const })),
+      answer('q1', { direction: 'EXPORT', rating: 1, followUp: ['Queues'] }),
+      answer('q2', { direction: 'EXPORT' }),
+      answer('q3', { direction: 'EXPORT', rating: 2 }),
+      answer('q4', { direction: 'EXPORT', rating: 5 }),
+    ];
+    const { onSubmit, onSubmitted } = renderStepper(draft, { answerMode: 'IMPORT_EXPORT' });
+    // The Poor export row of q1 opens its follow-up there and nowhere else, with no error.
+    const exportRow = document.getElementById('q-q1-export') as HTMLElement;
+    expect(within(exportRow).getByRole('group', { name: 'What went wrong?' })).toBeInTheDocument();
+    expect(within(exportRow).getByRole('checkbox', { name: 'Queues' })).toBeChecked();
+    expect(within(document.getElementById('q-q1-import') as HTMLElement).queryByRole('group', { name: 'What went wrong?' })).toBeNull();
+
+    await userEvent.click(screen.getByRole('button', { name: /Review & submit/ }));
+    expect(screen.getByText('Everything is answered')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Submit your answers?' });
+    expect(within(dialog).getByText(/8 of 8 questions answered/)).toBeInTheDocument();
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Submit' }));
+    await waitFor(() => expect(onSubmitted).toHaveBeenCalledTimes(1));
+    expect(onSubmit).toHaveBeenCalledTimes(1);
   });
 
   it('asks each section for its remark, lists a missing one in the review, jumps to it and autosaves it apart from the answers', async () => {
