@@ -1,4 +1,5 @@
 import { useCycleSelection, useOperatorScope } from '@/api/reports';
+import { useStripCycle } from '@/shell/stripCycle';
 
 /**
  * One data concern: which operator, cycle, survey type and direction the dashboard and
@@ -8,6 +9,8 @@ import { useCycleSelection, useOperatorScope } from '@/api/reports';
 export function useDashboardSelection(routeAcoId?: string) {
   const scope = useOperatorScope(routeAcoId);
   const cycle = useCycleSelection();
+  // The operator strip follows the cycle the dashboard (or its question table) shows.
+  useStripCycle(cycle.selection.cycle);
   return {
     scope,
     acoId: scope.acoId,

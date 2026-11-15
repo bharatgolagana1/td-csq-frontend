@@ -6,6 +6,7 @@ import { Icon } from '@/design/icons';
 import { Button, EmptyState, PageHeader, Select, Skeleton } from '@/design/primitives';
 import { QueryError } from '@/design/primitives/QueryError/QueryError';
 import { describeTimeZone, formatCountdown, formatDateTime, humanise } from '@/lib/format';
+import { useStripCycle } from '@/shell/stripCycle';
 
 import styles from './selfAssessment.module.css';
 import { SelfAssessmentForm } from './SelfAssessmentForm';
@@ -85,6 +86,8 @@ function Body({ target, canViewHistory }: { target: SelfTarget; canViewHistory: 
 export default function SelfAssessmentPage() {
   const { hasTask } = useSession();
   const target = useSelfAssessmentTarget();
+  // The operator strip follows the cycle answered here.
+  useStripCycle(target.kind === 'open' || target.kind === 'not-open' ? target.cycle : null);
   const tabs =
     target.kind === 'open' && target.surveyTypes.length > 1
       ? {
