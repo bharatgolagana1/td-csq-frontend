@@ -113,7 +113,7 @@ export function Donut({ slices, centreValue, centreLabel, height = 260, legend: 
                     <LegendDot color={ratingColor(t, s.rating)} label={s.label} />
                   </th>
                   <td className={styles.num}>{formatInt(s.count)}</td>
-                  <td className={styles.num}>{pctOf(s, total).toFixed(0)} %</td>
+                  <td className={styles.num}>{pctOf(s, total).toFixed(0)}&nbsp;%</td>
                 </tr>
               ))}
             </tbody>
@@ -141,7 +141,7 @@ export function Donut({ slices, centreValue, centreLabel, height = 260, legend: 
               {s.label} <span className="num">{s.count}</span>
               <span className="num" style={{ color: 'var(--muted)' }}>
                 {' '}
-                · {pctOf(s, total).toFixed(0)} %
+                · {pctOf(s, total).toFixed(0)}&nbsp;%
               </span>
             </>
           }

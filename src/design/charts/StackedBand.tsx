@@ -55,7 +55,7 @@ export function StackedBand({ segments, height = 28, legend: legendKind = 'grid'
             <span className={styles.itemValue}>
               <span className="num">{formatInt(s.count)}</span>
               <span className={styles.sep}> · </span>
-              <span className="num">{share(s, total).toFixed(0)} %</span>
+              <span className="num">{share(s, total).toFixed(0)}&nbsp;%</span>
             </span>
           </li>
         ))}
@@ -70,7 +70,7 @@ export function StackedBand({ segments, height = 28, legend: legendKind = 'grid'
           return (
             <div key={s.label} className={cn(styles.seg, s.rating === null && styles.na)} style={{ flexGrow: pct, background: ratingColor(t, s.rating) }}>
               <span className={styles.tip} aria-hidden="true">
-                {s.label} <span className="num">{formatInt(s.count)}</span> · <span className="num">{pct.toFixed(0)} %</span>
+                {s.label} <span className="num">{formatInt(s.count)}</span> · <span className="num">{pct.toFixed(0)}&nbsp;%</span>
               </span>
             </div>
           );

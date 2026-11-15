@@ -17,7 +17,7 @@ export type ProgressProps = {
 
 export function Progress({ value, label, caption, tone = 'accent', size = 'md', className }: ProgressProps) {
   const pct = Math.max(0, Math.min(100, Number.isFinite(value) ? value : 0));
-  const text = caption ?? `${Math.round(pct)} %`;
+  const text = caption ?? `${Math.round(pct)}\u00a0%`;
   return (
     <div className={cn(styles.root, className)}>
       {label || text ? (

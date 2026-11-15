@@ -19,9 +19,10 @@ export function formatInt(value: number | null | undefined): string {
   return new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(value);
 }
 
+/** "78 %", the number and the sign held together by a no-break space so "100 %" never wraps across two lines. */
 export function formatPct(value: number | null | undefined, digits = 0): string {
   if (value === null || value === undefined || Number.isNaN(value)) return '—';
-  return `${value.toFixed(digits)} %`;
+  return `${value.toFixed(digits)}\u00a0%`;
 }
 
 /** ISO instant → "7 Oct 2026, 14:30" in the cycle's time zone. */
