@@ -1,6 +1,8 @@
 /* Hand-written mirrors of the invitations module (td-csq-backend §5 `invitations`,
    §6 "invitations"; src/modules/invitations/invitations.schemas.ts, domain/states.ts). */
 
+import { formatInt } from '@/lib/format';
+
 import { type CustomerType } from './customers.types';
 import { type SurveyType } from './sampling.types';
 import { type ListQuery } from './types';
@@ -22,6 +24,16 @@ export function canResendInvitation(state: InvitationState): boolean {
 /** REVOKE is allowed from every live state. */
 export function canRevokeInvitation(state: InvitationState): boolean {
   return isLiveInvitation(state);
+}
+
+/**
+ * What to say beside an "Invited" figure (e-mails sent) while invitations wait for
+ * the assessment window: prepared when the operator locked, e-mailed when the
+ * assessment opens. Null when none wait (or the API does not count them).
+ */
+export function readyToSendHint(readyToSend: number | null | undefined): string | null {
+  if (!readyToSend || readyToSend <= 0) return null;
+  return `${formatInt(readyToSend)} ready to send when the assessment opens`;
 }
 
 /** GET /invitations rows — the operator-facing view: the participant's identity stays masked. */

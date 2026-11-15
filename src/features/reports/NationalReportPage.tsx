@@ -1,6 +1,7 @@
 import { type ReactNode } from 'react';
 
 import { isApiError } from '@/api/client';
+import { readyToSendHint } from '@/api/invitations.types';
 import { DIRECTION_LABELS, shownDirection, SURVEY_TYPE_LABELS, useCycleSelection, useNationalReport } from '@/api/reports';
 import { type NationalReport } from '@/api/reports.types';
 import { HorizontalBar, RankTable } from '@/design/charts';
@@ -30,7 +31,7 @@ function ParticipationCard({ report }: { report: NationalReport }) {
           <div>
             <p className={styles.sectionTitle}>Assessment</p>
             <div className={styles.tiles4}>
-              <Stat label="Invited" value={formatInt(p.invited)} />
+              <Stat label="Invited" value={formatInt(p.invited)} hint={readyToSendHint(p.readyToSend)} />
               <Stat label="Started" value={formatInt(p.started)} />
               <Stat label="Completed" value={formatInt(p.completed)} />
               <Stat label="Pending" value={formatInt(p.pending)} />

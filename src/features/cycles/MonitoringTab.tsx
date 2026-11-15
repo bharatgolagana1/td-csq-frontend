@@ -1,5 +1,6 @@
 import { useCycleMonitoring } from '@/api/cycles';
 import { type CycleDetail, type MonitoringOperator } from '@/api/cycles.types';
+import { readyToSendHint } from '@/api/invitations.types';
 import { Card, type Column, EmptyState, Pill, Skeleton, Stat, statusVariant, Table } from '@/design/primitives';
 import { QueryError } from '@/design/primitives/QueryError/QueryError';
 import { formatInt, formatPct } from '@/lib/format';
@@ -39,7 +40,23 @@ export function MonitoringTab({ cycle }: { cycle: CycleDetail }) {
       mono: true,
       cell: (o) => `${formatInt(o.sampling.selectedCount)} / ${formatInt(o.sampling.required)}`,
     },
-    { id: 'invited', header: 'Invited', width: 90, align: 'right', mono: true, hideBelow: 'sm', cell: (o) => formatInt(o.invited) },
+    {
+      id: 'invited',
+      header: 'Invited',
+      width: 110,
+      align: 'right',
+      mono: true,
+      hideBelow: 'sm',
+      cell: (o) =>
+        o.readyToSend ? (
+          <span className={styles.invitedCell} title={readyToSendHint(o.readyToSend) ?? undefined}>
+            <span>{formatInt(o.invited)}</span>
+            <span className={styles.readyToSend}>{formatInt(o.readyToSend)} ready</span>
+          </span>
+        ) : (
+          formatInt(o.invited)
+        ),
+    },
     { id: 'started', header: 'Started', width: 90, align: 'right', mono: true, hideBelow: 'sm', cell: (o) => formatInt(o.started) },
     { id: 'completed', header: 'Completed', width: 110, align: 'right', mono: true, cell: (o) => formatInt(o.completed) },
     { id: 'rate', header: 'Completion', width: 110, align: 'right', mono: true, hideBelow: 'md', cell: (o) => (o.invited > 0 ? formatPct(pct(o.completed, o.invited)) : '—') },
@@ -61,7 +78,7 @@ export function MonitoringTab({ cycle }: { cycle: CycleDetail }) {
         <section className={styles.statGroup} aria-label="Assessment">
           <h3 className={styles.sectionTitle}>Assessment</h3>
           <div className={styles.stats}>
-            <Stat label="Invites sent" value={formatInt(m?.assessment.invited)} loading={loading} />
+            <Stat label="Invites sent" value={formatInt(m?.assessment.invited)} hint={readyToSendHint(m?.assessment.readyToSend)} loading={loading} />
             <Stat label="Started" value={formatInt(m?.assessment.started)} loading={loading} />
             <Stat label="Completed" value={formatInt(m?.assessment.completed)} loading={loading} />
             <Stat label="Pending" value={formatInt(m?.assessment.pending)} loading={loading} />

@@ -36,6 +36,20 @@ describe('overview derivations', () => {
 });
 
 describe('OverviewPage', () => {
+  it('says how many invitations are ready to send while Invited still reads 0', async () => {
+    const locked = cycleSummary({ status: 'SAMPLING_CLOSED', progress: { locked: 2, invited: 0, readyToSend: 27, completed: 0 } });
+    mockApi([
+      { path: '/cycles', reply: () => list([locked]) },
+      { path: '/cycles/cy1', reply: () => one(cycleDetail()) },
+      { path: '/operators', reply: () => list(OPERATORS) },
+      { path: '/registrations', reply: () => list([], 0) },
+    ]);
+    renderWithProviders(routes, { path: '/overview' });
+    const card = await screen.findByRole('link', { name: /CSQ 2026 H2, Sampling closed/ });
+    expect(within(card).getByRole('img', { name: 'Operators 3, Locked 2, Invited 0, Completed 0' })).toBeInTheDocument();
+    expect(within(card).getByText('27 ready to send when the assessment opens')).toBeInTheDocument();
+  });
+
   it('shows active cycle cards with the funnel, what needs attention and quick links', async () => {
     mockApi([
       { path: '/cycles', reply: () => list([cycleSummary(), cycleSummary({ id: 'cy2', code: 'CSQ-26H1', name: 'CSQ 2026 H1', status: 'SCORED' })]) },
@@ -49,6 +63,8 @@ describe('OverviewPage', () => {
     const card = screen.getByRole('link', { name: /CSQ 2026 H2, Sampling open/ });
     expect(within(card).getByRole('img', { name: 'Operators 3, Locked 2, Invited 95, Completed 40' })).toBeInTheDocument();
     expect(within(card).getByText('Sampling closes')).toBeInTheDocument();
+    // Nothing waits to be sent: no note.
+    expect(within(card).queryByText(/ready to send/)).toBeNull();
     expect(screen.queryByText('CSQ 2026 H1')).toBeNull();
 
     const unlocked = await screen.findByRole('list', { name: 'Operators not locked' });

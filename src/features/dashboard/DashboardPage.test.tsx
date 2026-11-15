@@ -165,6 +165,15 @@ describe('DashboardPage', () => {
     expect(screen.getByText('No answers to show')).toBeInTheDocument();
   });
 
+  it('explains an Invited of 0 on the assessor card while the invitations wait for the assessment window', async () => {
+    const waiting = { ...OPERATOR_REPORT_PROVISIONAL, assessorStats: { total: 0, completed: 0, inProgress: 0, yetToStart: 0, readyToSend: 27 } };
+    mockApi({ '/cycles': CYCLE_OPTIONS, '/settings': SETTINGS, '/reports/operator/org-csc': waiting });
+    renderPage(<DashboardPage />, { path: '/dashboard?cycleId=c-26h2' });
+    const invited = (await screen.findByText('Invited')).parentElement as HTMLElement;
+    expect(invited).toHaveTextContent(/^Invited0/);
+    expect(within(invited).getByText('27 ready to send when the assessment opens')).toBeInTheDocument();
+  });
+
   it('flags a live cycle as provisional', async () => {
     mockApi({ '/cycles': CYCLE_OPTIONS, '/settings': SETTINGS, '/reports/operator/org-csc': OPERATOR_REPORT_PROVISIONAL });
     renderPage(<DashboardPage />, { path: '/dashboard?cycleId=c-26h2' });
