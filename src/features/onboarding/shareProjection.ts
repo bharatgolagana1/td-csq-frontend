@@ -1,4 +1,8 @@
+import { formatShare, parseShareInput } from '@/lib/share';
+
 /* Pure helpers for the "after approval" market-share preview (§7 Onboarding). */
+
+export { formatShare };
 
 /** The API accepts a total of 100 ± 0.01. */
 export const SHARE_TOLERANCE = 0.01;
@@ -24,24 +28,13 @@ export function shareFit(total: number): ShareFit {
 export function describeShareFit(total: number): string {
   const { ok, diff } = shareFit(total);
   if (ok) return 'Totals 100 %';
-  const abs = Math.abs(diff);
-  const text = Number.isInteger(abs) ? String(abs) : abs.toFixed(2).replace(/0+$/, '');
-  return diff > 0 ? `${text} % over 100` : `${text} % short of 100`;
+  const text = formatShare(Math.abs(diff));
+  return diff > 0 ? `${text} over 100` : `${text} short of 100`;
 }
 
-/** "" → 0; a number 0–100 with up to two decimals → that number; anything else → null (invalid). */
+/** "" → 0; a number 0–100 with up to two decimals → that number; anything else → null (invalid; `parseShareInput` says why). */
 export function parseShare(input: string): number | null {
-  const text = input.trim();
-  if (text === '') return 0;
-  if (!/^\d{1,3}(\.\d{1,2})?$/.test(text)) return null;
-  const n = Number(text);
-  return n <= 100 ? n : null;
-}
-
-/** Integers plain, otherwise up to two decimals: 55 → "55 %", 12.5 → "12.5 %". */
-export function formatShare(n: number | null | undefined): string {
-  if (n === null || n === undefined || Number.isNaN(n)) return '—';
-  return `${Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/0+$/, '')} %`;
+  return parseShareInput(input).value;
 }
 
 /**

@@ -1,6 +1,5 @@
-import { type AuditEntry } from '@/api/audit.types';
+import { type AuditEntry, auditActionLabel, auditEntityLabel } from '@/api/audit.types';
 import { Button, Drawer, KeyValue, Pill, Stamp } from '@/design/primitives';
-import { humanise } from '@/lib/format';
 
 import styles from './audit.module.css';
 import { actionVariant } from './AuditTable';
@@ -20,7 +19,7 @@ export function AuditDrawer({ entry: e, open, onClose, orgName }: AuditDrawerPro
       open={open && e !== null}
       onClose={onClose}
       title="Audit entry"
-      description={e ? `${humanise(e.entity.replace(/[._]/g, ' '))} · ${e.entityId}` : undefined}
+      description={e ? `${auditEntityLabel(e.entity)} · ${e.entityId}` : undefined}
       width={640}
       footer={
         <Button variant="ghost" onClick={onClose}>
@@ -31,7 +30,7 @@ export function AuditDrawer({ entry: e, open, onClose, orgName }: AuditDrawerPro
       {e ? (
         <div className={styles.detail}>
           <div className={styles.statusRow}>
-            <Pill variant={actionVariant(e.action)}>{humanise(e.action.replace(/\./g, ' '))}</Pill>
+            <Pill variant={actionVariant(e.action)}>{auditActionLabel(e.action)}</Pill>
             <span className={styles.statusStamp}>
               <Stamp iso={e.at} />
             </span>

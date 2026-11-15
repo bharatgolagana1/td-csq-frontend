@@ -2,7 +2,9 @@ import { useMemo, useState } from 'react';
 
 import { type RegistrationDetail, type ShareEntryInput } from '@/api/onboarding.types';
 
-import { parseShare, round2, scaleToFit, shareFit } from './shareProjection';
+import { parseShareInput } from '@/lib/share';
+
+import { round2, scaleToFit, shareFit } from './shareProjection';
 
 /** The new operator's row; the others are keyed by their organisation id. */
 export const NEW_ROW = 'new';
@@ -15,6 +17,8 @@ export type ApprovalShareRow = {
   input: string;
   /** Parsed; null when the input is not a share. */
   value: number | null;
+  /** Why the input is not a share ("A share can’t be negative"); null when it is one. */
+  error: string | null;
   isNew: boolean;
 };
 
@@ -38,7 +42,8 @@ export function useApprovalShares(registration: RegistrationDetail) {
   const rows = useMemo<ApprovalShareRow[]>(() => {
     const row = (key: string, code: string | null, name: string, isNew: boolean): ApprovalShareRow => {
       const input = inputs[key] ?? '';
-      return { key, code, name, input, value: parseShare(input), isNew };
+      const parsed = parseShareInput(input);
+      return { key, code, name, input, value: parsed.value, error: parsed.error, isNew };
     };
     return [...operators.map((o) => row(o.acoId, o.code, o.name, false)), row(NEW_ROW, null, registration.organisation.name, true)];
   }, [inputs, operators, registration.organisation.name]);

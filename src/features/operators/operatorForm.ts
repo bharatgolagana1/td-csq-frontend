@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { type Address } from '@/api/operators.types';
+import { parseShareInput } from '@/lib/share';
 
 /* Zod pieces shared by the create and edit drawers (mirrors organisations.schemas.ts). */
 
@@ -34,12 +35,19 @@ export const operationsSchema = z
   .object({ domestic: z.boolean(), international: z.boolean() })
   .refine((o) => o.domestic || o.international, { message: 'Choose at least one', path: ['domestic'] });
 
-/** "" → undefined; otherwise a number 0–100. */
+/** "" → undefined; otherwise a share 0–100 with up to two decimals, the issue naming what is wrong ("A share can’t be negative", "Enter a number, e.g. 12.5"). */
 export const sharePctSchema = z
   .string()
   .trim()
-  .transform((v) => (v === '' ? undefined : Number(v)))
-  .pipe(z.number({ error: 'Enter a number' }).min(0, 'Between 0 and 100').max(100, 'Between 0 and 100').optional());
+  .transform((v, ctx) => {
+    if (v === '') return undefined;
+    const parsed = parseShareInput(v);
+    if (parsed.value === null) {
+      ctx.addIssue({ code: 'custom', message: parsed.error });
+      return z.NEVER;
+    }
+    return parsed.value;
+  });
 
 export type AddressValues = z.input<typeof addressSchema>;
 export type ContactValues = z.input<typeof contactSchema>;

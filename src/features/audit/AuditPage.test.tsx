@@ -142,6 +142,25 @@ describe('AuditPage', () => {
     });
   });
 
+  it('offers every action and entity the backend writes: onboarding links and deleted / restored customers among them', async () => {
+    const spy = mockFetch(routes(listOk));
+    renderWithProviders(<AuditPage />);
+    await screen.findAllByText('priya@csc.example');
+    const actions = screen.getByRole('combobox', { name: 'Action' });
+    for (const label of ['Onboarding link created', 'Onboarding link deleted', 'Customer deleted', 'Customer restored', 'Scoring run']) expect(within(actions).getByRole('option', { name: label })).toBeInTheDocument();
+    const entities = screen.getByRole('combobox', { name: 'Entity' });
+    expect(within(entities).getByRole('option', { name: 'Onboarding link' })).toBeInTheDocument();
+    // Nothing writes a "scoring" entity: a scoring run is recorded on its cycle.
+    expect(within(entities).queryByRole('option', { name: 'Scoring' })).toBeNull();
+    await userEvent.selectOptions(entities, 'onboarding_link');
+    await userEvent.selectOptions(actions, 'onboarding.link.created');
+    await waitFor(() => {
+      const last = calledUrls(spy).filter((u) => u.includes('/audit?')).at(-1) ?? '';
+      expect(last).toContain('entity=onboarding_link');
+      expect(last).toContain('action=onboarding.link.created');
+    });
+  });
+
   it('exports the filtered view as CSV and notes the limit when truncated', async () => {
     const spy = mockFetch(routes((url) => ({ body: { data: ROWS, meta: { page: Number(url.searchParams.get('page') ?? 1), pageSize: Number(url.searchParams.get('pageSize') ?? 25), total: 2 } } })));
     renderWithProviders(<AuditPage />);

@@ -4,7 +4,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { type Operator } from '@/api/operators.types';
 import { Icon } from '@/design/icons';
 import { type Column, EmptyState, type MenuItem, Pill, type SortState, statusVariant, Table } from '@/design/primitives';
-import { formatInt, formatPct, humanise } from '@/lib/format';
+import { formatInt, humanise } from '@/lib/format';
+import { formatShare } from '@/lib/share';
 
 import { OperationsTags } from './OperationsTags';
 import styles from './operators.module.css';
@@ -54,7 +55,7 @@ export function OperatorsTable({ rows, loading, sort, onSortChange, canManage, o
     { id: 'status', header: 'Status', width: 110, sortable: true, cell: (o) => <Pill variant={statusVariant(o.status)}>{humanise(o.status)}</Pill> },
     { id: 'members', header: 'Members', width: 100, align: 'right', mono: true, hideBelow: 'md', cell: (o) => formatInt(o.memberCount) },
     { id: 'customers', header: 'Customers', width: 110, align: 'right', mono: true, hideBelow: 'md', cell: (o) => formatInt(o.customerCount) },
-    { id: 'share', header: 'Share', width: 90, align: 'right', mono: true, cell: (o) => formatPct(o.currentShare) },
+    { id: 'share', header: 'Share', width: 90, align: 'right', mono: true, cell: (o) => formatShare(o.currentShare) },
   ];
 
   const rowActions = canManage

@@ -1,3 +1,5 @@
+import { humanise } from '@/lib/format';
+
 import { type ListQuery } from './types';
 
 /* Mirrors td-csq-backend/src/modules/audit/audit.schemas.ts. */
@@ -33,7 +35,7 @@ export type AuditListQuery = ListQuery & {
   to?: string;
 };
 
-/** Actions declared in the backend contract §7 plus those the modules write today. */
+/** Every action the backend modules write today (`grep "action: '" src` in td-csq-backend), grouped by module. */
 export const AUDIT_ACTIONS = [
   'airport.created',
   'airport.updated',
@@ -41,6 +43,8 @@ export const AUDIT_ACTIONS = [
   'registration.submitted',
   'registration.approved',
   'registration.rejected',
+  'onboarding.link.created',
+  'onboarding.link.deleted',
   'operator.created',
   'operator.updated',
   'operator.deactivated',
@@ -54,6 +58,8 @@ export const AUDIT_ACTIONS = [
   'customer.updated',
   'customer.deactivated',
   'customer.imported',
+  'customer.deleted',
+  'customer.restored',
   'sample.selection.changed',
   'sample.locked',
   'sample.unlocked',
@@ -71,7 +77,7 @@ export const AUDIT_ACTIONS = [
   'notification.resent',
 ] as const;
 
-/** Entity names the modules write today (`entity` is an exact-match filter). */
+/** Entity names the modules write today (`entity` is an exact-match filter); a scoring run is recorded on its cycle. */
 export const AUDIT_ENTITIES = [
   'airport',
   'airport.marketshare',
@@ -81,13 +87,23 @@ export const AUDIT_ENTITIES = [
   'cycle',
   'invitation',
   'notification',
+  'onboarding_link',
   'operator',
   'registration',
   'role',
   'roles.matrix',
   'sample',
-  'scoring',
   'settings',
   'survey',
   'user',
 ] as const;
+
+/** "Sample selection changed", "Scoring run", "Onboarding link created": the action as a sentence. */
+export function auditActionLabel(action: string): string {
+  return humanise(action.replace(/\./g, ' '));
+}
+
+/** "Onboarding link", "Customer import", "Airport marketshare". */
+export function auditEntityLabel(entity: string): string {
+  return humanise(entity.replace(/[._]/g, ' '));
+}

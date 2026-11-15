@@ -29,7 +29,7 @@ function cycleRoutes(detail = cycleDetail()): MockRoute[] {
     { path: '/cycles/cy1/participants', reply: ({ url }) => list(detail.participantList.filter((p) => !url.searchParams.get('samplingStatus') || p.sampling.status === url.searchParams.get('samplingStatus'))) },
     { path: '/cycles/cy1/monitoring', reply: () => one(monitoring()) },
     { path: '/notifications', reply: () => list([notification()]) },
-    { path: '/audit', reply: () => list([auditEntry()]) },
+    { path: '/audit', reply: () => list([auditEntry(), auditEntry({ id: 'a2', action: 'scoring.run', actorUserId: null, actorEmail: null, actorOrgId: null, requestId: '', before: undefined, after: { trigger: 'ASSESSMENT_CLOSED' } })]) },
   ];
 }
 
@@ -48,6 +48,7 @@ describe('CycleDetailPage', () => {
     expect(screen.getByRole('button', { name: 'Send sampling reminders' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Publish…' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Edit draft' })).toBeNull();
+    expect(screen.getByText('Market shares').nextElementSibling).toHaveTextContent('Snapshot taken at publish · adjustable until the assessment opens');
 
     expect(await screen.findByText('3 participants')).toBeInTheDocument();
     const table = screen.getByRole('table', { name: 'Participants' });
@@ -75,6 +76,10 @@ describe('CycleDetailPage', () => {
     const log = await screen.findByRole('list', { name: 'Audit log' });
     expect(within(log).getByText('Published')).toBeInTheDocument();
     expect(within(log).getByText('req req_42')).toBeInTheDocument();
+    // A scheduler entry: a proper label, "System" as the actor and a dash for the missing request id.
+    expect(within(log).getByText('Scoring run')).toBeInTheDocument();
+    expect(within(log).getByText('System')).toBeInTheDocument();
+    expect(within(log).getByText('req —')).toBeInTheDocument();
   });
 
   it('unlocks a locked participant with a reason through the sampling endpoint', async () => {
@@ -114,6 +119,23 @@ describe('CycleDetailPage', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Publish' }));
     expect(await within(dialog).findByText(/No published DOMESTIC survey version/)).toBeInTheDocument();
     expect(within(dialog).getByRole('link', { name: /Open surveys/ })).toHaveAttribute('href', '/surveys');
+  });
+
+  it('offers sampling reminders only while sampling is open: not on a published cycle waiting for its window', async () => {
+    mockApi(cycleRoutes(cycleDetail({}, 'PUBLISHED')));
+    renderWithProviders(routes, { path: '/cycles/cy1' });
+    await screen.findByRole('heading', { name: 'CSQ 2026 H2' });
+    expect(screen.getByRole('button', { name: 'Transition…' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Send sampling reminders' })).toBeNull();
+    expect(screen.getByText('Market shares').nextElementSibling).toHaveTextContent('Snapshot taken at publish');
+  });
+
+  it('says the market-share snapshot is frozen once the assessment is open', async () => {
+    mockApi(cycleRoutes(cycleDetail({}, 'ASSESSMENT_OPEN')));
+    renderWithProviders(routes, { path: '/cycles/cy1' });
+    await screen.findByRole('heading', { name: 'CSQ 2026 H2' });
+    expect(screen.getByText('Market shares').nextElementSibling).toHaveTextContent('Snapshot frozen since the assessment opened');
+    expect(screen.queryByRole('button', { name: 'Send sampling reminders' })).toBeNull();
   });
 
   it('hides operate actions and restricted tabs without the tasks', async () => {

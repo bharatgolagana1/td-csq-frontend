@@ -14,6 +14,8 @@ describe('reports derive', () => {
     const rows = airportOperatorRows([...(AIRPORT_REPORT.operators ?? []), { acoId: 'x', code: 'X', name: 'Tiny', mean: null, sharePct: 5, suppressed: true }]);
     expect(rows.map((r) => r.rank)).toEqual([1, 2, null]);
     expect(rows[0]).toMatchObject({ label: 'Cargo Service Center', extra: '55 %', rankOf: 2 });
+    // A share keeps its decimals, as the totals do: 12.5 is never "13 %".
+    expect(airportOperatorRows([{ acoId: 'h', code: 'H', name: 'Half', mean: 4, sharePct: 12.5, suppressed: false }])[0]?.extra).toBe('12.5 %');
     expect(rows[2]?.sublabel).toBe('X · suppressed');
   });
 

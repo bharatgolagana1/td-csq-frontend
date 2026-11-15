@@ -134,16 +134,19 @@ export function InvitationsTab({ cycleId, acoId, tz, canResend, canRevoke }: Inv
           />
         }
       />
-      <Pagination
-        page={page}
-        pageSize={pageSize}
-        total={total}
-        onPageChange={setPage}
-        onPageSizeChange={(n) => {
-          setPageSize(n);
-          setPage(1);
-        }}
-      />
+      {/* Only the skeleton while the first page loads: no "No results" under it. */}
+      {query.isPending ? null : (
+        <Pagination
+          page={page}
+          pageSize={pageSize}
+          total={total}
+          onPageChange={setPage}
+          onPageSizeChange={(n) => {
+            setPageSize(n);
+            setPage(1);
+          }}
+        />
+      )}
       <ConfirmDialog
         open={revoking !== null}
         onClose={() => (revoke.isPending ? undefined : setRevoking(null))}

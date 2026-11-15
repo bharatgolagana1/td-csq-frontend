@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { AIRPORT_OPTIONS, AIRPORT_REPORT, AIRPORT_REPORT_FOR_OPERATOR, CYCLE_OPTIONS } from '@/api/reports.fixtures';
@@ -62,6 +62,22 @@ describe('AirportReportPage', () => {
     renderPage(<AirportReportPage />, { session: PLATFORM_SESSION, path: PATH });
     expect(await screen.findByRole('combobox', { name: 'Airport' })).toBeInTheDocument();
     expect(await screen.findByRole('heading', { name: 'Mumbai · BOM' })).toBeInTheDocument();
+  });
+
+  it('offers platform users only the airports that took part in the chosen cycle', async () => {
+    const fetchMock = mockApi({
+      '/cycles': CYCLE_OPTIONS,
+      '/airports': AIRPORT_OPTIONS,
+      // The default selection is the scored cycle; Delhi and Chennai took part in it.
+      '/cycles/c-26h1': { id: 'c-26h1', participatingAirportIds: ['ap-del', 'ap-maa'] },
+      '/reports/airport/ap-del': AIRPORT_REPORT,
+    });
+    renderPage(<AirportReportPage />, { session: PLATFORM_SESSION, path: PATH });
+    expect(await screen.findByRole('heading', { name: 'Delhi · DEL' })).toBeInTheDocument();
+    const picker = screen.getByRole('combobox', { name: 'Airport' });
+    expect(within(picker).getAllByRole('option').map((o) => o.textContent)).toEqual(['Delhi · DEL', 'Chennai · MAA']);
+    // Mumbai, first in the full list, was never asked for: it did not take part.
+    expect(fetchMock.mock.calls.map(([input]) => String(input)).some((u) => u.includes('/reports/airport/ap-bom'))).toBe(false);
   });
 
   it('shows an empty state without a reportable cycle', async () => {

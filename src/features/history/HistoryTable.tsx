@@ -6,7 +6,7 @@ import { cn } from '@/lib/cn';
 import { DIRECTION_LABELS } from '@/lib/directionLabels';
 import { formatInt, formatRating } from '@/lib/format';
 
-import { HiddenScore } from './HiddenScore';
+import { DRAFT_SCORE_LABEL, HiddenScore } from './HiddenScore';
 import styles from './history.module.css';
 import { assessorLabel, canOpenAssessment, isIdentityHidden, isScoreHidden, KIND_LABELS, kindVariant, rowAnswerMode, STATUS_LABELS, statusPillVariant, submittedCell, SURVEY_LABELS, surveyVariant, TYPE_LABELS } from './historyLabels';
 import { useMediaQuery } from './useMediaQuery';
@@ -57,8 +57,9 @@ function SurveyPill({ row }: { row: HistoryRow }) {
   );
 }
 
-/** The single score, or the import and the export score of an IMPORT_EXPORT assessment; a dash when it is withheld. */
+/** The single score, or the import and the export score of an IMPORT_EXPORT assessment; a dash when it is withheld or the assessment is still a draft. */
 function Score({ row, hidden }: { row: HistoryRow; hidden: boolean }) {
+  if (row.status !== 'SUBMITTED') return <HiddenScore label={DRAFT_SCORE_LABEL} />;
   if (hidden) return <HiddenScore />;
   if (rowAnswerMode(row) !== 'IMPORT_EXPORT') return <>{formatRating(row.score)}</>;
   return (

@@ -26,7 +26,8 @@ function tabsFor(o: Operator | undefined, canSeeMembers: boolean): TabItem[] {
   const tabs: TabItem[] = [{ id: 'overview', label: 'Overview' }];
   if (canSeeMembers) tabs.push({ id: 'members', label: 'Members', ...(o ? { count: o.memberCount } : {}) });
   tabs.push({ id: 'shares', label: 'Market share history' });
-  tabs.push({ id: 'customers', label: 'Customers', ...(o ? { count: o.customerCount } : {}) });
+  // `customerCount` counts ACTIVE customers only (inactive and deleted ones are left out), so the tab says so: the Customers page lists every status.
+  tabs.push({ id: 'customers', label: 'Active customers', ...(o ? { count: o.customerCount } : {}) });
   return tabs;
 }
 

@@ -145,6 +145,46 @@ describe('SelfAssessmentPage', () => {
     expect(screen.getByText(/closes 14 Nov 2026, 23:59/)).toBeInTheDocument();
   });
 
+  it('an operator in two open cycles chooses which self-assessment to answer, kept in the URL; the current one first', async () => {
+    const second: CurrentCycle = {
+      ...CYCLE,
+      cycle: { ...CYCLE.cycle, id: 'cy2', code: 'CSQ-26X', name: 'CSQ 2026 Express', type: 'DOMESTIC', status: 'ASSESSMENT_OPEN' },
+      participant: { ...CYCLE.participant, cycleId: 'cy2', surveyTypes: ['DOMESTIC'] },
+    };
+    const published: CurrentCycle = { ...CYCLE, cycle: { ...CYCLE.cycle, id: 'cy3', code: 'CSQ-27H1', name: 'CSQ 2027 H1', status: 'PUBLISHED' } };
+    current.mockReturnValue({ isPending: false, isError: false, data: [CYCLE, second, published] } as unknown as ReturnType<typeof useCurrentCycles>);
+    selfQuery.mockReturnValue({ isPending: false, isError: false, data: self('DRAFT') } as unknown as ReturnType<typeof useSelfAssessment>);
+    mount('/self-assessment?type=INTERNATIONAL');
+    const picker = screen.getByRole('combobox', { name: 'Cycle' });
+    // The open cycles only; the current one (first open) is shown first.
+    expect(within(picker).getAllByRole('option').map((o) => o.textContent)).toEqual(['CSQ 2026 H2 · CSQ-26H2 · Sampling open', 'CSQ 2026 Express · CSQ-26X · Assessment open']);
+    expect(picker).toHaveValue('cy1');
+    expect(selfQuery).toHaveBeenLastCalledWith('cy1', 'INTERNATIONAL');
+
+    await userEvent.selectOptions(picker, 'cy2');
+    expect(selfQuery).toHaveBeenLastCalledWith('cy2', 'DOMESTIC');
+    expect(screen.getByRole('combobox', { name: 'Cycle' })).toHaveValue('cy2');
+    expect(screen.getByText(/CSQ 2026 Express · closes/)).toBeInTheDocument();
+    // One survey type in that cycle: no tabs.
+    expect(screen.queryByRole('tab', { name: 'International' })).toBeNull();
+  });
+
+  it('opens the cycle named in ?cycleId=, and offers no choice with a single open cycle', () => {
+    const second: CurrentCycle = { ...CYCLE, cycle: { ...CYCLE.cycle, id: 'cy2', code: 'CSQ-26X', name: 'CSQ 2026 Express', status: 'ASSESSMENT_OPEN' }, participant: { ...CYCLE.participant, cycleId: 'cy2' } };
+    current.mockReturnValue({ isPending: false, isError: false, data: [CYCLE, second] } as unknown as ReturnType<typeof useCurrentCycles>);
+    selfQuery.mockReturnValue({ isPending: false, isError: false, data: self('DRAFT') } as unknown as ReturnType<typeof useSelfAssessment>);
+    const { unmount } = mount('/self-assessment?cycleId=cy2');
+    expect(selfQuery).toHaveBeenLastCalledWith('cy2', 'DOMESTIC');
+    expect(screen.getByRole('combobox', { name: 'Cycle' })).toHaveValue('cy2');
+    unmount();
+
+    const published: CurrentCycle = { ...CYCLE, cycle: { ...CYCLE.cycle, id: 'cy3', status: 'PUBLISHED' } };
+    current.mockReturnValue({ isPending: false, isError: false, data: [CYCLE, published] } as unknown as ReturnType<typeof useCurrentCycles>);
+    mount();
+    expect(screen.queryByRole('combobox', { name: 'Cycle' })).toBeNull();
+    expect(selfQuery).toHaveBeenLastCalledWith('cy1', 'DOMESTIC');
+  });
+
   it('a reopened draft says when it was last saved', () => {
     current.mockReturnValue({ isPending: false, isError: false, data: [CYCLE] } as unknown as ReturnType<typeof useCurrentCycles>);
     const draft = self('DRAFT');

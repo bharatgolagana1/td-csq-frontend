@@ -4,7 +4,8 @@ import { useSession } from '@/auth/session';
 import { Icon } from '@/design/icons';
 import { type Column, EmptyState, Pill, Skeleton, statusVariant, Table } from '@/design/primitives';
 import { QueryError } from '@/design/primitives/QueryError/QueryError';
-import { formatPct, humanise } from '@/lib/format';
+import { humanise } from '@/lib/format';
+import { formatShare } from '@/lib/share';
 
 import styles from './operators.module.css';
 
@@ -43,8 +44,8 @@ export function OperatorShareHistory({ operator }: { operator: Operator }) {
       ),
     },
     { id: 'status', header: 'Cycle status', width: 150, hideBelow: 'sm', cell: (r) => (r.status ? <Pill variant={statusVariant(r.status)}>{humanise(r.status)}</Pill> : <span className={styles.muted}>—</span>) },
-    { id: 'share', header: 'Share', width: 100, align: 'right', mono: true, cell: (r) => (r.pending ? <Skeleton width={48} /> : r.error ? <span className={styles.muted}>—</span> : formatPct(r.share)) },
-    { id: 'total', header: 'Airport total', width: 120, align: 'right', mono: true, hideBelow: 'md', cell: (r) => (r.pending ? <Skeleton width={48} /> : formatPct(r.total)) },
+    { id: 'share', header: 'Share', width: 100, align: 'right', mono: true, cell: (r) => (r.pending ? <Skeleton width={48} /> : r.error ? <span className={styles.muted}>—</span> : formatShare(r.share)) },
+    { id: 'total', header: 'Airport total', width: 120, align: 'right', mono: true, hideBelow: 'md', cell: (r) => (r.pending ? <Skeleton width={48} /> : formatShare(r.total)) },
     {
       id: 'frozen',
       header: 'Snapshot',

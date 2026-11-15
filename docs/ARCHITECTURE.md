@@ -138,6 +138,11 @@ Rules:
   /dashboard; airport roles → /reports/airport.
 - `CycleStrip` (operator shell, under the topbar) shows the current cycle,
   phase, deadline countdown and the sampling counter, from `GET /cycles/current`.
+  A page that shows a cycle (Sampling, Dashboard and its question table,
+  Self-assessment) publishes it with `useStripCycle` (`shell/stripCycle.ts`)
+  and the strip follows it: a current cycle with its deadline and counter, a
+  closed one by name and phase. Its links open that cycle (`?cycleId=`, which
+  Sampling, the Dashboard and Self-assessment all read).
 
 ## 5. Data layer
 

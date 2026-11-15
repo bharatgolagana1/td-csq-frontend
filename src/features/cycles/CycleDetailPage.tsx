@@ -13,7 +13,7 @@ import { describeTimeZone, formatCountdown, formatDateTime, formatInt } from '@/
 import { useShell } from '@/shell/ShellContext';
 
 import { AuditTab } from './AuditTab';
-import { allowedTransitions, ANSWER_MODE_LABELS, CYCLE_STATUS_LABELS, CYCLE_TYPE_LABELS, DEADLINE_LABELS, formatWindowLong, nextCycleDeadline, SAMPLING_PHASE, TYPE_PILL } from './cycleLabels';
+import { allowedTransitions, ANSWER_MODE_LABELS, canSendSamplingReminders, CYCLE_STATUS_LABELS, CYCLE_TYPE_LABELS, DEADLINE_LABELS, formatWindowLong, marketShareState, nextCycleDeadline, TYPE_PILL } from './cycleLabels';
 import styles from './cycles.module.css';
 import { MonitoringTab } from './MonitoringTab';
 import { NotificationsTab } from './NotificationsTab';
@@ -40,7 +40,7 @@ function Summary({ cycle }: { cycle: CycleDetail }) {
       key: 'Survey versions',
       value: cycle.surveyVersions.DOMESTIC || cycle.surveyVersions.INTERNATIONAL ? [cycle.surveyVersions.DOMESTIC && 'Domestic pinned', cycle.surveyVersions.INTERNATIONAL && 'International pinned'].filter(Boolean).join(' · ') : 'Pinned at publish',
     },
-    { key: 'Market shares', value: cycle.marketShareFrozen ? 'Snapshot frozen for this cycle' : 'Not snapshotted yet' },
+    { key: 'Market shares', value: marketShareState(cycle) },
     { key: 'Published', value: cycle.publishedAt ? formatDateTime(cycle.publishedAt, cycle.tz) : '—', mono: true },
   ];
   return (
@@ -101,7 +101,7 @@ export default function CycleDetailPage() {
   const canPublish = cycle.status === 'DRAFT' && hasTask('cycles.publish');
   const canOperate = hasTask('cycles.operate');
   const transitions = allowedTransitions(cycle.status);
-  const canRemind = canOperate && SAMPLING_PHASE.includes(cycle.status) && cycle.status !== 'SAMPLING_CLOSED';
+  const canRemind = canOperate && canSendSamplingReminders(cycle.status);
 
   const confirmPublish = () => {
     publish.mutate(cycle.id, {

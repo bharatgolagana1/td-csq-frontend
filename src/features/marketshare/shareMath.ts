@@ -1,4 +1,8 @@
+import { formatShare, parseShareInput } from '@/lib/share';
+
 /* Pure arithmetic behind the editor's live total and the 100 % guard (§6: total = 100 ± 0.01). */
+
+export { formatShare };
 
 export const SHARE_TOLERANCE = 0.01;
 
@@ -6,13 +10,9 @@ export function round2(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
-/** "" → 0; a number 0–100 → that number; anything else → null (invalid). */
+/** "" → 0; a number 0–100 with up to two decimals → that number; anything else → null (invalid; `parseShareInput` says why). */
 export function parseShare(input: string): number | null {
-  const text = input.trim();
-  if (text === '') return 0;
-  if (!/^\d{1,3}(\.\d{1,2})?$/.test(text)) return null;
-  const n = Number(text);
-  return n >= 0 && n <= 100 ? n : null;
+  return parseShareInput(input).value;
 }
 
 export function sumShares(values: (number | null)[]): number {
@@ -35,8 +35,3 @@ export function describeTotal(total: number): string {
   return `${formatShare(abs)} ${diff > 0 ? 'over' : 'short of'} 100`;
 }
 
-/** Integers plain, otherwise up to two decimals: 55 → "55 %", 12.5 → "12.5 %". */
-export function formatShare(n: number | null | undefined): string {
-  if (n === null || n === undefined || Number.isNaN(n)) return '—';
-  return `${Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/0+$/, '')} %`;
-}

@@ -63,7 +63,7 @@ export function SamplingStep() {
         label="Minimum sample size per operator"
         type="number"
         inputMode="numeric"
-        min={0}
+        min={1}
         max={100000}
         required
         mono

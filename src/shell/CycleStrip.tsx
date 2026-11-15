@@ -11,6 +11,7 @@ import { formatCountdown, formatDateTime, humanise } from '@/lib/format';
 
 import styles from './CycleStrip.module.css';
 import { useShell } from './ShellContext';
+import { type ShownCycle, useShownCycle } from './stripCycle';
 
 export type CycleStripProps = {
   cycleName: string;
@@ -41,12 +42,18 @@ export function pickCurrent(entries: readonly CurrentCycle[]): CurrentCycle | nu
   return dated[0] ?? entries[0] ?? null;
 }
 
-/** Pure mapping of a `GET /cycles/current` entry to the strip (ARCHITECTURE §4). */
+/** `path` for this cycle: the page opens on it (`?cycleId=`), not on its own default. */
+function forCycle(path: string, cycleId: string): string {
+  return `${path}?cycleId=${encodeURIComponent(cycleId)}`;
+}
+
+/** Pure mapping of a `GET /cycles/current` entry to the strip (ARCHITECTURE §4); every link opens that cycle. */
 export function stripPropsFrom(entry: CurrentCycle | null | undefined, access: StripAccess = { canSample: true, canSelfAssess: true }): CycleStripProps | null {
   if (!entry) return null;
   const { cycle, participant, nextDeadline } = entry;
   const inSampling = SAMPLING_PHASE.has(cycle.status);
   const locked = participant.sampling.status === 'LOCKED';
+  const to = (path: string) => forCycle(path, cycle.id);
   const base: CycleStripProps = {
     cycleName: cycle.name,
     cycleCode: cycle.code,
@@ -56,21 +63,40 @@ export function stripPropsFrom(entry: CurrentCycle | null | undefined, access: S
     deadlineLabel: nextDeadline ? humanise(nextDeadline.kind) : 'No deadline',
   };
   if (inSampling) {
-    const to = access.canSample ? '/sampling' : '/dashboard';
-    return { ...base, selected: participant.sampling.selectedCount, required: participant.requiredSampleSize, to, actionLabel: access.canSample ? (locked ? 'View sample' : 'Go to sampling') : 'Dashboard' };
+    return { ...base, selected: participant.sampling.selectedCount, required: participant.requiredSampleSize, to: to(access.canSample ? '/sampling' : '/dashboard'), actionLabel: access.canSample ? (locked ? 'View sample' : 'Go to sampling') : 'Dashboard' };
   }
-  if (cycle.status === 'ASSESSMENT_OPEN' && access.canSelfAssess) return { ...base, to: '/self-assessment', actionLabel: 'Self-assessment' };
-  return { ...base, to: '/dashboard', actionLabel: 'Dashboard' };
+  if (cycle.status === 'ASSESSMENT_OPEN' && access.canSelfAssess) return { ...base, to: to('/self-assessment'), actionLabel: 'Self-assessment' };
+  return { ...base, to: to('/dashboard'), actionLabel: 'Dashboard' };
 }
 
-/** Operator shells only: the strip data from `GET /cycles/current` (null hides the strip). */
+/** The strip for a cycle the page shows that is not one of the operator's current ones (scored, archived): its name and phase, no deadline, its dashboard. */
+export function stripPropsForShown(cycle: ShownCycle): CycleStripProps {
+  return { cycleName: cycle.name, cycleCode: cycle.code, phase: cycle.status, tz: cycle.tz, deadlineAt: null, deadlineLabel: 'No deadline', to: forCycle('/dashboard', cycle.id), actionLabel: 'Dashboard' };
+}
+
+/**
+ * What the strip shows: nothing when the operator has no current cycle; else
+ * the cycle the page on screen shows when the page names one (`useStripCycle`)
+ * — a current one with its deadline and counter, a closed one by name and
+ * phase — and otherwise the default current one (`pickCurrent`).
+ */
+export function stripPropsFor(entries: readonly CurrentCycle[], shown: ShownCycle | null, access: StripAccess): CycleStripProps | null {
+  if (entries.length === 0) return null;
+  const followed = shown ? entries.find((e) => e.cycle.id === shown.id) : undefined;
+  if (followed) return stripPropsFrom(followed, access);
+  if (shown) return stripPropsForShown(shown);
+  return stripPropsFrom(pickCurrent(entries), access);
+}
+
+/** Operator shells only: the strip data from `GET /cycles/current`, following the cycle the page shows (null hides the strip). */
 export function useCycleStripProps(): CycleStripProps | null {
   const { scope, hasTask } = useSession();
   const acoId = scope.kind === 'ACO' ? scope.acoId : '';
   const query = useCurrentCycles(acoId, acoId !== '' && hasTask('cycles.view'));
+  const shown = useShownCycle();
   const canSample = hasTask('sampling.view');
   const canSelfAssess = hasTask('assessments.self');
-  return useMemo(() => stripPropsFrom(pickCurrent(query.data ?? []), { canSample, canSelfAssess }), [query.data, canSample, canSelfAssess]);
+  return useMemo(() => (query.data ? stripPropsFor(query.data, shown, { canSample, canSelfAssess }) : null), [query.data, shown, canSample, canSelfAssess]);
 }
 
 function useNow(intervalMs = 60_000): Date {

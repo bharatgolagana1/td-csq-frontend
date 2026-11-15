@@ -22,7 +22,8 @@ export default function ExportsPage() {
   const effectiveScope: ExportScope | undefined = scope || scopes[0];
   const cycle = useCycleSelection();
   const operator = useOperatorScope();
-  const airport = useAirportScope();
+  // The airport export, like the report, exists only for the cycle's participating airports.
+  const airport = useAirportScope(effectiveScope === 'airport' ? cycle.selection.cycle?.id : undefined);
 
   // No report is loaded here, so the cycle list says whether there is a direction to export (IMPORT unless picked).
   const direction = cycle.selection.cycle?.answerMode === 'IMPORT_EXPORT' ? (cycle.direction ?? 'IMPORT') : undefined;

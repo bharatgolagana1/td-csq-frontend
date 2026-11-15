@@ -11,7 +11,7 @@ export type TopbarProps = {
   onOpenNav: () => void;
 };
 
-/** Page title slot · search placeholder · OrgSwitcher · theme toggle · UserMenu. */
+/** Page title slot · OrgSwitcher · theme toggle · UserMenu. Global search is left out until it exists (it was a disabled box with a ⌘K hint that looked live). */
 export function Topbar({ onOpenNav }: TopbarProps) {
   const title = usePageTitle();
   const { resolved, toggle } = useTheme();
@@ -23,11 +23,6 @@ export function Topbar({ onOpenNav }: TopbarProps) {
         <h2 className={styles.title} aria-live="polite">
           {title}
         </h2>
-      </div>
-      <div className={styles.search}>
-        <Icon name="search" size={16} className={styles.searchIcon} />
-        <input type="search" className={styles.searchInput} placeholder="Search operators, cycles, users…" aria-label="Search" disabled title="Search is coming soon" />
-        <kbd className={styles.kbd}>⌘K</kbd>
       </div>
       <div className={styles.end}>
         <OrgSwitcher />

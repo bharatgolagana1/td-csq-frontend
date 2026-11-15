@@ -9,6 +9,7 @@ import { useSession } from '@/auth/session';
 import { Banner, EmptyState, PageHeader, Select, Skeleton, type TabItem, TabPanel, Tabs, useToast } from '@/design/primitives';
 import { QueryError } from '@/design/primitives/QueryError/QueryError';
 import { DEFAULT_TZ, formatDateTime } from '@/lib/format';
+import { useStripCycle } from '@/shell/stripCycle';
 
 import { AuditTab } from './AuditTab';
 import { buildRows, EligibleTable } from './EligibleTable';
@@ -42,6 +43,8 @@ export default function SamplingPage() {
   const picked = useMemo(() => pickCurrentCycle(cycles, params.get('cycleId')), [cycles, params]);
   const cycleId = picked?.cycle.id ?? '';
   const tz = picked?.cycle.tz ?? DEFAULT_TZ;
+  // The operator strip follows the cycle picked here.
+  useStripCycle(picked?.cycle);
 
   const state = useSamplingState(cycleId, scope.acoId, scope.ready && cycleId !== '');
   const eligible = useEligibleCustomers(scope.acoId, cycleId, scope.ready && cycleId !== '');

@@ -68,5 +68,17 @@ describe('HistoryTable cards', () => {
     expect(within(customer).getByText('Submitted 5 Oct 2026, 12:04 IST')).toBeInTheDocument();
     expect(within(self).getByText('International')).toBeInTheDocument();
     expect(within(self).getByText('Last saved 4 Oct 2026, 10:30 IST · 9 of 23 answered')).toBeInTheDocument();
+    // A draft has no score yet: a dash, never the running mean.
+    expect(within(self).getByTitle('No score until submitted')).toHaveTextContent('—');
+    expect(within(self).queryByText('3.5')).toBeNull();
+  });
+
+  it('an IMPORT_EXPORT draft card shows a dash, not its import and export means', () => {
+    const draft: HistoryRow = { ...CUSTOMER, id: 'a4', answerMode: 'IMPORT_EXPORT', status: 'DRAFT', submittedAt: null, importScore: 4.2, exportScore: 3.8 };
+    mount({ rows: [draft] });
+    const [card] = within(screen.getByRole('list', { name: 'Assessments' })).getAllByRole('listitem') as [HTMLElement];
+    expect(within(card).getByTitle('No score until submitted')).toBeInTheDocument();
+    expect(within(card).queryByText('4.2')).toBeNull();
+    expect(within(card).queryByText('Import')).toBeNull();
   });
 });

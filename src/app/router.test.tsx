@@ -95,6 +95,8 @@ describe('the route tree under basename /app', () => {
       expect(await screen.findByRole('heading', { name: 'No access' })).toBeInTheDocument();
       // The sidebar writes <NavLink to="/cycles">; the router renders it under the basename.
       expect(screen.getByRole('link', { name: 'Cycles' })).toHaveAttribute('href', '/app/cycles');
+      // No global search in the top bar until it exists (it was a disabled box that looked live).
+      expect(screen.queryByRole('searchbox')).toBeNull();
 
       await router.navigate('/does-not-exist');
       // NotFoundPage's EmptyState title (the PageHeader title is mirrored by the Topbar, so it appears twice).

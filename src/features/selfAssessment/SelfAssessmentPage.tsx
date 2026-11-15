@@ -3,13 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { type SurveyType } from '@/api/assessments.types';
 import { useSession } from '@/auth/session';
 import { Icon } from '@/design/icons';
-import { Button, EmptyState, PageHeader, Skeleton } from '@/design/primitives';
+import { Button, EmptyState, PageHeader, Select, Skeleton } from '@/design/primitives';
 import { QueryError } from '@/design/primitives/QueryError/QueryError';
-import { describeTimeZone, formatCountdown, formatDateTime } from '@/lib/format';
+import { describeTimeZone, formatCountdown, formatDateTime, humanise } from '@/lib/format';
+import { useStripCycle } from '@/shell/stripCycle';
 
 import styles from './selfAssessment.module.css';
 import { SelfAssessmentForm } from './SelfAssessmentForm';
-import { type SelfTarget, useSelfAssessmentTarget } from './useSelfAssessmentTarget';
+import { type SelfCycleChoice, type SelfTarget, useSelfAssessmentTarget } from './useSelfAssessmentTarget';
 
 const SURVEY_LABELS: Record<SurveyType, string> = { DOMESTIC: 'Domestic', INTERNATIONAL: 'International' };
 
@@ -24,6 +25,22 @@ function contextOf(target: SelfTarget): string {
     default:
       return "Your organisation's own return for the current cycle.";
   }
+}
+
+/** An operator in more than one open cycle chooses which self-assessment to answer (kept in `?cycleId=`). */
+function CyclePicker({ choice }: { choice: SelfCycleChoice }) {
+  return (
+    <div className={styles.pickers}>
+      <Select
+        label="Cycle"
+        wrapperClassName={styles.picker}
+        options={choice.cycles.map((c) => ({ value: c.id, label: `${c.name} · ${c.code} · ${humanise(c.status)}` }))}
+        value={choice.cycleId}
+        hint="You are in more than one open cycle; each has its own self-assessment."
+        onChange={(e) => choice.setCycle(e.target.value)}
+      />
+    </div>
+  );
 }
 
 function Body({ target, canViewHistory }: { target: SelfTarget; canViewHistory: boolean }) {
@@ -69,6 +86,8 @@ function Body({ target, canViewHistory }: { target: SelfTarget; canViewHistory: 
 export default function SelfAssessmentPage() {
   const { hasTask } = useSession();
   const target = useSelfAssessmentTarget();
+  // The operator strip follows the cycle answered here.
+  useStripCycle(target.kind === 'open' || target.kind === 'not-open' ? target.cycle : null);
   const tabs =
     target.kind === 'open' && target.surveyTypes.length > 1
       ? {
@@ -82,6 +101,7 @@ export default function SelfAssessmentPage() {
   return (
     <>
       <PageHeader eyebrow="Operator" title="Self-assessment" context={contextOf(target)} tabs={tabs} />
+      {(target.kind === 'open' || target.kind === 'not-open') && target.choice ? <CyclePicker choice={target.choice} /> : null}
       <p className={styles.note}>
         <Icon name="info" size={16} className={styles.noteIcon} />
         Self scores are reported beside customer scores and never enter the published rating.

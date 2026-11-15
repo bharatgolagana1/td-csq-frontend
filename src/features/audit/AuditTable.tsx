@@ -1,8 +1,7 @@
 import { type ReactNode } from 'react';
 
-import { type AuditEntry } from '@/api/audit.types';
+import { type AuditEntry, auditActionLabel, auditEntityLabel } from '@/api/audit.types';
 import { type Column, EmptyState, Pill, type PillVariant, type SortState, Stamp, Table } from '@/design/primitives';
-import { humanise } from '@/lib/format';
 
 import styles from './audit.module.css';
 
@@ -54,7 +53,7 @@ export function AuditTable({ rows, loading, sort, onSortChange, onOpen, orgName,
       sortable: true,
       cell: (e) => (
         <span className={styles.actionCell}>
-          <Pill variant={actionVariant(e.action)}>{humanise(e.action.replace(/\./g, ' '))}</Pill>
+          <Pill variant={actionVariant(e.action)}>{auditActionLabel(e.action)}</Pill>
           {/* Phone width: the Actor column is hidden, so the actor moves in here. */}
           <span className={styles.actionActor}>{e.actorEmail ?? 'System'}</span>
         </span>
@@ -67,7 +66,7 @@ export function AuditTable({ rows, loading, sort, onSortChange, onOpen, orgName,
       hideBelow: 'sm',
       cell: (e) => (
         <span className={styles.entity}>
-          <span>{humanise(e.entity.replace(/[._]/g, ' '))}</span>
+          <span>{auditEntityLabel(e.entity)}</span>
           <code className={styles.id} title={e.entityId}>
             {shortId(e.entityId)}
           </code>

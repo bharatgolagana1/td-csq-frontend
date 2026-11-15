@@ -4,12 +4,12 @@ import { formatInt } from '@/lib/format';
 
 import styles from './operators.module.css';
 
-/** Customers tab: the count only — the directory itself is the operator's (Customers area). */
+/** Customers tab: the count of ACTIVE customers only (the API's `customerCount`) — the directory itself, every status, is the operator's (Customers area). */
 export function OperatorCustomers({ operator }: { operator: Operator }) {
   return (
     <Card title="Customer directory">
       <div className={styles.statRow}>
-        <Stat label="Customers on record" value={formatInt(operator.customerCount)} hint="Freight forwarders and customs brokers" size="lg" />
+        <Stat label="Active customers" value={formatInt(operator.customerCount)} hint="Freight forwarders and customs brokers who can be sampled; inactive ones are not counted" size="lg" />
         <Stat label="Members" value={formatInt(operator.memberCount)} hint="People who can manage the directory" />
       </div>
       <p className={styles.hint}>

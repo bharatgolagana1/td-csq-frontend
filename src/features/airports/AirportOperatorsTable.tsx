@@ -2,7 +2,8 @@ import { Link } from 'react-router-dom';
 
 import { type Operator } from '@/api/operators.types';
 import { type Column, EmptyState, Pill, statusVariant, Table, Tag } from '@/design/primitives';
-import { formatInt, formatPct, humanise } from '@/lib/format';
+import { formatInt, humanise } from '@/lib/format';
+import { formatShare } from '@/lib/share';
 
 import styles from './airports.module.css';
 
@@ -32,7 +33,7 @@ export function AirportOperatorsTable({ operators }: { operators: Operator[] }) 
     },
     { id: 'status', header: 'Status', width: 110, cell: (o) => <Pill variant={statusVariant(o.status)}>{humanise(o.status)}</Pill> },
     { id: 'members', header: 'Members', width: 100, align: 'right', mono: true, hideBelow: 'md', cell: (o) => formatInt(o.memberCount) },
-    { id: 'share', header: 'Share', width: 90, align: 'right', mono: true, cell: (o) => formatPct(o.currentShare) },
+    { id: 'share', header: 'Share', width: 90, align: 'right', mono: true, cell: (o) => formatShare(o.currentShare) },
   ];
   return (
     <Table

@@ -63,7 +63,7 @@ export function cycleDetail(over: Partial<CycleDetail> = {}, status: CycleStatus
     participatingAirportIds: ['ap-del', 'ap-bom'],
     participatingAcoIds: ['org-csc', 'org-celebi', 'org-mial'],
     surveyVersions: status === 'DRAFT' ? { DOMESTIC: null, INTERNATIONAL: null } : { DOMESTIC: 'sv-dom-3', INTERNATIONAL: 'sv-int-2' },
-    marketShareFrozen: status !== 'DRAFT',
+    marketShareFrozen: ['ASSESSMENT_OPEN', 'ASSESSMENT_CLOSED', 'SCORED', 'ARCHIVED'].includes(status),
     publishedBy: status === 'DRAFT' ? null : 'u1',
     createdBy: 'u1',
     participantList:
