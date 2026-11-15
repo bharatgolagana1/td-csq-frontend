@@ -8,6 +8,7 @@ import { Icon } from '@/design/icons';
 import { Card, EmptyState, KeyValue, PageHeader, Pill, Skeleton, Tag } from '@/design/primitives';
 import { QueryError } from '@/design/primitives/QueryError/QueryError';
 import { AnswerSummary, groupsFromDetail } from '@/features/assessmentForm';
+import { DIRECTION_LABELS } from '@/lib/directionLabels';
 import { DEFAULT_TZ, describeTimeZone, formatDateTime, formatInt, formatRating, humanise } from '@/lib/format';
 
 import { HiddenScore } from './HiddenScore';
@@ -116,8 +117,8 @@ export default function AssessmentPage() {
                 { key: 'Answered', value: `${formatInt(data.progress.answered)} of ${formatInt(data.progress.total)}`, mono: true },
                 ...(rowAnswerMode(data) === 'IMPORT_EXPORT'
                   ? [
-                      { key: 'Import score', value: rating(data.importScore), mono: true },
-                      { key: 'Export score', value: rating(data.exportScore), mono: true },
+                      { key: `${DIRECTION_LABELS.IMPORT} score`, value: rating(data.importScore), mono: true },
+                      { key: `${DIRECTION_LABELS.EXPORT} score`, value: rating(data.exportScore), mono: true },
                     ]
                   : [{ key: 'Score', value: rating(data.score), mono: true }]),
               ]}

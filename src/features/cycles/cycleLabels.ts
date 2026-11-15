@@ -1,15 +1,16 @@
 import { type AnswerMode, type CycleStatus, type CycleType, type CycleWindow, type DeadlineKind, type ManualTarget, type SamplingStatus, type SurveyType } from '@/api/cycles.types';
 import { type PillVariant } from '@/design/primitives';
+import { directionWord, IMPORT_EXPORT_LABEL } from '@/lib/directionLabels';
 import { describeTimeZone, formatDate, formatDateTime } from '@/lib/format';
 
 /* Labels and the status machine the cycles pages share (mirrors backend cycles/domain/transitions.ts). */
 
 export const CYCLE_TYPE_LABELS: Record<CycleType, string> = { DOMESTIC: 'Domestic', INTERNATIONAL: 'International', BOTH: 'Both' };
 
-export const ANSWER_MODE_LABELS: Record<AnswerMode, string> = { IMPORT_EXPORT: 'Import & Export', SINGLE: 'Single rating' };
+export const ANSWER_MODE_LABELS: Record<AnswerMode, string> = { IMPORT_EXPORT: IMPORT_EXPORT_LABEL, SINGLE: 'Single rating' };
 
 export const ANSWER_MODE_HINTS: Record<AnswerMode, string> = {
-  IMPORT_EXPORT: 'Each question is rated separately for import and for export; reports show either side.',
+  IMPORT_EXPORT: `Each question is rated separately for ${directionWord('IMPORT')} and for ${directionWord('EXPORT')}; reports show either side.`,
   SINGLE: 'One rating per question, as in earlier cycles.',
 };
 

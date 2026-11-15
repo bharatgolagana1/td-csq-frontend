@@ -5,6 +5,7 @@ import { useSearchParams } from 'react-router-dom';
 import { getAccessToken } from '@/auth/keycloak';
 import { useSession } from '@/auth/session';
 import { type SelectOption } from '@/design/primitives/Select/Select';
+import { DIRECTION_LABELS } from '@/lib/directionLabels';
 
 import { api, ApiError, buildUrl, NetworkError } from './client';
 import { useOperators } from './organisations';
@@ -164,7 +165,8 @@ export function isSurveyType(value: string | null | undefined): value is SurveyT
   return value === 'DOMESTIC' || value === 'INTERNATIONAL';
 }
 
-export const DIRECTION_LABELS: Record<ScoreDirection, string> = { IMPORT: 'Import', EXPORT: 'Export' };
+/** "Import" / "Export", from the one module that names the directions. */
+export { DIRECTION_LABELS };
 
 /** The Import/Export switch's options, in display order. */
 export const DIRECTION_OPTIONS: { value: ScoreDirection; label: string }[] = [
