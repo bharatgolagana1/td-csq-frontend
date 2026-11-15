@@ -43,7 +43,7 @@ export const builderFields = z.object({
   initiationDate: z.string().refine((v) => v === '' || isCalendarDate(v), 'Enter a real date'),
   sampling: z.object({ start: wall, end: wall }),
   assessment: z.object({ start: wall, end: wall }),
-  minSampleSize: count.min(0, 'At least 0').max(100000, 'At most 100 000'),
+  minSampleSize: count.min(1, 'At least 1 customer').max(100000, 'At most 100 000'),
   reminders: z.object({ sampling: plan, assessment: plan }),
   participatingAirportIds: z.array(z.string()),
   participatingAcoIds: z.array(z.string()),
