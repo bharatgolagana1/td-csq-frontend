@@ -61,7 +61,7 @@ export type FeedbackBucket = {
   pct: number;
 };
 
-/** `total`: invitations e-mailed; `readyToSend`: prepared at lock, e-mailed when the assessment window opens (absent on older payloads). */
+/** The report's survey type only. `total`: invitations e-mailed; `readyToSend`: prepared at lock, e-mailed when the assessment window opens (absent on older payloads). */
 export type AssessorStats = { total: number; completed: number; inProgress: number; yetToStart: number; readyToSend?: number };
 
 /** GET /reports/operator/:acoId */
@@ -143,6 +143,7 @@ export type NationalOperatorRow = {
   rankOf: number;
   suppressed?: Suppressed;
 };
+/** For the report's survey type: the operators that run it and that type's invitations. */
 export type Participation = {
   airports: number;
   operators: number;

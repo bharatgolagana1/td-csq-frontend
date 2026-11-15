@@ -38,6 +38,9 @@ describe('NationalReportPage', () => {
     mockApi({ '/cycles': CYCLE_OPTIONS, '/reports/national': NATIONAL_REPORT });
     renderPage(<NationalReportPage />);
     expect(await screen.findByText('Participation')).toBeInTheDocument();
+    // The funnel names its survey (the figures are that survey's), never a requirements section.
+    expect(screen.getByText(/^Sampling and assessment funnel of .+ survey$/)).toBeInTheDocument();
+    expect(screen.queryByText(/REQUIREMENTS/)).toBeNull();
     expect(screen.getByText('1,040')).toBeInTheDocument();
     expect(screen.getByText('78 %')).toBeInTheDocument();
     const tables = screen.getAllByRole('table', { name: 'Ranking' });
@@ -48,6 +51,8 @@ describe('NationalReportPage', () => {
     expect(within(airports).getByText('Mumbai')).toBeInTheDocument();
     expect(within(airports).getByText('1 / 12')).toBeInTheDocument();
     expect(within(operators).getByText('Mumbai Cargo Terminal')).toBeInTheDocument();
+    // Beside a rank the rating shows the 2 dp the rank was taken at.
+    expect(within(operators).getByText('4.42')).toBeInTheDocument();
     expect(within(operators).getByText('2 · suppressed')).toBeInTheDocument();
     expect(screen.getByText('Category averages')).toBeInTheDocument();
   });

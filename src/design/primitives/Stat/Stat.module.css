@@ -17,7 +17,9 @@
   gap: var(--space-2);
   flex-wrap: wrap;
 }
+/* A figure never wraps ("100 %" split across two lines in a narrow tile). */
 .value {
+  white-space: nowrap;
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   font-size: var(--text-2xl);

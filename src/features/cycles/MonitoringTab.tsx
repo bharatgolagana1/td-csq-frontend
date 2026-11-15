@@ -3,6 +3,7 @@ import { type CycleDetail, type MonitoringOperator } from '@/api/cycles.types';
 import { readyToSendHint } from '@/api/invitations.types';
 import { Card, type Column, EmptyState, Pill, Skeleton, Stat, statusVariant, Table } from '@/design/primitives';
 import { QueryError } from '@/design/primitives/QueryError/QueryError';
+import { cn } from '@/lib/cn';
 import { formatInt, formatPct } from '@/lib/format';
 
 import { pct, SAMPLING_STATUS_LABELS } from './cycleLabels';
@@ -26,7 +27,9 @@ export function MonitoringTab({ cycle }: { cycle: CycleDetail }) {
       header: 'Operator',
       cell: (o) => (
         <span className={styles.rowTitle}>
-          <span className={styles.rowName}>{o.name}</span>
+          <span className={cn(styles.rowName, styles.rowNameWrap)} title={o.name}>
+            {o.name}
+          </span>
           <span className={styles.rowCode}>{o.code}</span>
         </span>
       ),

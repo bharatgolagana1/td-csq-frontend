@@ -70,7 +70,7 @@ describe('DashboardPage', () => {
     expect(screen.getByText('NA').closest('li')).toHaveTextContent('64 · 2 %');
 
     // Overall ratings: the honest caption while overall equals this cycle.
-    expect(screen.getByText(/Overall = this cycle until more cycles are scored/)).toBeInTheDocument();
+    expect(screen.getByText(/Overall is this cycle’s rating/)).toBeInTheDocument();
 
     // Category ratings: paired bars with value, delta chip and the self marker.
     expect(screen.getByText('6 categories · 23 parameters · customer rating against the previous cycle, self as a marker')).toBeInTheDocument();
@@ -82,7 +82,8 @@ describe('DashboardPage', () => {
     expect(within(bars).getByText('Digital & information').closest('li')).toHaveTextContent('4.0');
     expect(within(bars).getByLabelText('No change figure vs previous')).toBeInTheDocument();
 
-    expect(screen.getByRole('link', { name: /Open sampling/ })).toHaveAttribute('href', '/sampling');
+    // A scored cycle's assessor card sends nobody to Sampling (always the current cycle).
+    expect(screen.queryByRole('link', { name: /Open sampling/ })).toBeNull();
     expect(screen.getByRole('link', { name: /Question-level table/ })).toHaveAttribute('href', expect.stringContaining('/reports/operator/org-csc/questions'));
 
     // No airport rankings on the operator dashboard: the own rank stays on the hero, the All-India table is gone.
@@ -180,6 +181,8 @@ describe('DashboardPage', () => {
     expect(await screen.findByText('41 assessments · 0 self · 41 customer')).toBeInTheDocument();
     expect(screen.getAllByText('Provisional').length).toBeGreaterThan(1);
     expect(screen.getByText('Not ranked')).toBeInTheDocument();
+    // The running cycle's card still leads to Sampling.
+    expect(screen.getByRole('link', { name: /Open sampling/ })).toHaveAttribute('href', '/sampling');
   });
 
   it('shows the request id and a retry on failure', async () => {

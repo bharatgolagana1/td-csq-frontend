@@ -6,21 +6,24 @@ import { pct } from './cycleLabels';
 import styles from './cycles.module.css';
 
 export type CycleMetersProps = {
-  cycle: Pick<CycleSummary, 'participants' | 'progress' | 'minSampleSize' | 'status'>;
+  cycle: Pick<CycleSummary, 'participants' | 'progress' | 'status'>;
 };
 
 /**
- * Locked operators (of participating), invitations sent (against the expected
- * sample of operators × minimum size) and assessments completed (of invited).
- * One hue, thin tracks, the number beside each bar is the label. Until the
- * assessment opens, a note says how many invitations are ready to send.
+ * Locked operators (of participating), invitations e-mailed (of the invitations
+ * the locked samples prepared: sent plus ready to send) and assessments
+ * completed (of invited). Each denominator holds its numerator, so no meter
+ * passes 100 % (operators × minimum sample did: operators lock more than the
+ * minimum, and a BOTH cycle invites a customer once per survey). One hue, thin
+ * tracks, the number beside each bar is the label. Until the assessment opens,
+ * a note says how many invitations are ready to send.
  */
 export function CycleMeters({ cycle }: CycleMetersProps) {
-  const { participants, progress, minSampleSize } = cycle;
-  const expectedInvites = participants.operators * minSampleSize;
+  const { participants, progress } = cycle;
+  const prepared = progress.invited + (progress.readyToSend ?? 0);
   const rows = [
     { id: 'locked', label: 'Locked', value: progress.locked, of: participants.operators, pct: pct(progress.locked, participants.operators) },
-    { id: 'invited', label: 'Invited', value: progress.invited, of: expectedInvites, pct: pct(progress.invited, expectedInvites) },
+    { id: 'invited', label: 'Invited', value: progress.invited, of: prepared, pct: pct(progress.invited, prepared) },
     { id: 'completed', label: 'Completed', value: progress.completed, of: progress.invited, pct: pct(progress.completed, progress.invited) },
   ];
   if (cycle.status === 'DRAFT') {

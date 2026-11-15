@@ -9,6 +9,24 @@ import styles from './assess.module.css';
 import { closesOn, stakeholderLabel, surveyTypeLabel } from './format';
 import { useFocusHeading } from './useFocusHeading';
 
+/** "m•••@bothways.test" in mono, allowed to wrap after the @ only (else mid-word as a last resort), never at an arbitrary letter. */
+function MaskedEmail({ email }: { email: string }) {
+  const at = email.lastIndexOf('@');
+  return (
+    <span className={styles.email}>
+      {at < 0 ? (
+        email
+      ) : (
+        <>
+          {email.slice(0, at + 1)}
+          <wbr />
+          {email.slice(at + 1)}
+        </>
+      )}
+    </span>
+  );
+}
+
 export type AssessLandingProps = {
   token: string;
   invitation: PublicInvitation;
@@ -77,7 +95,7 @@ export function AssessLanding({ token, invitation, note, onCodeSent, onExpired }
           {invitation.customer.nameMasked}
           {stakeholder ? <span className={styles.factMuted}> · {stakeholder}</span> : null}
           <br />
-          <span className={styles.mono}>{invitation.customer.emailMasked}</span>
+          <MaskedEmail email={invitation.customer.emailMasked} />
         </dd>
       </dl>
 
@@ -99,7 +117,7 @@ export function AssessLanding({ token, invitation, note, onCodeSent, onExpired }
           </p>
         ) : (
           <p className={styles.ctaHint}>
-            We will e-mail a six-digit code to <span className={styles.mono}>{invitation.customer.emailMasked}</span> to confirm it is you.
+            We will e-mail a six-digit code to <MaskedEmail email={invitation.customer.emailMasked} /> to confirm it is you.
           </p>
         )}
       </div>

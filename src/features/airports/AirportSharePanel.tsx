@@ -47,7 +47,7 @@ export function AirportSharePanel({ airportId, share, canEdit }: AirportSharePan
             <span>Total</span>
             <span className={styles.shareName}>
               <Pill variant={complete ? 'success' : 'warn'} size="sm">
-                {complete ? 'Totals 100 %' : 'Does not total 100 %'}
+                {complete ? 'Totals 100\u00a0%' : 'Does not total 100\u00a0%'}
               </Pill>
               <span className={styles.sharePct}>{formatShare(share.total)}</span>
             </span>

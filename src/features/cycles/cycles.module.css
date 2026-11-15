@@ -32,6 +32,20 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/*
+ * An operator name in a table with many fixed columns: it wraps to two lines
+ * (then ellipsis; the full name is the title) instead of widening the table
+ * past the screen, which pushed the counts and the row menu out of view.
+ */
+.rowNameWrap {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  min-width: 140px;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
 .rowCode {
   font-family: var(--font-mono);
   font-size: var(--text-xs);

@@ -14,7 +14,7 @@ export { normaliseTime, TimeField, type TimeFieldProps } from './DateTimeInput/T
 export { Dialog, type DialogProps } from './Dialog/Dialog';
 export { Drawer, type DrawerProps } from './Drawer/Drawer';
 export { EmptyState, type EmptyStateProps } from './EmptyState/EmptyState';
-export { describedBy, Field, fieldIds, type FieldProps } from './Field/Field';
+export { describedBy, ErrorLine, Field, fieldIds, type FieldProps } from './Field/Field';
 export { FileDrop, type FileDropProps } from './FileDrop/FileDrop';
 export { IconButton, type IconButtonProps } from './IconButton/IconButton';
 export { Input, type InputProps } from './Input/Input';

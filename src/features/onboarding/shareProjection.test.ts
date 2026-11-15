@@ -19,9 +19,9 @@ describe('shareProjection', () => {
   });
 
   it('describes the fit for the reviewer', () => {
-    expect(describeShareFit(100)).toBe('Totals 100 %');
-    expect(describeShareFit(110)).toBe('10 % over 100');
-    expect(describeShareFit(95.5)).toBe('4.5 % short of 100');
+    expect(describeShareFit(100)).toBe('Totals 100\u00a0%');
+    expect(describeShareFit(110)).toBe('10\u00a0% over 100');
+    expect(describeShareFit(95.5)).toBe('4.5\u00a0% short of 100');
   });
 
   it('parses what the reviewer types: blank is 0, at most two decimals, never above 100', () => {
@@ -32,8 +32,8 @@ describe('shareProjection', () => {
     expect(parseShare('1.234')).toBeNull();
     expect(parseShare('-3')).toBeNull();
     expect(parseShare('abc')).toBeNull();
-    expect(formatShare(49.5)).toBe('49.5 %');
-    expect(formatShare(100)).toBe('100 %');
+    expect(formatShare(49.5)).toBe('49.5\u00a0%');
+    expect(formatShare(100)).toBe('100\u00a0%');
   });
 
   it('scales the others into the room the new operator leaves, summing to it exactly', () => {

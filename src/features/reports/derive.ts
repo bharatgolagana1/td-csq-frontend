@@ -23,20 +23,29 @@ export function coverageCaption(level: AirportLevel): string {
   return level.marketShareApplied ? `Market share applied · ${covered} of the airport’s share covered` : `Equal weights — no market-share snapshot · ${covered} of operators covered`;
 }
 
-/** Operators behind an airport score, ranked by mean (suppressed ones unranked, after the rest). */
+/** The mean at the precision the rank table shows it (2 dp), `null` when unscored. */
+function shownMean(o: AirportOperatorRow): number | null {
+  return o.mean === null || o.suppressed ? null : Math.round(o.mean * 100) / 100;
+}
+
+/**
+ * Operators behind an airport score, dense-ranked on the mean as shown (2 dp,
+ * like the national ranks): equal ratings share a rank. Suppressed ones are
+ * unranked, after the rest.
+ */
 export function airportOperatorRows(operators: readonly AirportOperatorRow[]): RankRow[] {
-  const ranked = operators.filter((o) => o.mean !== null && !o.suppressed);
-  let rank = 0;
+  const shown = operators.map(shownMean).filter((mean): mean is number => mean !== null);
+  const distinct = [...new Set(shown)].sort((a, b) => b - a);
   return operators.map((o) => {
-    const scored = o.mean !== null && !o.suppressed;
-    if (scored) rank += 1;
+    const mean = shownMean(o);
+    const scored = mean !== null;
     return {
       id: o.acoId,
       label: o.name,
       sublabel: o.suppressed ? `${o.code} · suppressed` : o.code,
       rating: scored ? o.mean : null,
-      rank: scored ? rank : null,
-      rankOf: ranked.length,
+      rank: scored ? distinct.indexOf(mean) + 1 : null,
+      rankOf: shown.length,
       extra: o.sharePct === null ? '—' : formatShare(o.sharePct),
     };
   });

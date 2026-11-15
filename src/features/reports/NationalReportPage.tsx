@@ -17,7 +17,7 @@ import styles from './reports.module.css';
 function ParticipationCard({ report }: { report: NationalReport }) {
   const p = report.participation;
   return (
-    <Card className={styles.span12} title="Participation" subtitle={`Sampling and assessment funnel of ${report.cycle.name} (REQUIREMENTS §24)`}>
+    <Card className={styles.span12} title="Participation" subtitle={`Sampling and assessment funnel of ${report.cycle.name} · ${SURVEY_TYPE_LABELS[report.surveyType]} survey`}>
       <div className={styles.split}>
         <div className={styles.stack}>
           <div>

@@ -69,7 +69,9 @@ export function ParticipantsTab({ cycle }: { cycle: CycleDetail }) {
       header: 'Operator',
       cell: (p) => (
         <span className={styles.rowTitle}>
-          <span className={styles.rowName}>{p.operator.name}</span>
+          <span className={cn(styles.rowName, styles.rowNameWrap)} title={p.operator.name}>
+            {p.operator.name}
+          </span>
           <span className={styles.rowCode}>
             {p.operator.code} · {p.airport.iata}
           </span>

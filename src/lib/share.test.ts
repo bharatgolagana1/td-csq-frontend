@@ -4,11 +4,11 @@ import { formatShare, parseShareInput } from './share';
 
 describe('formatShare', () => {
   it('keeps up to two decimals, never rounding a share to a whole number', () => {
-    expect(formatShare(12.5)).toBe('12.5 %');
-    expect(formatShare(55)).toBe('55 %');
-    expect(formatShare(33.333)).toBe('33.33 %');
-    expect(formatShare(99.999)).toBe('100 %');
-    expect(formatShare(0)).toBe('0 %');
+    expect(formatShare(12.5)).toBe('12.5\u00a0%');
+    expect(formatShare(55)).toBe('55\u00a0%');
+    expect(formatShare(33.333)).toBe('33.33\u00a0%');
+    expect(formatShare(99.999)).toBe('100\u00a0%');
+    expect(formatShare(0)).toBe('0\u00a0%');
     expect(formatShare(null)).toBe('—');
     expect(formatShare(undefined)).toBe('—');
     expect(formatShare(Number.NaN)).toBe('—');

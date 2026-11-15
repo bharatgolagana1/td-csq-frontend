@@ -254,6 +254,19 @@ from the sections above and why.
   in place. The Participants step reads every airport's share total in one
   `GET /market-share/totals` call and offers only airports with an active
   operator.
+- **A cleared error keeps its line** (`design/primitives/Field`). Once a
+  field has shown an error, the line it took stays reserved (at its measured
+  height) after it clears, until the field unmounts. An error usually clears
+  on blur, which the next click's mousedown causes; had the line collapsed,
+  the form would jump up under the pointer and the click land elsewhere.
+  `ErrorLine` gives a group's own error (a checkbox set) the same rule. The
+  error keeps `role="alert"` and stays what `aria-describedby` names; the
+  reserve is `aria-hidden`.
+- **Ratings beside ranks show 2 dp.** Ranks are dense on the 2 dp overall
+  mean and stored by the scoring run, so `RankTable` prints the rating with
+  `formatRating(value, 2)`; at 1 dp two rows could read "3.8 · rank 4" and
+  "3.8 · rank 5". The hero cards keep 1 dp (§7). The airport report's operator
+  table, ranked in the browser, ranks densely on the same 2 dp value.
 - **Approving an operator registration** edits the airport's whole share set
   (`features/onboarding/ApprovalShares`): the active operators' current shares
   and the new operator's requested one, a live total, "Scale the others to

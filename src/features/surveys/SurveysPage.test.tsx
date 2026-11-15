@@ -50,6 +50,9 @@ describe('SurveysPage', () => {
     const domestic = within(await screen.findByRole('article', { name: 'Domestic survey' }));
     expect(domestic.getByText(/v2 · 23 questions/)).toBeInTheDocument();
     expect(domestic.getByText(/Published 2 Oct 2026, 14:30 IST/)).toBeInTheDocument();
+    // Each box's label is its status: no pill repeats it.
+    expect(domestic.getAllByText(/^Published$/i)).toHaveLength(1);
+    expect(domestic.getAllByText(/^Draft$/i)).toHaveLength(1);
     expect(domestic.getByText(/v3 · 4 questions/)).toBeInTheDocument();
     expect(domestic.getByRole('button', { name: 'Open published' })).toBeInTheDocument();
     expect(domestic.getByRole('button', { name: 'Edit draft' })).toBeInTheDocument();

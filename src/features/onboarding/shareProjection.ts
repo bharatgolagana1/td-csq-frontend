@@ -27,7 +27,7 @@ export function shareFit(total: number): ShareFit {
 /** "Totals 100 %" · "4 % over 100" · "4 % short of 100". */
 export function describeShareFit(total: number): string {
   const { ok, diff } = shareFit(total);
-  if (ok) return 'Totals 100 %';
+  if (ok) return 'Totals 100\u00a0%';
   const text = formatShare(Math.abs(diff));
   return diff > 0 ? `${text} over 100` : `${text} short of 100`;
 }

@@ -36,6 +36,9 @@ describe('/assess/:token state machine', () => {
     expect(await screen.findByRole('heading', { name: 'Delhi Cargo Services' })).toBeInTheDocument();
     expect(screen.getByText('a***@delcargo.test', { selector: 'dd span' })).toBeInTheDocument();
     expect(screen.getByText(/Nobody at Delhi Cargo Services sees an individual response/)).toBeInTheDocument();
+    // Said once on the landing (the card), not again in the footer; the brand reads "CSQ" once.
+    expect(screen.getAllByText(/only in aggregate/)).toHaveLength(1);
+    expect(screen.getAllByText('CSQ')).toHaveLength(1);
     expect(screen.getByText(/31 Oct 2026, 23:59/)).toBeInTheDocument();
     expect(screen.getByText('Freight forwarder', { exact: false })).toBeInTheDocument();
     await waitFor(() => expect(screen.getByRole('heading', { name: 'Delhi Cargo Services' })).toHaveFocus());
@@ -56,6 +59,10 @@ describe('/assess/:token state machine', () => {
     expect(formCall?.headers.get('Authorization')).toBeNull();
     expect(JSON.parse(sessionStorage.getItem(`csq.assess.${TOKEN}`) ?? 'null')).toMatchObject({ sessionToken: session.sessionToken });
     expect(await screen.findByText('Domestic cargo service quality', { exact: false })).toBeInTheDocument();
+    // The top bar names the phase; the form's sections carry the only counter.
+    expect(screen.getByRole('img', { name: 'Step 3 of 4: Answers' })).toHaveTextContent('Answers');
+    expect(screen.queryByText('3/4')).toBeNull();
+    expect(screen.getByText(/only in aggregate · Air Cargo Forum India/)).toBeInTheDocument();
   });
 
   it('fills the dev OTP banner when the backend reveals the code', async () => {
@@ -64,7 +71,7 @@ describe('/assess/:token state machine', () => {
     renderAssess();
     await user.click(await screen.findByRole('button', { name: 'Send me a code' }));
     const banner = await screen.findByTestId('dev-otp');
-    expect(banner).toHaveTextContent('123456');
+    expect(banner).toHaveTextContent('Demo: your code is 123456');
     await user.click(screen.getByRole('button', { name: 'Fill' }));
     await user.click(screen.getByRole('button', { name: 'Verify and start' }));
     expect(await screen.findByText('Domestic cargo service quality', { exact: false })).toBeInTheDocument();

@@ -109,11 +109,11 @@ export function AnswerSummary({ groups, answerMode = 'SINGLE', className }: Answ
               {group.items.map((item) => (
                 <li key={item.question.id} className={styles.item}>
                   <div className={styles.itemMain}>
-                    <p className={styles.itemEyebrow}>
-                      <span className="num">{item.question.code}</span>
-                      {item.subcategory ? <span> · {item.subcategory}</span> : null}
+                    {/* The question's code (ACFI.INFRA.…) is for analysts: a tooltip on the text, not part of the return. */}
+                    {item.subcategory ? <p className={styles.itemEyebrow}>{item.subcategory}</p> : null}
+                    <p className={styles.itemText} title={item.question.code}>
+                      {item.question.text}
                     </p>
-                    <p className={styles.itemText}>{item.question.text}</p>
                   </div>
                   {directed ? (
                     <DirectionAnswers item={item} />

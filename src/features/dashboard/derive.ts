@@ -41,8 +41,9 @@ export function pairedRows(rows: readonly LevelRow[]): PairedBarRow[] {
 
 /**
  * Self vs customer × Overall / this cycle / previous cycle (ARCHITECTURE §7).
- * The API's `overall` is the selected cycle's figure, so while it equals the
- * comparison's current point the note says so instead of implying an all-cycles figure.
+ * The API's `overall` is the selected cycle's figure (the report has no
+ * all-cycles figure, however many cycles are scored), so while it equals the
+ * comparison's current point the note says so instead of implying one.
  */
 export function overallSeries(report: OperatorReport): { categories: string[]; series: GroupedBarSeries[]; note?: string } {
   const { current, previous } = report.comparison;
@@ -54,7 +55,7 @@ export function overallSeries(report: OperatorReport): { categories: string[]; s
       { name: 'Customer', key: 'customer', values: [report.overall.customer.mean, current.customer, previous?.customer ?? null] },
       { name: 'Self', key: 'self', values: [report.overall.self.mean, current.self, previous?.self ?? null] },
     ],
-    note: sameAsCycle ? `Overall = this cycle until more cycles are scored · ${cycles}` : `${cycles.charAt(0).toUpperCase()}${cycles.slice(1)}`,
+    note: sameAsCycle ? `Overall is this cycle’s rating · ${cycles}` : `${cycles.charAt(0).toUpperCase()}${cycles.slice(1)}`,
   };
 }
 

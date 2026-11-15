@@ -50,5 +50,9 @@ describe('AnswerSummary', () => {
     expect(within(q1).getByText('Queues')).toBeInTheDocument();
     expect(within(q1).getByText('Slow at the gate').tagName).toBe('BLOCKQUOTE');
     expect(screen.queryByRole('group', { name: /answer$/ })).toBeNull();
+    // The question code is a tooltip on the text, not part of the return; the subcategory stays.
+    expect(within(q1).queryByText('Q1')).toBeNull();
+    expect(screen.getByText('How would you rate shipment acceptance?')).toHaveAttribute('title', 'Q1');
+    expect(within(q1).getByText('Shipment acceptance')).toBeInTheDocument();
   });
 });

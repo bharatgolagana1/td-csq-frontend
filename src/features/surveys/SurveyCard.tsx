@@ -3,25 +3,21 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useSurveyTree } from '@/api/surveys';
 import { type SurveyListEntry, type SurveyTree, type SurveyVersion } from '@/api/surveys.types';
 import { Icon } from '@/design/icons';
-import { Button, Card, Pill, Skeleton } from '@/design/primitives';
+import { Button, Card, Skeleton } from '@/design/primitives';
 
-import { formatZoned, pluralQuestions, STATUS_LABEL, statusPillVariant, TYPE_LABEL, versionLabel } from './surveyFormat';
+import { formatZoned, pluralQuestions, TYPE_LABEL, versionLabel } from './surveyFormat';
 import { countByHead } from './surveyRules';
 import styles from './surveys.module.css';
 import { useNewDraft } from './useNewDraft';
 
 export type SurveyCardProps = { entry: SurveyListEntry; canManage: boolean };
 
+/** The published or the draft version. Its label is its status, so no status pill repeats it ("PUBLISHED  Published"). */
 function VersionBox({ label, version, when }: { label: string; version: SurveyVersion | null; when: string }) {
   return (
     <div className={styles.versionBox}>
       <div className={styles.versionLabel}>
         <span>{label}</span>
-        {version ? (
-          <Pill size="sm" variant={statusPillVariant(version.status)}>
-            {STATUS_LABEL[version.status]}
-          </Pill>
-        ) : null}
       </div>
       {version ? (
         <div className={styles.versionMeta}>

@@ -72,12 +72,12 @@
   gap: 6px;
   flex: none;
 }
+/* The current step's name ("Answers"): the form numbers its sections, so no second counter here. */
 .flowLabel {
   margin-right: 4px;
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
   font-size: var(--text-xs);
   color: var(--muted);
+  white-space: nowrap;
 }
 .seg {
   position: relative;
@@ -182,6 +182,21 @@
 .mono {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+}
+/* A masked e-mail: wraps after the @ (a <wbr>), never at an arbitrary letter unless one part alone is wider than the line. */
+.email {
+  font-family: var(--font-mono);
+  overflow-wrap: break-word;
+}
+/* Phone: key above value, so a value (the e-mail above all) has the card's full width. */
+@media (max-width: 420px) {
+  .facts {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 2px;
+  }
+  .factValue:not(:last-child) {
+    margin-bottom: var(--space-2);
+  }
 }
 .factMuted {
   color: var(--muted);

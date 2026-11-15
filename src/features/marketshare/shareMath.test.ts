@@ -30,11 +30,11 @@ describe('shareMath', () => {
   });
 
   it('describes and formats totals', () => {
-    expect(describeTotal(100)).toBe('Totals 100 %');
-    expect(describeTotal(96)).toBe('4 % short of 100');
-    expect(describeTotal(104.5)).toBe('4.5 % over 100');
-    expect(formatShare(55)).toBe('55 %');
-    expect(formatShare(12.5)).toBe('12.5 %');
+    expect(describeTotal(100)).toBe('Totals 100\u00a0%');
+    expect(describeTotal(96)).toBe('4\u00a0% short of 100');
+    expect(describeTotal(104.5)).toBe('4.5\u00a0% over 100');
+    expect(formatShare(55)).toBe('55\u00a0%');
+    expect(formatShare(12.5)).toBe('12.5\u00a0%');
     expect(formatShare(null)).toBe('—');
   });
 });

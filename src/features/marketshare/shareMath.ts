@@ -30,7 +30,7 @@ export function totalFit(total: number): TotalFit {
 /** "Totals 100 %" · "4 % over 100" · "4.5 % short of 100". */
 export function describeTotal(total: number): string {
   const { ok, diff } = totalFit(total);
-  if (ok) return 'Totals 100 %';
+  if (ok) return 'Totals 100\u00a0%';
   const abs = Math.abs(diff);
   return `${formatShare(abs)} ${diff > 0 ? 'over' : 'short of'} 100`;
 }

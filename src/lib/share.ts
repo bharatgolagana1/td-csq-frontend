@@ -2,10 +2,10 @@
    to two decimals; an airport's set totals 100 ± 0.01). One formatter, so a
    requested 12.5 % never reads "13 %" on one screen and "12.5 %" on another. */
 
-/** Up to two decimals, as entered: 55 → "55 %", 12.5 → "12.5 %", 33.333 → "33.33 %". */
+/** Up to two decimals, as entered: 55 → "55 %", 12.5 → "12.5 %", 33.333 → "33.33 %" (a no-break space, so "%" never wraps alone). */
 export function formatShare(value: number | null | undefined): string {
   if (value === null || value === undefined || !Number.isFinite(value)) return '—';
-  return `${Number(value.toFixed(2))} %`;
+  return `${Number(value.toFixed(2))}\u00a0%`;
 }
 
 export type ParsedShare = { value: number; error: null } | { value: null; error: string };

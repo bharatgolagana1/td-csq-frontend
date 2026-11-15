@@ -139,7 +139,7 @@ export function OtpScreen({ token, invitation, devOtp: initialDevOtp, onVerified
       {devOtp ? (
         <div className={styles.devBanner} data-testid="dev-otp">
           <span>
-            Dev build · your code is <span className={styles.devCode}>{devOtp}</span>
+            Demo: your code is <span className={styles.devCode}>{devOtp}</span>
           </span>
           <Button size="sm" variant="secondary" onClick={() => setCode(devOtp)} disabled={locked}>
             Fill

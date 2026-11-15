@@ -6,17 +6,25 @@ import { airportOperatorRows, comparisonBarKey, comparisonDelta, coverageCaption
 
 describe('reports derive', () => {
   it('describes market-share coverage', () => {
-    expect(coverageCaption(AIRPORT_REPORT.overall)).toBe('Market share applied · 100 % of the airport’s share covered');
-    expect(coverageCaption(AIRPORT_REPORT_FOR_OPERATOR.overall)).toBe('Equal weights — no market-share snapshot · 55 % of operators covered');
+    // The figure and its % sign are held by a no-break space.
+    expect(coverageCaption(AIRPORT_REPORT.overall)).toBe('Market share applied · 100\u00a0% of the airport’s share covered');
+    expect(coverageCaption(AIRPORT_REPORT_FOR_OPERATOR.overall)).toBe('Equal weights — no market-share snapshot · 55\u00a0% of operators covered');
   });
 
   it('ranks the operators behind an airport, suppressed ones unranked', () => {
     const rows = airportOperatorRows([...(AIRPORT_REPORT.operators ?? []), { acoId: 'x', code: 'X', name: 'Tiny', mean: null, sharePct: 5, suppressed: true }]);
     expect(rows.map((r) => r.rank)).toEqual([1, 2, null]);
-    expect(rows[0]).toMatchObject({ label: 'Cargo Service Center', extra: '55 %', rankOf: 2 });
+    expect(rows[0]).toMatchObject({ label: 'Cargo Service Center', extra: '55\u00a0%', rankOf: 2 });
     // A share keeps its decimals, as the totals do: 12.5 is never "13 %".
-    expect(airportOperatorRows([{ acoId: 'h', code: 'H', name: 'Half', mean: 4, sharePct: 12.5, suppressed: false }])[0]?.extra).toBe('12.5 %');
+    expect(airportOperatorRows([{ acoId: 'h', code: 'H', name: 'Half', mean: 4, sharePct: 12.5, suppressed: false }])[0]?.extra).toBe('12.5\u00a0%');
     expect(rows[2]?.sublabel).toBe('X · suppressed');
+  });
+
+  it('gives operators whose ratings read the same (2 dp) the same rank', () => {
+    const op = (acoId: string, mean: number | null) => ({ acoId, code: acoId.toUpperCase(), name: acoId, mean, sharePct: 25, suppressed: mean === null });
+    const rows = airportOperatorRows([op('a', 4.251), op('b', 4.249), op('c', 4.1), op('d', null)]);
+    expect(rows.map((r) => r.rank)).toEqual([1, 1, 2, null]);
+    expect(rows.every((r) => r.rank === null || r.rankOf === 3)).toBe(true);
   });
 
   it('shapes the national rows and the funnel', () => {

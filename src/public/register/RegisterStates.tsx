@@ -3,6 +3,7 @@ import { type ReactNode } from 'react';
 import { Icon, type IconName } from '@/design/icons';
 import { Button, Skeleton } from '@/design/primitives';
 import { cn } from '@/lib/cn';
+import { registrationReference } from '@/lib/reference';
 
 import styles from './register.module.css';
 
@@ -79,7 +80,7 @@ export function ErrorState({ message, requestId, onRetry }: { message: string; r
 
 export function DoneState({ orgName, adminEmail, registrationId }: { orgName: string; adminEmail: string; registrationId: string }) {
   return (
-    <State icon="check" title="Request received" reference={`Reference ${registrationId}`}>
+    <State icon="check" title="Request received" reference={`Reference ${registrationReference(registrationId)}`}>
       Thank you. ACFI will review the registration for {orgName}. Once it is approved, {adminEmail} receives an e-mail with a link to set a password and sign in.
     </State>
   );
