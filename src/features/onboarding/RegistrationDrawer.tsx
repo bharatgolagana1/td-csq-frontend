@@ -1,5 +1,3 @@
-import { useCallback, useEffect, useState } from 'react';
-
 import { useRegistration } from '@/api/onboarding';
 import { type Registration, type RegistrationDetail } from '@/api/onboarding.types';
 import { Banner, Button, Drawer, KeyValue, Pill, Skeleton, Tag } from '@/design/primitives';
@@ -93,16 +91,12 @@ export type RegistrationDrawerProps = {
   onClose: () => void;
 };
 
-/** The full registration with the airport's share set and, for SUBMITTED requests, the approve / reject form. */
+/** The full registration with the airport's share set and, for SUBMITTED requests, the approve / reject form (which edits that set). */
 export function RegistrationDrawer({ id, placeholder, onClose }: RegistrationDrawerProps) {
   const query = useRegistration(id ?? undefined, placeholder);
   const r = query.data;
-  const [approvingPct, setApprovingPct] = useState<number | undefined>(undefined);
-  const onShareChange = useCallback((pct: number | undefined) => setApprovingPct(pct), []);
-
-  useEffect(() => {
-    if (!id) setApprovingPct(undefined);
-  }, [id]);
+  // A request under review edits the airport's shares in the decision form; a reviewed one shows them.
+  const reviewing = r?.status === 'SUBMITTED' && !query.isPlaceholderData;
 
   return (
     <Drawer
@@ -133,8 +127,8 @@ export function RegistrationDrawer({ id, placeholder, onClose }: RegistrationDra
           </div>
           <Outcome r={r} />
           <Summary r={r} />
-          <RegistrationSharePanel registration={r} approvingPct={approvingPct} loading={query.isPlaceholderData} />
-          {r.status === 'SUBMITTED' && !query.isPlaceholderData ? <ReviewForm key={r.id} registration={r} onShareChange={onShareChange} onDecided={onClose} /> : null}
+          {reviewing ? null : <RegistrationSharePanel registration={r} loading={query.isPlaceholderData} />}
+          {reviewing ? <ReviewForm key={r.id} registration={r} onDecided={onClose} /> : null}
         </div>
       )}
     </Drawer>

@@ -8,13 +8,15 @@ import { describeShareFit, projectedTotal, shareFit } from './shareProjection';
 
 export type RegistrationSharePanelProps = {
   registration: RegistrationDetail;
-  /** The share the reviewer is about to approve (live from the form); undefined = as requested. */
-  approvingPct: number | undefined;
   loading: boolean;
 };
 
-/** The airport's current shares, the requested share and the total after approval (§7 Onboarding). */
-export function RegistrationSharePanel({ registration, approvingPct, loading }: RegistrationSharePanelProps) {
+/**
+ * The airport's current shares, read-only (§7 Onboarding). A SUBMITTED
+ * request shows the requested share and the total if approved as asked; the
+ * decision form is where that set is rebalanced.
+ */
+export function RegistrationSharePanel({ registration, loading }: RegistrationSharePanelProps) {
   if (registration.orgType !== 'ACO') return null;
   const share = registration.marketShare;
   const iata = registration.airport?.iata ?? 'the airport';
@@ -29,7 +31,7 @@ export function RegistrationSharePanel({ registration, approvingPct, loading }: 
   }
 
   const reviewing = registration.status === 'SUBMITTED';
-  const pct = reviewing ? (approvingPct ?? registration.marketSharePct ?? 0) : null;
+  const pct = reviewing ? (registration.marketSharePct ?? 0) : null;
   const after = reviewing ? projectedTotal(share.total, pct) : share.total;
   const fit = shareFit(after);
 
@@ -69,7 +71,7 @@ export function RegistrationSharePanel({ registration, approvingPct, loading }: 
       </div>
       {reviewing ? (
         <Banner tone={fit.ok ? 'success' : 'warn'} title={describeShareFit(after)}>
-          {fit.ok ? `Shares at ${iata} will total 100 %; a cycle there can be published.` : `Shares at ${iata} must total 100 % before a cycle that includes it can be published. You can approve now and fix the set under Market share.`}
+          {fit.ok ? `Shares at ${iata} will total 100 %; a cycle there can be published.` : `Shares at ${iata} must total 100 % before a cycle that includes it can be published. Rebalance the set when approving.`}
         </Banner>
       ) : null}
     </section>

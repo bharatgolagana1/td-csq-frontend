@@ -28,3 +28,35 @@ export function describeShareFit(total: number): string {
   const text = Number.isInteger(abs) ? String(abs) : abs.toFixed(2).replace(/0+$/, '');
   return diff > 0 ? `${text} % over 100` : `${text} % short of 100`;
 }
+
+/** "" → 0; a number 0–100 with up to two decimals → that number; anything else → null (invalid). */
+export function parseShare(input: string): number | null {
+  const text = input.trim();
+  if (text === '') return 0;
+  if (!/^\d{1,3}(\.\d{1,2})?$/.test(text)) return null;
+  const n = Number(text);
+  return n <= 100 ? n : null;
+}
+
+/** Integers plain, otherwise up to two decimals: 55 → "55 %", 12.5 → "12.5 %". */
+export function formatShare(n: number | null | undefined): string {
+  if (n === null || n === undefined || Number.isNaN(n)) return '—';
+  return `${Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/0+$/, '')} %`;
+}
+
+/**
+ * The other operators' shares scaled to fill `room` (100 − the new operator's
+ * share): proportional to what they hold, equal when they all hold 0, to two
+ * decimals with the rounding drift on the largest, so the result sums to
+ * `room` exactly.
+ */
+export function scaleToFit(values: readonly number[], room: number): number[] {
+  if (values.length === 0) return [];
+  const target = Math.max(0, round2(room));
+  const base = values.reduce((sum, v) => sum + v, 0);
+  const scaled = values.map((v) => round2(base > 0 ? (v * target) / base : target / values.length));
+  const drift = round2(target - scaled.reduce((sum, v) => sum + v, 0));
+  const largest = scaled.indexOf(Math.max(...scaled));
+  scaled[largest] = round2((scaled[largest] ?? 0) + drift);
+  return scaled;
+}

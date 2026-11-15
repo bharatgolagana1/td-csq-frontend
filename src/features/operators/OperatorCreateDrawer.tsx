@@ -168,7 +168,7 @@ export function OperatorCreateDrawer({ open, onClose, onCreated }: OperatorCreat
             inputMode="decimal"
             suffix="%"
             placeholder="0–100"
-            hint="Optional. Shares at an airport must total 100 before a cycle there can be published."
+            hint="The airport's shares must still total 100 % with this operator: the first operator at an airport holds 100; elsewhere leave 0 and rebalance under Market share."
             error={errAt('marketSharePct')}
             {...reg('marketSharePct')}
           />

@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import OnboardingPage from './OnboardingPage';
 import { suggestCode } from './ReviewForm';
-import { apiError, APPROVED, data, DEL, list, mockApi, never, OPEN_LINK, renderPage, SUBMITTED, SUBMITTED_DETAIL, USED_LINK } from './testUtils';
+import { apiError, APPROVED, data, DEL, FIRST_AT_AIRPORT, list, mockApi, never, OPEN_LINK, renderPage, SUBMITTED, SUBMITTED_DETAIL, USED_LINK } from './testUtils';
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -88,23 +88,77 @@ describe('OnboardingPage · Requests', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Delhi Cargo Handlers' }));
     const dialog = await screen.findByRole('dialog', { name: 'Delhi Cargo Handlers' });
-    expect(await within(dialog).findByText('After approval')).toBeInTheDocument();
-    expect(within(dialog).getByText('110 %')).toBeInTheDocument();
-    expect(within(dialog).getByText('10 % over 100')).toBeInTheDocument();
 
-    // The preview follows the share the reviewer is about to approve.
-    const share = within(dialog).getByLabelText(/Market share/);
-    await userEvent.clear(share);
-    await userEvent.type(share, '0');
-    expect(await within(dialog).findByText('Totals 100 %')).toBeInTheDocument();
+    // The airport's operators and the new one, editable, prefilled with the current and the requested shares.
+    const shares = await within(dialog).findByRole('region', { name: 'Market share after approval' });
+    expect(within(shares).getByLabelText('Share for Cargo Service Center')).toHaveValue('55');
+    expect(within(shares).getByLabelText('Share for Çelebi Delhi Cargo')).toHaveValue('45');
+    expect(within(shares).getByLabelText('Share for Delhi Cargo Handlers')).toHaveValue('10');
+    expect(within(shares).getByTestId('approval-total')).toHaveTextContent('110 %');
+    expect(within(shares).getByText('10 % over 100')).toBeInTheDocument();
+    const approveButton = within(dialog).getByRole('button', { name: 'Approve and invite administrator' });
+    expect(approveButton).toBeDisabled();
+    expect(within(dialog).getByText('Approve once the shares total exactly 100 %.')).toBeInTheDocument();
+
+    // One click makes room: the others shrink in proportion.
+    await userEvent.click(within(shares).getByRole('button', { name: 'Scale the others to fit' }));
+    expect(within(shares).getByLabelText('Share for Cargo Service Center')).toHaveValue('49.5');
+    expect(within(shares).getByLabelText('Share for Çelebi Delhi Cargo')).toHaveValue('40.5');
+    expect(within(shares).getByTestId('approval-total')).toHaveTextContent('100 %');
+    expect(within(shares).getByText('Totals 100 %')).toBeInTheDocument();
+    expect(approveButton).toBeEnabled();
+
+    // Typing off 100 holds the approval again; back on 100 releases it.
+    const own = within(shares).getByLabelText('Share for Delhi Cargo Handlers');
+    await userEvent.clear(own);
+    await userEvent.type(own, '12');
+    expect(approveButton).toBeDisabled();
+    await userEvent.clear(own);
+    await userEvent.type(own, '10');
+    expect(approveButton).toBeEnabled();
 
     const code = within(dialog).getByLabelText(/Organisation code/);
     expect(code).toHaveValue('DCH-DEL');
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Approve and invite administrator' }));
+    await userEvent.click(approveButton);
     expect(await screen.findByText('Delhi Cargo Handlers approved')).toBeInTheDocument();
-    expect(calls.find((c) => c.method === 'POST')?.body).toEqual({ code: 'DCH-DEL', marketSharePct: 0 });
+    expect(calls.find((c) => c.method === 'POST')?.body).toEqual({
+      code: 'DCH-DEL',
+      marketSharePct: 10,
+      shares: [
+        { acoId: 'org-clb', sharePct: 40.5 },
+        { acoId: 'org-csc', sharePct: 49.5 },
+      ],
+    });
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(within(submitted).getByText('Approved')).toBeInTheDocument();
+  });
+
+  it('the first operator at an airport is approved at 100 %; a share problem from the server is shown', async () => {
+    const { calls } = mockApi([
+      { method: 'GET', path: /^\/onboarding\/links$/, reply: () => list([]) },
+      registrations([{ ...SUBMITTED, id: 'reg-2', organisation: FIRST_AT_AIRPORT.organisation }]),
+      { method: 'GET', path: /^\/registrations\/reg-2$/, reply: () => data(FIRST_AT_AIRPORT) },
+      {
+        method: 'POST',
+        path: /^\/registrations\/reg-2\/approve$/,
+        reply: () => apiError(400, 'VALIDATION', 'Market shares at DEL must total 100 with JCS-DEL', { issues: [{ path: 'shares', message: 'No share given for NEW-DEL (New Cargo), active at DEL' }] }),
+      },
+    ]);
+    renderPage(<OnboardingPage />, { route: '/registrations/reg-2', path: '/registrations/:id' });
+    const dialog = await screen.findByRole('dialog', { name: 'Jaipur Cargo Services' });
+    const shares = await within(dialog).findByRole('region', { name: 'Market share after approval' });
+    expect(within(shares).getByText(/will be the only active operator at DEL, so it holds 100 %/)).toBeInTheDocument();
+    expect(within(shares).getByLabelText('Share for Jaipur Cargo Services')).toHaveValue('40');
+    const approveButton = within(dialog).getByRole('button', { name: 'Approve and invite administrator' });
+    expect(approveButton).toBeDisabled();
+    await userEvent.click(within(shares).getByRole('button', { name: 'Give it 100 %' }));
+    expect(within(shares).getByLabelText('Share for Jaipur Cargo Services')).toHaveValue('100');
+    expect(approveButton).toBeEnabled();
+
+    // Someone added an operator meanwhile: the server says which one, and the request stays open.
+    await userEvent.click(approveButton);
+    expect(await within(dialog).findByRole('alert', { name: 'Market share problems' })).toHaveTextContent('No share given for NEW-DEL (New Cargo), active at DEL');
+    expect(calls.find((c) => c.method === 'POST')?.body).toEqual({ code: 'JCS-DEL', marketSharePct: 100, shares: [] });
   });
 
   it('opens the request from the reviewer URL and requires a reason to reject', async () => {
