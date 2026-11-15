@@ -12,7 +12,8 @@ describe('dashboard derive', () => {
     expect(series[0]?.values).toEqual([4.15, 4.15, 3.85]);
     expect(series[1]?.values).toEqual([4.4, 4.4, 4.3]);
     // The API's overall is the selected cycle's figure: say so rather than imply an all-cycles figure.
-    expect(note).toBe('Overall = this cycle until more cycles are scored · this cycle CSQ 2026 H1 · previous CSQ 2025 H2');
+    // With a previous cycle too: no promise that more scored cycles would change it.
+    expect(note).toBe('Overall is this cycle’s rating · this cycle CSQ 2026 H1 · previous CSQ 2025 H2');
   });
 
   it('captions a genuine all-cycles overall plainly and notes a missing previous cycle', () => {

@@ -38,6 +38,9 @@ describe('NationalReportPage', () => {
     mockApi({ '/cycles': CYCLE_OPTIONS, '/reports/national': NATIONAL_REPORT });
     renderPage(<NationalReportPage />);
     expect(await screen.findByText('Participation')).toBeInTheDocument();
+    // The funnel names its survey (the figures are that survey's), never a requirements section.
+    expect(screen.getByText(/^Sampling and assessment funnel of .+ survey$/)).toBeInTheDocument();
+    expect(screen.queryByText(/REQUIREMENTS/)).toBeNull();
     expect(screen.getByText('1,040')).toBeInTheDocument();
     expect(screen.getByText('78 %')).toBeInTheDocument();
     const tables = screen.getAllByRole('table', { name: 'Ranking' });
