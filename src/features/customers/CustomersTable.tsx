@@ -14,6 +14,9 @@ export type CustomersTableProps = {
   sort: SortState;
   onSortChange: (s: SortState) => void;
   canManage: boolean;
+  /** Offers "Delete…" in the row menu (customers.delete). */
+  canDelete?: boolean;
+  onDelete?: (customer: Customer) => void;
   selected: ReadonlySet<string>;
   onSelectedChange: (next: Set<string>) => void;
   onOpen: (customer: Customer) => void;
@@ -30,22 +33,23 @@ export function lastSampledLabel(c: Customer): string {
 }
 
 /** Directory table: name · contact · e-mail · phone · type · survey type · status · last sampled · tags. */
-export function CustomersTable({ rows, loading, sort, onSortChange, canManage, selected, onSelectedChange, onOpen, onEdit, onSetStatus, onTagClick, emptyAction, filtered }: CustomersTableProps) {
+export function CustomersTable({ rows, loading, sort, onSortChange, canManage, canDelete = false, onDelete, selected, onSelectedChange, onOpen, onEdit, onSetStatus, onTagClick, emptyAction, filtered }: CustomersTableProps) {
   const columns: Column<Customer>[] = [
     {
       id: 'name',
       header: 'Customer',
+      width: '26%',
       sortable: true,
       cell: (c) => (
         <span className={styles.customer}>
-          <button type="button" className={styles.linkButton} onClick={() => onOpen(c)}>
+          <button type="button" className={styles.linkButton} onClick={() => onOpen(c)} title={c.name}>
             {c.name}
           </button>
           <span className={styles.customerContact}>{c.contactPerson}</span>
         </span>
       ),
     },
-    { id: 'email', header: 'E-mail', sortable: true, hideBelow: 'md', cell: (c) => <span className={styles.email}>{c.email}</span> },
+    { id: 'email', header: 'E-mail', sortable: true, hideBelow: 'md', cell: (c) => <span className={styles.email} title={c.email}>{c.email}</span> },
     { id: 'phone', header: 'Phone', width: 150, mono: true, hideBelow: 'md', cell: (c) => formatPhone(c.phone) },
     {
       id: 'type',
@@ -96,9 +100,10 @@ export function CustomersTable({ rows, loading, sort, onSortChange, canManage, s
       items.push(
         c.status === 'INACTIVE'
           ? { id: 'activate', label: 'Reactivate', icon: <Icon name="refresh" size={16} />, onSelect: () => onSetStatus(c, 'ACTIVE') }
-          : { id: 'deactivate', label: 'Deactivate', icon: <Icon name="trash" size={16} />, danger: true, onSelect: () => onSetStatus(c, 'INACTIVE') },
+          : { id: 'deactivate', label: 'Deactivate…', icon: <Icon name="minus" size={16} />, danger: true, onSelect: () => onSetStatus(c, 'INACTIVE') },
       );
     }
+    if (canDelete && onDelete) items.push({ id: 'delete', label: 'Delete…', icon: <Icon name="trash" size={16} />, danger: true, onSelect: () => onDelete(c) });
     return items;
   };
 
@@ -108,6 +113,7 @@ export function CustomersTable({ rows, loading, sort, onSortChange, canManage, s
       columns={columns}
       rows={rows}
       rowKey={(c) => c.id}
+      rowLabel={(c) => c.name}
       loading={loading}
       sort={sort}
       onSortChange={onSortChange}

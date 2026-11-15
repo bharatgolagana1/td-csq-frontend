@@ -37,7 +37,7 @@ describe('SamplingPage', () => {
     const table = await screen.findByRole('table', { name: 'Eligible customers' });
     await waitFor(() => expect(within(table).getAllByText('Zenith Freight')).toHaveLength(2));
     expect(screen.getByText('5 entries')).toBeInTheDocument();
-    expect(within(table).getByRole('checkbox', { name: 'Select row 1' })).toBeChecked();
+    expect(within(table).getByRole('checkbox', { name: 'Select Bluewave Logistics Pvt Ltd (Domestic)' })).toBeChecked();
   });
 
   it('sends a PUT with the toggled entry and reports rejected items', async () => {
@@ -55,8 +55,8 @@ describe('SamplingPage', () => {
     );
     renderPage(<SamplingPage />);
     const table = await screen.findByRole('table', { name: 'Eligible customers' });
-    await waitFor(() => expect(within(table).getAllByRole('checkbox', { name: /Select row/ })).toHaveLength(5));
-    const harbor = within(table).getByRole('checkbox', { name: 'Select row 2' });
+    await waitFor(() => expect(within(table).getAllByRole('checkbox', { name: /^Select (?!all rows)/ })).toHaveLength(5));
+    const harbor = within(table).getByRole('checkbox', { name: 'Select Harbor Customs Services (International)' });
     expect(harbor).not.toBeChecked();
     await userEvent.click(harbor);
     await waitFor(() => expect(api.calls.find((c) => c.method === 'PUT')).toBeDefined());

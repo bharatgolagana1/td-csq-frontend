@@ -3,7 +3,7 @@
 .customer {
   display: flex;
   flex-direction: column;
-  min-width: 0;
+  min-width: 180px;
   line-height: 1.25;
 }
 .customerName {
@@ -26,7 +26,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 240px;
+  max-width: 220px;
   display: inline-block;
   vertical-align: middle;
 }
@@ -47,6 +47,15 @@
   color: var(--accent);
   text-align: left;
   cursor: pointer;
+}
+/* A long name takes two lines at most (full name in the title) and never widens the table. */
+.customer .linkButton {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
 }
 .linkButton:hover {
   text-decoration: underline;

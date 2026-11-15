@@ -12,11 +12,10 @@ import {
   type Registration,
   type RegistrationDetail,
   type RegistrationInput,
-  type RegistrationStatus,
   type RejectRegistrationInput,
 } from './onboarding.types';
 import { organisationKeys } from './organisations';
-import { type ListQuery, type Page } from './types';
+import { type ListQuery } from './types';
 
 /* onboarding module hooks (§6 onboarding). Keys: ['onboarding', ...]. */
 
@@ -78,32 +77,10 @@ export function useRegistration(id: string | undefined, placeholder?: Registrati
   });
 }
 
-type Snapshot = { lists: [readonly unknown[], Page<Registration> | undefined][]; detail: RegistrationDetail | undefined };
-
-/** Pure: a registration row after a review decision (used for the optimistic update). */
-export function applyReviewDecision<T extends Registration>(r: T, status: RegistrationStatus, note?: string): T {
-  return { ...r, status, reviewNote: note ?? r.reviewNote, reviewedAt: new Date().toISOString() };
-}
-
-/** Optimistically flips the status in every cached list and the detail; returns a rollback snapshot. */
-async function optimisticStatus(qc: QueryClient, id: string, status: RegistrationStatus, note?: string): Promise<Snapshot> {
-  await qc.cancelQueries({ queryKey: onboardingKeys.registrations });
-  await qc.cancelQueries({ queryKey: onboardingKeys.registration(id) });
-  const lists = qc.getQueriesData<Page<Registration>>({ queryKey: onboardingKeys.registrations });
-  const detail = qc.getQueryData<RegistrationDetail>(onboardingKeys.registration(id));
-  qc.setQueriesData<Page<Registration>>({ queryKey: onboardingKeys.registrations }, (page) =>
-    page ? { ...page, data: page.data.map((r) => (r.id === id ? applyReviewDecision(r, status, note) : r)) } : page,
-  );
-  if (detail) qc.setQueryData(onboardingKeys.registration(id), applyReviewDecision(detail, status, note));
-  return { lists, detail };
-}
-
-function rollback(qc: QueryClient, id: string, snapshot: Snapshot | undefined) {
-  if (!snapshot) return;
-  snapshot.lists.forEach(([key, data]) => qc.setQueryData(key, data));
-  if (snapshot.detail) qc.setQueryData(onboardingKeys.registration(id), snapshot.detail);
-}
-
+// No optimistic status flip on approve / reject: the server validates the
+// code, the admin e-mail and the share set, and flipping the status first
+// unmounted the review form, so a refusal showed nothing and lost what the
+// reviewer had typed. The drawer shows the decision once the server agrees.
 function settle(qc: QueryClient, id: string, result: RegistrationDetail | undefined) {
   if (result) qc.setQueryData(onboardingKeys.registration(id), result);
   void qc.invalidateQueries({ queryKey: onboardingKeys.registrations });
@@ -115,8 +92,6 @@ export function useApproveRegistration() {
   return useMutation({
     mutationFn: ({ id, ...input }: ApproveRegistrationInput & { id: string }) =>
       api.post<RegistrationDetail>(`/registrations/${id}/approve`, { body: input }),
-    onMutate: ({ id, note }) => optimisticStatus(qc, id, 'APPROVED', note),
-    onError: (_e, { id }, snapshot) => rollback(qc, id, snapshot),
     onSuccess: () => {
       // Approval creates the organisation, its admin and (optionally) a current market share.
       void qc.invalidateQueries({ queryKey: organisationKeys.operators });
@@ -133,8 +108,6 @@ export function useRejectRegistration() {
   return useMutation({
     mutationFn: ({ id, ...input }: RejectRegistrationInput & { id: string }) =>
       api.post<RegistrationDetail>(`/registrations/${id}/reject`, { body: input }),
-    onMutate: ({ id, note }) => optimisticStatus(qc, id, 'REJECTED', note),
-    onError: (_e, { id }, snapshot) => rollback(qc, id, snapshot),
     onSettled: (data, _e, { id }) => settle(qc, id, data),
   });
 }
