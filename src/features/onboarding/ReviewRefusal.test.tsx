@@ -22,6 +22,9 @@ describe('OnboardingPage · a refused approval', () => {
     ]);
     renderPage(<OnboardingPage />, { route: '/registrations/reg-1', path: '/registrations/:id' });
     const dialog = await screen.findByRole('dialog', { name: 'Delhi Cargo Handlers' });
+    // The shares must total 100 % before Approve is enabled.
+    const shares = await within(dialog).findByRole('region', { name: 'Market share after approval' });
+    await userEvent.click(within(shares).getByRole('button', { name: 'Scale the others to fit' }));
 
     const code = within(dialog).getByLabelText(/Organisation code/);
     await userEvent.clear(code);
