@@ -234,6 +234,7 @@ export function EligibleTable({ rows, loading, editable, surveyTypes, onChange, 
         columns={columns}
         rows={pageRows}
         rowKey={(r) => r.key}
+        rowLabel={(r) => `${r.customer?.name ?? 'customer'} (${SURVEY_TYPE_LABELS[r.surveyType]})`}
         loading={loading}
         sort={sort}
         onSortChange={(s) => {

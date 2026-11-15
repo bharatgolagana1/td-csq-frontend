@@ -55,4 +55,28 @@ describe('Menu', () => {
     expect(screen.queryByRole('menu')).toBeNull();
     expect(trigger).toHaveFocus();
   });
+
+  it('follows its trigger when the page scrolls, and closes once the trigger scrolls out of sight', async () => {
+    const user = userEvent.setup();
+    render(<Menu trigger={<Button>Actions</Button>} items={[{ id: 'edit', label: 'Edit', onSelect: vi.fn() }]} />);
+    const trigger = screen.getByRole('button', { name: 'Actions' });
+    const at = (top: number) => vi.spyOn(trigger, 'getBoundingClientRect').mockReturnValue({ top, bottom: top + 32, left: 900, right: 932, width: 32, height: 32, x: 900, y: top, toJSON: () => ({}) });
+    at(100);
+    await user.click(trigger);
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+
+    // Scrolled (e.g. the page bringing the trigger into view): still open, moved with it.
+    at(60);
+    act(() => {
+      window.dispatchEvent(new Event('scroll'));
+    });
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+
+    // The trigger has left the viewport: closed.
+    at(-200);
+    act(() => {
+      window.dispatchEvent(new Event('scroll'));
+    });
+    expect(screen.queryByRole('menu')).toBeNull();
+  });
 });

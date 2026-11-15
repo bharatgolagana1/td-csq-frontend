@@ -42,7 +42,9 @@ export default function CustomersPage() {
   const setStatusMutation = useSetCustomerStatus();
   const [bulkPending, setBulkPending] = useState(false);
   const deleteCustomers = useDeleteCustomers();
-  const [confirmDelete, setConfirmDelete] = useState(false);
+  /** Customers waiting for the delete / deactivate confirmation: one from a row menu, or the selection. */
+  const [deleteTargets, setDeleteTargets] = useState<Customer[] | null>(null);
+  const [deactivateTargets, setDeactivateTargets] = useState<Customer[] | null>(null);
 
   const filtered = Boolean(q || type || surveyType || status || tag);
   const query = useCustomers(
@@ -66,42 +68,69 @@ export default function CustomersPage() {
     setSelected(new Set());
   };
 
+  /** Reactivates straight away; deactivating asks first. */
   const setOne = (customer: Customer, next: 'ACTIVE' | 'INACTIVE') => {
+    if (next === 'INACTIVE') {
+      setDeactivateTargets([customer]);
+      return;
+    }
     setStatusMutation.mutate(
       { id: customer.id, status: next },
       {
-        onSuccess: () => toast.success(next === 'INACTIVE' ? `${customer.name} deactivated` : `${customer.name} reactivated`),
+        onSuccess: () => toast.success(`${customer.name} reactivated`),
         onError: (e) => toast.error(errorMessage(e), { requestId: errorRequestId(e) }),
       },
     );
   };
 
-  const bulk = async (next: 'ACTIVE' | 'INACTIVE') => {
-    const targets = rows.filter((c) => selected.has(c.id) && c.status !== next);
+  const selectedRows = rows.filter((c) => selected.has(c.id));
+  const selectedCount = selectedRows.length;
+
+  const bulk = (next: 'ACTIVE' | 'INACTIVE') => {
+    const targets = selectedRows.filter((c) => c.status !== next);
     if (targets.length === 0) {
       toast.info(next === 'INACTIVE' ? 'The selected customers are already inactive' : 'The selected customers are already active');
       return;
     }
+    if (next === 'INACTIVE') setDeactivateTargets(targets);
+    else void applyStatus(targets, 'ACTIVE');
+  };
+
+  const applyStatus = async (targets: Customer[], next: 'ACTIVE' | 'INACTIVE') => {
     setBulkPending(true);
     const results = await Promise.allSettled(targets.map((c) => setStatusMutation.mutateAsync({ id: c.id, status: next })));
     setBulkPending(false);
-    const failed = results.filter((r) => r.status === 'rejected').length;
-    const done = results.length - failed;
+    setDeactivateTargets(null);
+    const failures = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected');
+    const done = results.length - failures.length;
     const verb = next === 'INACTIVE' ? 'deactivated' : 'reactivated';
-    if (failed === 0) toast.success(`${formatInt(done)} ${done === 1 ? 'customer' : 'customers'} ${verb}`);
-    else toast.error(`${formatInt(done)} ${verb}, ${formatInt(failed)} failed`);
-    setSelected(new Set());
+    const only = targets.length === 1 ? targets[0] : undefined;
+    const firstFailure = failures[0];
+    if (only) {
+      if (firstFailure) toast.error(errorMessage(firstFailure.reason), { requestId: errorRequestId(firstFailure.reason) });
+      else toast.success(`${only.name} ${verb}`);
+    } else {
+      if (failures.length === 0) toast.success(`${formatInt(done)} customers ${verb}`);
+      else toast.error(`${formatInt(done)} ${verb}, ${formatInt(failures.length)} failed`);
+    }
+    setSelected((prev) => {
+      const nextSelected = new Set(prev);
+      targets.forEach((c) => nextSelected.delete(c.id));
+      return nextSelected;
+    });
   };
 
-  const selectedCount = rows.filter((c) => selected.has(c.id)).length;
-
-  /** Deletes the confirmed selection; customers the API refused stay selected, with its reason. */
-  const deleteSelected = async () => {
-    const ids = rows.filter((c) => selected.has(c.id)).map((c) => c.id);
+  /** Deletes the confirmed customers; any the API refused stay selected, with its reason. */
+  const deleteConfirmed = async () => {
+    const ids = (deleteTargets ?? []).map((c) => c.id);
     if (ids.length === 0) return;
     const { deleted, failed } = await deleteCustomers.mutateAsync(ids);
-    setConfirmDelete(false);
-    setSelected(new Set(failed.map((f) => f.id)));
+    setDeleteTargets(null);
+    setSelected((prev) => {
+      const next = new Set(prev);
+      deleted.forEach((id) => next.delete(id));
+      return next;
+    });
     if (deleted.length > 0) toast.success(`${formatInt(deleted.length)} ${deleted.length === 1 ? 'customer' : 'customers'} deleted`);
     const first = failed[0];
     if (first) {
@@ -109,6 +138,11 @@ export default function CustomersPage() {
       toast.error(`${what}: ${errorMessage(first.error)}`, { requestId: errorRequestId(first.error) });
     }
   };
+
+  const deleteCount = deleteTargets?.length ?? 0;
+  const onlyDelete = deleteTargets?.length === 1 ? deleteTargets[0] : undefined;
+  const deactivateCount = deactivateTargets?.length ?? 0;
+  const onlyDeactivate = deactivateTargets?.length === 1 ? deactivateTargets[0] : undefined;
 
   return (
     <>
@@ -203,15 +237,15 @@ export default function CustomersPage() {
             <div className={styles.bulkBar} role="region" aria-label="Bulk actions">
               <span className={styles.bulkCount}>{formatInt(selectedCount)} selected</span>
               <div className={styles.bulkActions}>
-                <Button size="sm" variant="secondary" onClick={() => void bulk('ACTIVE')} loading={bulkPending}>
+                <Button size="sm" variant="secondary" onClick={() => bulk('ACTIVE')} loading={bulkPending}>
                   Reactivate
                 </Button>
-                <Button size="sm" variant="danger" onClick={() => void bulk('INACTIVE')} loading={bulkPending}>
+                <Button size="sm" variant="danger" onClick={() => bulk('INACTIVE')} loading={bulkPending}>
                   Deactivate
                 </Button>
 
                 {canDelete ? (
-                  <Button size="sm" variant="danger" icon={<Icon name="trash" size={16} />} onClick={() => setConfirmDelete(true)} disabled={bulkPending}>
+                  <Button size="sm" variant="danger" icon={<Icon name="trash" size={16} />} onClick={() => setDeleteTargets(selectedRows)} disabled={bulkPending}>
                     Delete
                   </Button>
                 ) : null}
@@ -251,6 +285,8 @@ export default function CustomersPage() {
                 sort={sort}
                 onSortChange={setSort}
                 canManage={canManage}
+                canDelete={canDelete}
+                onDelete={(c) => setDeleteTargets([c])}
                 selected={selected}
                 onSelectedChange={setSelected}
                 onOpen={setDetail}
@@ -291,14 +327,24 @@ export default function CustomersPage() {
       )}
 
       <ConfirmDialog
-        open={confirmDelete}
-        onClose={() => setConfirmDelete(false)}
-        onConfirm={() => void deleteSelected()}
-        title={`Delete ${formatInt(selectedCount)} ${selectedCount === 1 ? 'customer' : 'customers'}?`}
+        open={deleteTargets !== null}
+        onClose={() => setDeleteTargets(null)}
+        onConfirm={() => void deleteConfirmed()}
+        title={onlyDelete ? `Delete ${onlyDelete.name}?` : `Delete ${formatInt(deleteCount)} customers?`}
         description="They leave the directory and can no longer be sampled. Their past assessments stay in the history, and adding the same e-mail again brings a customer back."
         confirmLabel="Delete"
         danger
         loading={deleteCustomers.isPending}
+      />
+      <ConfirmDialog
+        open={deactivateTargets !== null}
+        onClose={() => setDeactivateTargets(null)}
+        onConfirm={() => void applyStatus(deactivateTargets ?? [], 'INACTIVE')}
+        title={onlyDeactivate ? `Deactivate ${onlyDeactivate.name}?` : `Deactivate ${formatInt(deactivateCount)} customers?`}
+        description="Inactive customers stay in the directory but cannot be sampled until they are reactivated."
+        confirmLabel="Deactivate"
+        danger
+        loading={bulkPending}
       />
       {form.mode !== 'closed' ? (
         <CustomerFormDrawer open onClose={() => setForm({ mode: 'closed' })} customer={form.mode === 'edit' ? form.customer : null} acoId={scope.acoId} isPlatform={scope.isPlatform} />

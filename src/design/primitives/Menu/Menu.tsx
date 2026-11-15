@@ -45,13 +45,20 @@ export function Menu({ trigger, items, align = 'end', label = 'Actions', header,
 
   useOutsideClick(refs, () => close(false), open);
 
-  useLayoutEffect(() => {
-    if (!open || !triggerRef.current) return;
+  /** Places the list under the trigger; false when the trigger has left the viewport. */
+  const place = useCallback((): boolean => {
+    if (!triggerRef.current) return false;
     const r = triggerRef.current.getBoundingClientRect();
+    if (r.bottom < 0 || r.top > window.innerHeight || r.right < 0 || r.left > window.innerWidth) return false;
     const top = r.bottom + 4;
     if (align === 'end') setPos({ top, left: 0, right: Math.max(8, window.innerWidth - r.right) });
     else setPos({ top, left: r.left });
-  }, [open, align]);
+    return true;
+  }, [align]);
+
+  useLayoutEffect(() => {
+    if (open) place();
+  }, [open, place]);
 
   useEffect(() => {
     if (!open) return;
@@ -60,7 +67,13 @@ export function Menu({ trigger, items, align = 'end', label = 'Actions', header,
     const raf = requestAnimationFrame(() => {
       listRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]')[selectable.indexOf(first) === -1 ? 0 : selectable.indexOf(first)]?.focus();
     });
-    const onScroll = () => close(false);
+    // A scroll (the page bringing the trigger into view, a table scrolling
+    // sideways) moves the list with its trigger; it closes only once the
+    // trigger has scrolled out of sight. A resize closes it.
+    const onScroll = () => {
+      if (!place()) close(false);
+    };
+    const onResize = () => close(false);
     // Escape anywhere (including on the trigger before focus moves in) closes and restores focus.
     const onDocKey = (e: globalThis.KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -68,17 +81,17 @@ export function Menu({ trigger, items, align = 'end', label = 'Actions', header,
         close();
       }
     };
-    window.addEventListener('resize', onScroll);
+    window.addEventListener('resize', onResize);
     window.addEventListener('scroll', onScroll, true);
     document.addEventListener('keydown', onDocKey, true);
     return () => {
       cancelAnimationFrame(raf);
-      window.removeEventListener('resize', onScroll);
+      window.removeEventListener('resize', onResize);
       window.removeEventListener('scroll', onScroll, true);
       document.removeEventListener('keydown', onDocKey, true);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- selectable is derived from items each render
-  }, [open, close]);
+  }, [open, close, place]);
 
   const focusItem = (index: number) => {
     setActive(index);

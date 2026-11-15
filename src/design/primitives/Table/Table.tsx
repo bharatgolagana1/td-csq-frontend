@@ -43,6 +43,8 @@ export type TableProps<T> = {
   /** With `onRowClick`: rows it returns false for get no click handler and no clickable styling (default: every row). */
   isRowClickable?: (row: T) => boolean;
   rowClassName?: (row: T) => string | undefined;
+  /** Names a row for assistive tech: "Select <label>", "Actions for <label>" (default "row N"). */
+  rowLabel?: (row: T) => string;
   caption?: string;
   dense?: boolean;
   skeletonRows?: number;
@@ -71,6 +73,7 @@ export function Table<T>({
   onRowClick,
   isRowClickable,
   rowClassName,
+  rowLabel,
   caption,
   dense,
   skeletonRows = 6,
@@ -176,7 +179,7 @@ export function Table<T>({
                   >
                     {selectable ? (
                       <td className={cn(styles.td, styles.selectCol)} onClick={(e) => e.stopPropagation()}>
-                        <Checkbox bare aria-label={`Select row ${i + 1}`} checked={isSelected} onChange={() => toggleOne(key)} />
+                        <Checkbox bare aria-label={rowLabel ? `Select ${rowLabel(row)}` : `Select row ${i + 1}`} checked={isSelected} onChange={() => toggleOne(key)} />
                       </td>
                     ) : null}
                     {columns.map((col) => (
@@ -189,7 +192,10 @@ export function Table<T>({
                     ))}
                     {rowActions ? (
                       <td className={cn(styles.td, styles.actionsCol)} onClick={(e) => e.stopPropagation()}>
-                        <Menu trigger={<IconButton label="Row actions" icon={<Icon name="more" />} size="sm" className={styles.actionsButton} />} items={rowActions(row)} />
+                        <Menu
+                          trigger={<IconButton label={rowLabel ? `Actions for ${rowLabel(row)}` : 'Row actions'} icon={<Icon name="more" />} size="sm" className={styles.actionsButton} />}
+                          items={rowActions(row)}
+                        />
                       </td>
                     ) : null}
                   </tr>

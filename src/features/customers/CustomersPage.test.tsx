@@ -93,20 +93,54 @@ describe('CustomersPage', () => {
     ]);
     renderPage(<CustomersPage />);
     await screen.findByRole('button', { name: 'Bluewave Logistics Pvt Ltd' });
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Select row 1' }));
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Select row 2' }));
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Select Bluewave Logistics Pvt Ltd' }));
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Select Harbor Customs Services' }));
     expect(screen.getByText('2 selected')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Deactivate' }));
+    // Nothing happens until the confirmation.
+    const dialog = await screen.findByRole('dialog', { name: 'Deactivate 2 customers?' });
+    expect(api.calls.filter((c) => c.method === 'POST')).toHaveLength(0);
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Deactivate' }));
     await waitFor(() => expect(api.calls.filter((c) => c.method === 'POST' && c.path.endsWith('/deactivate'))).toHaveLength(2));
     expect(await screen.findByText('2 customers deactivated')).toBeInTheDocument();
+  });
+
+  it('deactivates one customer from its row menu after confirming; cancelling sends nothing', async () => {
+    const api = mockApi([
+      listRoute(),
+      { method: 'POST', path: /^\/customers\/([^/]+)\/deactivate$/, reply: ({ match }) => ({ body: { data: customer({ id: match[1] ?? '', status: 'INACTIVE' }) } }) },
+    ]);
+    renderPage(<CustomersPage />);
+    await userEvent.click(await screen.findByRole('button', { name: 'Actions for Bluewave Logistics Pvt Ltd' }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Deactivate…' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Deactivate Bluewave Logistics Pvt Ltd?' });
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }));
+    expect(api.calls.filter((c) => c.method === 'POST')).toHaveLength(0);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Actions for Bluewave Logistics Pvt Ltd' }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Deactivate…' }));
+    await userEvent.click(within(await screen.findByRole('dialog', { name: 'Deactivate Bluewave Logistics Pvt Ltd?' })).getByRole('button', { name: 'Deactivate' }));
+    expect(await screen.findByText('Bluewave Logistics Pvt Ltd deactivated')).toBeInTheDocument();
+    expect(api.calls.filter((c) => c.method === 'POST').map((c) => c.path)).toEqual(['/customers/c1/deactivate']);
+  });
+
+  it('deletes one customer from its row menu after confirming', async () => {
+    const api = mockApi([listRoute(), { method: 'DELETE', path: /^\/customers\/[^/]+$/, reply: () => ({ status: 204 }) }]);
+    renderPage(<CustomersPage />, { session: DELETER_SESSION });
+    await userEvent.click(await screen.findByRole('button', { name: 'Actions for Harbor Customs Services' }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Delete…' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Delete Harbor Customs Services?' });
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Delete' }));
+    expect(await screen.findByText('1 customer deleted')).toBeInTheDocument();
+    expect(api.calls.filter((c) => c.method === 'DELETE').map((c) => c.path)).toEqual(['/customers/c2']);
   });
 
   it('deletes the selected customers after confirming, refetching the directory once', async () => {
     const api = mockApi([listRoute(), { method: 'DELETE', path: /^\/customers\/[^/]+$/, reply: () => ({ status: 204 }) }]);
     renderPage(<CustomersPage />, { session: DELETER_SESSION });
     await screen.findByRole('button', { name: 'Bluewave Logistics Pvt Ltd' });
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Select row 1' }));
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Select row 2' }));
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Select Bluewave Logistics Pvt Ltd' }));
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Select Harbor Customs Services' }));
     await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
 
     const dialog = await screen.findByRole('dialog', { name: 'Delete 2 customers?' });
@@ -133,8 +167,8 @@ describe('CustomersPage', () => {
     ]);
     renderPage(<CustomersPage />, { session: DELETER_SESSION });
     await screen.findByRole('button', { name: 'Bluewave Logistics Pvt Ltd' });
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Select row 1' }));
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Select row 2' }));
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Select Bluewave Logistics Pvt Ltd' }));
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Select Harbor Customs Services' }));
     await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
     await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Delete' }));
 
@@ -147,9 +181,12 @@ describe('CustomersPage', () => {
     mockApi([listRoute()]);
     renderPage(<CustomersPage />);
     await screen.findByRole('button', { name: 'Bluewave Logistics Pvt Ltd' });
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Select row 1' }));
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Select Bluewave Logistics Pvt Ltd' }));
     expect(screen.getByRole('button', { name: 'Deactivate' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Delete' })).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Actions for Bluewave Logistics Pvt Ltd' }));
+    expect(await screen.findByRole('menuitem', { name: 'Deactivate…' })).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'Delete…' })).toBeNull();
   });
 
   it('opens the detail drawer with the participation history', async () => {
