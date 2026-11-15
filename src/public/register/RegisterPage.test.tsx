@@ -14,7 +14,7 @@ import RegisterPage from './RegisterPage';
 type Reply = { status?: number; body?: unknown };
 type Call = { method: string; path: string; body: unknown };
 
-function mockApi(get: () => Reply | Promise<Reply>, post: (body: unknown) => Reply = () => ({ status: 201, body: { data: { registrationId: 'reg-42' } } })) {
+function mockApi(get: () => Reply | Promise<Reply>, post: (body: unknown) => Reply = () => ({ status: 201, body: { data: { registrationId: '6915c2a1f0e4b3a29c3f9a2c' } } })) {
   const calls: Call[] = [];
   vi.stubGlobal(
     'fetch',
@@ -148,7 +148,9 @@ describe('RegisterPage form', () => {
     await user.click(await screen.findByRole('button', { name: 'Submit registration' }));
 
     expect(await screen.findByRole('heading', { name: 'Request received' })).toBeInTheDocument();
-    expect(screen.getByText('Reference reg-42')).toBeInTheDocument();
+    // A short reference, the one ACFI sees on the request, never the raw id.
+    expect(screen.getByText('Reference REG-3F9A2C')).toBeInTheDocument();
+    expect(screen.queryByText(/6915c2a1f0e4b3a29c3f9a2c/)).toBeNull();
     const post = calls.find((c) => c.method === 'POST');
     expect(post?.path).toBe('/public/onboarding/tok_abc');
     expect(post?.body).toEqual({

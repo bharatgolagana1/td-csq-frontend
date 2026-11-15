@@ -3,6 +3,7 @@ import { type Registration, type RegistrationDetail } from '@/api/onboarding.typ
 import { Banner, Button, Drawer, KeyValue, Pill, Skeleton, Tag } from '@/design/primitives';
 import { QueryError } from '@/design/primitives/QueryError/QueryError';
 import { formatDateTime, formatPct } from '@/lib/format';
+import { registrationReference } from '@/lib/reference';
 
 import styles from './onboarding.module.css';
 import { ORG_TYPE_LABEL, registrationStatusLabel, registrationStatusVariant } from './onboardingLabels';
@@ -40,6 +41,7 @@ function Summary({ r }: { r: Registration }) {
           columns={2}
           items={[
             { key: 'Name', value: r.organisation.name },
+            { key: 'Reference', value: registrationReference(r.id), mono: true },
             { key: 'Legal name', value: r.organisation.legalName ?? '—' },
             { key: 'Airport', value: r.airport ? `${r.airport.iata} · ${r.airport.name}` : '—' },
             { key: 'Operations', value: operationsText(r) },
