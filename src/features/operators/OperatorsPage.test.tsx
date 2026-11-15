@@ -81,6 +81,12 @@ describe('OperatorDetailPage', () => {
     const cycleRow = (await screen.findByText('CSQ 2026 H1')).closest('tr') as HTMLElement;
     expect(await within(cycleRow).findByText('60 %')).toBeInTheDocument();
     expect(within(cycleRow).getByText('Frozen')).toBeInTheDocument();
+
+    // The count is of active customers only (the Customers page lists every status), and says so.
+    await userEvent.click(screen.getByRole('tab', { name: /Active customers/ }));
+    const panel = screen.getByRole('tabpanel');
+    expect(within(panel).getByText('Active customers')).toBeInTheDocument();
+    expect(within(panel).getByText('212')).toBeInTheDocument();
   });
 
   it('shows a not-found state for an unknown id', async () => {
