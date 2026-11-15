@@ -1,14 +1,16 @@
 import { useMemo } from 'react';
+import { Link } from 'react-router-dom';
 
 import { type Operator } from '@/api/operators.types';
 import { Icon } from '@/design/icons';
 import { Button, KeyValue, type KeyValueItem, Pill } from '@/design/primitives';
+import { useShell } from '@/shell/ShellContext';
 import { describeTimeZone, formatInt } from '@/lib/format';
 
+import { airportShare, marketSharePath } from './airportShare';
 import { useBuilder } from './builderContext';
 import { ANSWER_MODE_LABELS, CYCLE_TYPE_LABELS, TYPE_PILL } from './cycleLabels';
 import styles from './cycles.module.css';
-import { airportShareTotal } from './ParticipantsStep';
 import { formatWall } from './SamplingStep';
 import { WindowTimeline } from './WindowTimeline';
 
@@ -22,7 +24,8 @@ export type ReviewStepProps = {
 
 /** Step 5 — everything on one screen, the warnings publish would hit, Save as draft / Publish. */
 export function ReviewStep({ onSaveDraft, onPublish, saving, publishing, canPublish }: ReviewStepProps) {
-  const { form, goTo, airports, operators } = useBuilder();
+  const { form, goTo, airports, operators, shareTotals } = useBuilder();
+  const { href } = useShell();
   const v = form.watch();
 
   const shareWarnings = useMemo(() => {
@@ -30,9 +33,9 @@ export function ReviewStep({ onSaveDraft, onPublish, saving, publishing, canPubl
     operators.forEach((o) => byAirport.set(o.airport.id, [...(byAirport.get(o.airport.id) ?? []), o]));
     return airports
       .filter((a) => v.participatingAirportIds.includes(a.id))
-      .map((a) => ({ airport: a, ...airportShareTotal(byAirport.get(a.id) ?? []) }))
+      .map((a) => ({ airport: a, empty: a.operatorCount === 0, ...airportShare(a.id, byAirport.get(a.id) ?? [], shareTotals) }))
       .filter((s) => !s.ok);
-  }, [airports, operators, v.participatingAirportIds]);
+  }, [airports, operators, shareTotals, v.participatingAirportIds]);
 
   const noParticipants = v.participatingAirportIds.length === 0 || v.participatingAcoIds.length === 0;
 
@@ -93,9 +96,22 @@ export function ReviewStep({ onSaveDraft, onPublish, saving, publishing, canPubl
               <span className={styles.problemText}>
                 <Icon name="warning" size={16} />
                 <span>
-                  Market shares at {s.airport.iata} · {s.airport.name} total {s.total} %, not 100. Publishing will be refused until they are fixed.
+                  {s.empty
+                    ? `${s.airport.iata} · ${s.airport.name} has no active operators, so its shares total 0 %. Remove it from the cycle; publishing would be refused.`
+                    : `Market shares at ${s.airport.iata} · ${s.airport.name} total ${s.total} %, not 100. Publishing will be refused until they are fixed.`}
                 </span>
               </span>
+              {s.empty ? (
+                <Button size="sm" variant="secondary" onClick={() => goTo('participants')}>
+                  Edit participants
+                </Button>
+              ) : (
+                <Link to={href(marketSharePath(s.airport.id))}>
+                  <Button size="sm" variant="secondary" tabIndex={-1} iconRight={<Icon name="external" size={16} />}>
+                    Fix market shares
+                  </Button>
+                </Link>
+              )}
             </li>
           ))}
         </ul>

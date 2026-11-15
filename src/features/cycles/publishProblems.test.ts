@@ -9,7 +9,7 @@ const e412 = (message: string, details?: unknown) => new ApiError(412, 'PRECONDI
 describe('publishProblems', () => {
   it('maps the market-share guard to a Market share link', () => {
     const [p] = publishProblems(e412('Market shares at BOM (Mumbai) total 80, not 100', { airportId: 'ap-bom', iata: 'BOM', name: 'Mumbai', total: 80 }));
-    expect(p).toMatchObject({ kind: 'MARKET_SHARE', fixPath: '/market-share', fixLabel: 'Fix market shares' });
+    expect(p).toMatchObject({ kind: 'MARKET_SHARE', fixPath: '/market-share?airportId=ap-bom', fixLabel: 'Fix market shares' });
     expect(p?.message).toBe('Market shares at BOM (Mumbai) total 80, not 100');
   });
 
