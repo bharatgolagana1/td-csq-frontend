@@ -29,7 +29,7 @@ export function ReviewList({ items, remarks = [], onJump, onJumpRemark, classNam
           <Icon name="check" size={18} className={styles.reviewHeadIconDone} />
           Everything is answered
         </p>
-        <p className={styles.reviewEmpty}>Check your answers from the sections on the left, then submit. Submitted answers are locked.</p>
+        <p className={styles.reviewEmpty}>Check your answers section by section, then submit. Submitted answers are locked.</p>
       </div>
     );
   }

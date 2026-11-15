@@ -25,22 +25,24 @@ export function segmentFill(index: number, step: FlowStep, progress: number): nu
   return step === 2 ? Math.max(0, Math.min(1, progress)) : 0.35;
 }
 
-/** The public page chrome: brand bar with the tiny always-visible flow affordance, a centred column, the confidentiality footer. */
+/**
+ * The public page chrome: brand bar with the tiny always-visible flow
+ * affordance (named, not numbered: the form numbers its own sections), a
+ * centred column, the confidentiality footer. The landing card says the
+ * confidentiality line itself, so there the footer only names ACFI.
+ */
 export function PublicFrame({ step, stepProgress = 0, wide, children }: PublicFrameProps) {
   return (
     <div className={styles.page}>
       <header className={styles.topbar}>
         <div className={styles.brand}>
-          <span className={styles.brandMark} aria-hidden="true">
-            CSQ
-          </span>
-          <span>CSQ</span>
+          <span className={styles.brandMark}>CSQ</span>
           <span className={styles.brandSub}>Cargo Service Quality · ACFI</span>
         </div>
         {step !== null ? (
           <div className={styles.flow} role="img" aria-label={`Step ${step + 1} of ${FLOW_STEPS.length}: ${FLOW_STEPS[step]}`}>
             <span className={styles.flowLabel} aria-hidden="true">
-              {step + 1}/{FLOW_STEPS.length}
+              {FLOW_STEPS[step]}
             </span>
             {FLOW_STEPS.map((label, i) => (
               <span key={label} className={cn(styles.seg, i === step && styles.segCurrent)}>
@@ -51,7 +53,7 @@ export function PublicFrame({ step, stepProgress = 0, wide, children }: PublicFr
         ) : null}
       </header>
       <main className={cn(styles.main, wide && styles.wide)}>{children}</main>
-      <footer className={styles.footer}>Your answers reach the operator only in aggregate · Air Cargo Forum India</footer>
+      <footer className={styles.footer}>{step === 0 ? 'Air Cargo Forum India' : 'Your answers reach the operator only in aggregate · Air Cargo Forum India'}</footer>
     </div>
   );
 }

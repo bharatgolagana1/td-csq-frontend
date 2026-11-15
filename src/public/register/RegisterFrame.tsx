@@ -14,10 +14,7 @@ export function RegisterFrame({ status, children }: RegisterFrameProps) {
     <div className={styles.page}>
       <header className={styles.topbar}>
         <div className={styles.brand}>
-          <span className={styles.brandMark} aria-hidden="true">
-            CSQ
-          </span>
-          <span>CSQ</span>
+          <span className={styles.brandMark}>CSQ</span>
           <span className={styles.brandSub}>Cargo Service Quality · ACFI</span>
         </div>
         {status ? <span className={styles.stepCount}>{status}</span> : null}
