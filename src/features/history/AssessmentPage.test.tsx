@@ -121,7 +121,7 @@ describe('AssessmentPage', () => {
     expect(within(screen.getByRole('region', { name: 'Security' })).queryByRole('heading', { name: 'Remarks' })).toBeNull();
   });
 
-  it('shows an IMPORT_EXPORT return with both scores and each question’s two ratings on one row, without comments', () => {
+  it('shows an IMPORT_EXPORT return with both scores and each question’s two ratings on one row, with comments', () => {
     const [q1, q2] = DETAIL.answers as [DetailAnswer, DetailAnswer];
     const importExport: AssessmentDetail = {
       ...DETAIL,
@@ -145,9 +145,9 @@ describe('AssessmentPage', () => {
     const shipment = screen.getByText('Shipment acceptance').closest('li') as HTMLElement;
     expect(within(shipment).getByRole('group', { name: 'Import answer' })).toHaveTextContent('Very good');
     expect(within(shipment).getByRole('group', { name: 'Export answer' })).toHaveTextContent('Fair');
-    // The export follow-up shows; the comment an older answer carries does not (the form takes none).
+    // The saved export follow-up and comment both appear.
     expect(within(shipment).getByRole('group', { name: 'Export follow-up' })).toHaveTextContent('Queues');
-    expect(within(shipment).queryByText('Queues at the gate')).toBeNull();
+    expect(within(shipment).getByText('Queues at the gate')).toBeInTheDocument();
     expect(screen.getAllByText('2/2')).toHaveLength(2);
   });
 

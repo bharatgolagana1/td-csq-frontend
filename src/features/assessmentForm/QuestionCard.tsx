@@ -23,12 +23,7 @@ export type QuestionCardProps = {
   className?: string;
 };
 
-/**
- * One question: text with ⓘ help, the segmented rating, the follow-up options
- * on Fair/Poor, and the comment with its mode rules (backend §7 "Form rules").
- * Validation is inline: the rating error appears when asked for; the comment
- * error as soon as the rule applies and the field was left or asked for.
- */
+/** One question with rating options, conditional follow-ups, and an optional comment. */
 export function QuestionCard({ question, index, answer, onChange, section, showValidation = false, readOnly = false, className }: QuestionCardProps) {
   const textId = `${useId()}-text`;
   return (

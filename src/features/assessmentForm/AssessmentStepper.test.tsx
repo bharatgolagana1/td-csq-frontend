@@ -96,9 +96,8 @@ describe('AssessmentStepper', () => {
     expect(screen.getByText('4 of 4 answered in this section')).toBeInTheDocument();
     expect(screen.getAllByRole('group', { name: 'Import' })).toHaveLength(2);
     expect(screen.getAllByRole('group', { name: 'Export' })).toHaveLength(2);
-    // No comment field anywhere: the section's remark is the only text box.
-    expect(screen.getAllByRole('textbox')).toEqual([screen.getByRole('textbox', { name: 'Remarks for Cargo handling' })]);
-    expect(screen.queryByLabelText(/Comment/)).toBeNull();
+    expect(screen.getAllByPlaceholderText('Add a comment (optional)')).toHaveLength(2);
+    screen.getAllByLabelText('Comment (optional)').forEach((field) => expect(field).not.toBeRequired());
 
     await userEvent.click(screen.getByRole('button', { name: /Review & submit/ }));
     expect(screen.getByText('3 items need attention')).toBeInTheDocument();
@@ -117,7 +116,7 @@ describe('AssessmentStepper', () => {
     expect(within(document.getElementById('q-q3-import') as HTMLElement).queryByRole('alert')).toBeNull();
 
     await userEvent.click(within(screen.getByRole('radiogroup', { name: 'How would you rate the overall experience? — Export' })).getByRole('radio', { name: 'Good' }));
-    await waitFor(() => expect(onSave).toHaveBeenCalledWith([{ questionId: 'q4', direction: 'EXPORT', rating: 3, na: false, followUp: [] }]), { timeout: 2000 });
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith([{ questionId: 'q4', direction: 'EXPORT', rating: 3, na: false, comment: null, followUp: [] }]), { timeout: 2000 });
     expect(onProgress).toHaveBeenLastCalledWith({ answered: 6, total: 8, pct: 75 });
 
     // Back to the import side of a first-section question through the review.
@@ -126,7 +125,7 @@ describe('AssessmentStepper', () => {
     expect(document.activeElement?.id).toBe('q-q4-import');
   });
 
-  it('IMPORT_EXPORT: Fair and Poor ask for no comment — ratings and remarks alone complete the form and submit it', async () => {
+  it('IMPORT_EXPORT: Fair and Poor keep comments optional — ratings and remarks alone complete the form and submit it', async () => {
     // Poor on q1 (comment on low) and Fair on q3 (comment required) for export, no comment anywhere.
     const draft = [
       ...COMPLETE.map((a) => ({ ...a, comment: null, direction: 'IMPORT' as const })),

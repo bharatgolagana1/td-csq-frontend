@@ -3,12 +3,12 @@ import { Pill, RatingPill, Tag } from '@/design/primitives';
 import { cn } from '@/lib/cn';
 
 import styles from './AnswerSummary.module.css';
-import { ANSWER_DIRECTIONS, DIRECTION_LABELS } from './rules';
+import { ANSWER_DIRECTIONS, DIRECTION_LABELS, sharedQuestionComment } from './rules';
 import { type AnswerGroup, type AnswerGroupAnswer, type AnswerGroupItem } from './types';
 
 export type AnswerSummaryProps = {
   groups: AnswerGroup[];
-  /** IMPORT_EXPORT shows each question's import and export rating on one row, without comments (default SINGLE). */
+  /** IMPORT_EXPORT shows each question's import and export rating on one row (default SINGLE). */
   answerMode?: AnswerMode;
   className?: string;
 };
@@ -57,10 +57,12 @@ function directionAnswer(item: AnswerGroupItem, direction: AnswerDirection): Ans
   return (direction === 'IMPORT' ? item.importAnswer : item.exportAnswer) ?? null;
 }
 
-/** An IMPORT_EXPORT question's two ratings on its row, then the follow-ups of each direction that has some. No comment lines: the form takes none. */
+/** An IMPORT_EXPORT question's ratings and follow-ups, with one shared comment. */
 function DirectionAnswers({ item }: { item: AnswerGroupItem }) {
+  const comment = sharedQuestionComment(item.importAnswer, item.exportAnswer);
   const followUps = ANSWER_DIRECTIONS.flatMap((direction) => {
-    const options = directionAnswer(item, direction)?.followUp ?? [];
+    const answer = directionAnswer(item, direction);
+    const options = answer?.followUp ?? [];
     return options.length > 0 ? [{ direction, options }] : [];
   });
   return (
@@ -78,16 +80,24 @@ function DirectionAnswers({ item }: { item: AnswerGroupItem }) {
           {followUps.map(({ direction, options }) => (
             <div key={direction} role="group" aria-label={`${DIRECTION_LABELS[direction]} follow-up`} className={styles.directionFollowUp}>
               <span className={styles.directionLabel}>{DIRECTION_LABELS[direction]}</span>
-              <FollowUpTags options={options} />
+              <div className={styles.itemExtra}>
+                {options.length > 0 ? <FollowUpTags options={options} /> : null}
+              </div>
             </div>
           ))}
+        </div>
+      ) : null}
+      {comment ? (
+        <div className={styles.itemExtra}>
+          <span className={styles.commentLabel}>Comment</span>
+          <blockquote className={styles.comment}>{comment}</blockquote>
         </div>
       ) : null}
     </>
   );
 }
 
-/** Read-only answers by category: rating pills, follow-up tags and comments (an IMPORT_EXPORT row: both ratings, follow-ups, no comments), then the section's remark (self done state, history return). */
+/** Read-only answers by category: ratings, follow-ups and comments, then section remarks. */
 export function AnswerSummary({ groups, answerMode = 'SINGLE', className }: AnswerSummaryProps) {
   const directed = answerMode === 'IMPORT_EXPORT';
   return (

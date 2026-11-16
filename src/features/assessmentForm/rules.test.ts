@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { type DetailAnswer } from '@/api/assessments.types';
 
-import { answerIssues, answersToMap, formSteps, groupsFromDetail, groupsFromForm, missingRemarks, ownScore, readinessOf, remarkReviewItems, remarksToMap, reviewItems, stepQuestions, takesComment, toAnswerInput } from './rules';
+import { answerIssues, answersToMap, formSteps, groupsFromDetail, groupsFromForm, missingRemarks, ownScore, readinessOf, remarkReviewItems, remarksToMap, reviewItems, stepQuestions, toAnswerInput } from './rules';
 import { answer, COMPLETE, FORM, Q1, Q2, Q3, REMARKS } from './testFixtures';
 
 describe('form rules', () => {
@@ -17,16 +17,16 @@ describe('form rules', () => {
     ]);
   });
 
-  it('applies the comment modes', () => {
+  it('makes comments optional regardless of comment mode', () => {
     expect(answerIssues(Q1, undefined)).toEqual([{ field: 'rating', message: 'Choose a rating or NA' }]);
-    expect(answerIssues(Q1, { questionId: 'q1', rating: 2, na: false, comment: '', followUp: [] })).toEqual([{ field: 'comment', message: 'A comment is required for a Fair or Poor rating' }]);
+    expect(answerIssues(Q1, { questionId: 'q1', rating: 2, na: false, comment: '', followUp: [] })).toEqual([]);
     expect(answerIssues(Q1, { questionId: 'q1', rating: 3, na: false, comment: '', followUp: [] })).toEqual([]);
-    expect(answerIssues(Q3, { questionId: 'q3', rating: 5, na: false, comment: '  ', followUp: [] })).toEqual([{ field: 'comment', message: 'A comment is required for this question' }]);
+    expect(answerIssues(Q3, { questionId: 'q3', rating: 5, na: false, comment: '  ', followUp: [] })).toEqual([]);
     expect(answerIssues(Q2, { questionId: 'q2', rating: null, na: true, comment: '', followUp: [] })).toEqual([]);
   });
 
-  it('sends only what the server accepts: no comment on NONE, follow-up only on Fair/Poor from the list', () => {
-    expect(toAnswerInput(Q2, { questionId: 'q2', rating: 4, na: false, comment: 'ignored', followUp: ['x'] })).toEqual({ questionId: 'q2', rating: 4, na: false, comment: null, followUp: [] });
+  it('saves comments even on NONE, with follow-ups only on Fair/Poor from the list', () => {
+    expect(toAnswerInput(Q2, { questionId: 'q2', rating: 4, na: false, comment: '  Additional detail  ', followUp: ['x'] })).toEqual({ questionId: 'q2', rating: 4, na: false, comment: 'Additional detail', followUp: [] });
     expect(toAnswerInput(Q1, { questionId: 'q1', rating: 1, na: false, comment: ' bad ', followUp: ['Staff', 'Nope', 'Staff'] })).toEqual({ questionId: 'q1', rating: 1, na: false, comment: 'bad', followUp: ['Staff'] });
     expect(toAnswerInput(Q1, { questionId: 'q1', rating: 5, na: true, comment: '', followUp: ['Staff'] })).toEqual({ questionId: 'q1', rating: null, na: true, comment: null, followUp: [] });
   });
@@ -34,9 +34,8 @@ describe('form rules', () => {
   it('computes readiness and the review list', () => {
     const steps = formSteps(FORM);
     const answers = answersToMap([answer('q1', { rating: 1 }), answer('q2')]);
-    expect(readinessOf(stepQuestions(steps), answers)).toEqual({ answered: 2, total: 4, missing: ['q3', 'q4'], invalid: ['q1'], complete: false });
+    expect(readinessOf(stepQuestions(steps), answers)).toEqual({ answered: 2, total: 4, missing: ['q3', 'q4'], invalid: [], complete: false });
     expect(reviewItems(steps, answers).map((i) => [i.questionId, i.reason, i.stepIndex])).toEqual([
-      ['q1', 'comment', 0],
       ['q3', 'missing', 1],
       ['q4', 'missing', 1],
     ]);
@@ -45,7 +44,7 @@ describe('form rules', () => {
 
   it('IMPORT_EXPORT: every question counts twice, keyed and reviewed per direction, and sends its direction', () => {
     const steps = formSteps(FORM);
-    // Export Fair on q1 (REQUIRED_ON_LOW) without a comment: answered, and valid — the form takes none.
+    // Export Fair on q1 is answered and valid without a comment.
     const answers = answersToMap([...COMPLETE.map((a) => ({ ...a, direction: 'IMPORT' as const })), answer('q1', { direction: 'EXPORT', rating: 2 }), answer('q2', { direction: 'EXPORT' })]);
     expect(readinessOf(stepQuestions(steps), answers, 'IMPORT_EXPORT')).toEqual({ answered: 6, total: 8, missing: ['q3:EXPORT', 'q4:EXPORT'], invalid: [], complete: false });
     expect(reviewItems(steps, answers, 'IMPORT_EXPORT').map((i) => [i.questionId, i.direction, i.reason])).toEqual([
@@ -54,20 +53,17 @@ describe('form rules', () => {
     ]);
     // A SINGLE reading of the same answers finds none of them.
     expect(readinessOf(stepQuestions(steps), answers).answered).toBe(0);
-    expect(toAnswerInput(Q2, { questionId: 'q2', direction: 'EXPORT', rating: 4, na: false, comment: '', followUp: [] })).toEqual({ questionId: 'q2', direction: 'EXPORT', rating: 4, na: false, followUp: [] });
+    expect(toAnswerInput(Q2, { questionId: 'q2', direction: 'EXPORT', rating: 4, na: false, comment: '', followUp: [] })).toEqual({ questionId: 'q2', direction: 'EXPORT', rating: 4, na: false, comment: null, followUp: [] });
   });
 
-  it('IMPORT_EXPORT: no comment rule and no comment sent, whatever the comment mode; the follow-up rule per direction', () => {
-    expect(takesComment(Q3)).toBe(true);
-    expect(takesComment(Q3, 'IMPORT')).toBe(false);
+  it('IMPORT_EXPORT: optional comments are saved per direction alongside follow-ups', () => {
     // An unanswered slot only lacks its rating, even on a REQUIRED question.
     expect(answerIssues(Q3, undefined, 'EXPORT')).toEqual([{ field: 'rating', message: 'Choose a rating or NA' }]);
     expect(answerIssues(Q3, { questionId: 'q3', direction: 'IMPORT', rating: 5, na: false, comment: '', followUp: [] })).toEqual([]);
     expect(answerIssues(Q1, { questionId: 'q1', direction: 'EXPORT', rating: 1, na: false, comment: '', followUp: [] })).toEqual([]);
-    // A comment left in an older draft is not sent (the server would refuse it).
+    // A comment is preserved when saving a directed answer.
     const sent = toAnswerInput(Q3, { questionId: 'q3', direction: 'EXPORT', rating: 2, na: false, comment: 'Typed before comments went', followUp: [] });
-    expect(sent).toEqual({ questionId: 'q3', direction: 'EXPORT', rating: 2, na: false, followUp: [] });
-    expect(sent).not.toHaveProperty('comment');
+    expect(sent).toEqual({ questionId: 'q3', direction: 'EXPORT', rating: 2, na: false, comment: 'Typed before comments went', followUp: [] });
     expect(toAnswerInput(Q1, { questionId: 'q1', direction: 'IMPORT', rating: 2, na: false, comment: '', followUp: ['Staff', 'Nope'] }).followUp).toEqual(['Staff']);
     expect(toAnswerInput(Q1, { questionId: 'q1', direction: 'EXPORT', rating: 4, na: false, comment: '', followUp: ['Staff'] }).followUp).toEqual([]);
   });

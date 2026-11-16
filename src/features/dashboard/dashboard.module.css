@@ -101,6 +101,14 @@
   font-size: var(--text-sm);
   font-weight: 700;
 }
+/* Native option menus need an explicit background to match the light text. */
+.pillSelect select option {
+  background-color: var(--surface-inverse-2);
+  color: var(--ink-inverse);
+}
+.pillSelect select option:disabled {
+  color: var(--muted-inverse);
+}
 @media (max-width: 760px) {
   .strip {
     padding: 10px 12px;

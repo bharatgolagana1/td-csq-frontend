@@ -80,16 +80,16 @@ describe('useAssessmentDraft', () => {
     expect(fresh.result.current.status).toEqual({ kind: 'idle' });
   });
 
-  it('keeps an incomplete answer local (Fair without the required comment) and counts progress', async () => {
+  it('autosaves low ratings without comments, then saves an optional comment', async () => {
     const { hook, save } = setup();
     act(() => hook.result.current.setAnswer('q1', { rating: 2 }));
     await act(async () => {
       await vi.advanceTimersByTimeAsync(800);
     });
-    expect(save).not.toHaveBeenCalled();
-    expect(hook.result.current.pending).toBe(1);
+    expect(save).toHaveBeenCalledWith([{ questionId: 'q1', rating: 2, na: false, comment: null, followUp: [] }]);
+    expect(hook.result.current.pending).toBe(0);
     expect(hook.result.current.progress).toEqual({ answered: 2, total: 4, pct: 50 });
-    expect(hook.result.current.readinessFor(0)).toMatchObject({ answered: 2, total: 2, missing: [], invalid: ['q1'], complete: false });
+    expect(hook.result.current.readinessFor(0)).toMatchObject({ answered: 2, total: 2, missing: [], invalid: [], complete: false });
     expect(hook.result.current.readinessFor('c2')).toMatchObject({ answered: 0, total: 2, missing: ['q3', 'q4'], complete: false });
 
     act(() => hook.result.current.setAnswer('q1', { comment: 'Long queues', followUp: ['Queues', 'Not listed'] }));
