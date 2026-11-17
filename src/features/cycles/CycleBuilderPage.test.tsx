@@ -38,6 +38,7 @@ const routes = (
 const PORT_BLAIR = { ...AIRPORTS[1], id: 'ap-ixz', iata: 'IXZ', icao: 'VOPB', name: 'Port Blair', operatorCount: 0 };
 
 const reference: MockRoute[] = [
+  { path: '/cycles', reply: () => list([]) },
   { path: '/settings', reply: () => one(SETTINGS) },
   { path: '/airports', reply: () => list([...AIRPORTS, PORT_BLAIR]) },
   { path: '/operators', reply: () => list(OPERATORS) },
