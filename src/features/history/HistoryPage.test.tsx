@@ -176,24 +176,74 @@ describe('HistoryPage', () => {
     expect(await screen.findByText('detail a1')).toBeInTheDocument();
   });
 
-  it('sorts by submission, newest first, unless the URL says otherwise, and shows it on the Submitted header', async () => {
-    list.mockReturnValue({ isPending: false, isError: false, data: { data: ROWS, meta: { page: 1, pageSize: 25, total: 3 } } } as unknown as ReturnType<typeof useAssessments>);
+  it('shows both statuses initially, toggles the Status header, and keeps Submitted as plain text', async () => {
+    list.mockImplementation((query) => {
+      const data = ROWS.filter((row) => !query.status || row.status === query.status);
+      return { isPending: false, isError: false, data: { data, meta: { page: query.page, pageSize: 25, total: data.length } } } as unknown as ReturnType<typeof useAssessments>;
+    });
     mount();
-    expect(list).toHaveBeenLastCalledWith(expect.objectContaining({ sort: '-submittedAt' }));
-    const submitted = screen.getByRole('columnheader', { name: /Submitted/ });
-    expect(submitted).toHaveAttribute('aria-sort', 'descending');
-    expect(screen.getByRole('columnheader', { name: /Kind/ })).toHaveAttribute('aria-sort', 'none');
+    const user = userEvent.setup();
+    expect(list).toHaveBeenLastCalledWith(expect.objectContaining({ sort: '-startedAt' }));
+    expect(list).toHaveBeenLastCalledWith(expect.not.objectContaining({ status: expect.anything() }));
+    expect(screen.getByRole('row', { name: /Identity hidden/ })).toHaveTextContent('Submitted');
+    expect(screen.getByRole('row', { name: /Priya Natarajan/ })).toHaveTextContent('Draft');
+    const submitted = screen.getByRole('columnheader', { name: 'Submitted' });
+    expect(within(submitted).queryByRole('button')).toBeNull();
+    expect(submitted).not.toHaveAttribute('aria-sort');
 
-    await userEvent.click(within(submitted).getByRole('button'));
-    expect(list).toHaveBeenLastCalledWith(expect.objectContaining({ sort: 'submittedAt' }));
-    expect(screen.getByRole('columnheader', { name: /Submitted/ })).toHaveAttribute('aria-sort', 'ascending');
+    const statusHeading = screen.getByRole('columnheader', { name: /Status/ });
+    await user.click(within(statusHeading).getByRole('button'));
+    expect(list).toHaveBeenLastCalledWith(expect.objectContaining({ status: 'SUBMITTED', page: 1 }));
+    expect(screen.getByLabelText('Status')).toHaveValue('SUBMITTED');
+    expect(screen.queryByRole('row', { name: /Priya Natarajan/ })).toBeNull();
+    expect(screen.getByRole('row', { name: /Identity hidden/ })).toBeInTheDocument();
+
+    await user.click(within(statusHeading).getByRole('button'));
+    expect(list).toHaveBeenLastCalledWith(expect.objectContaining({ status: 'DRAFT', page: 1 }));
+    expect(screen.getByLabelText('Status')).toHaveValue('DRAFT');
+    expect(screen.queryByRole('row', { name: /Identity hidden/ })).toBeNull();
+    expect(screen.getByRole('row', { name: /Priya Natarajan/ })).toBeInTheDocument();
+
+    await user.click(within(statusHeading).getByRole('button'));
+    expect(list).toHaveBeenLastCalledWith(expect.objectContaining({ status: 'SUBMITTED' }));
+    await user.selectOptions(screen.getByLabelText('Status'), '');
+    expect(list).toHaveBeenLastCalledWith(expect.not.objectContaining({ status: expect.anything() }));
+    expect(screen.getByText('3 assessments')).toBeInTheDocument();
   });
 
-  it('a draft never saved says so in the Submitted column', () => {
+  it('keeps other filters and sorting while toggling status and resets pagination', async () => {
+    list.mockReturnValue({ isPending: false, isError: false, data: { data: ROWS, meta: { page: 3, pageSize: 25, total: 100 } } } as unknown as ReturnType<typeof useAssessments>);
+    mount('/history?cycleId=cy1&kind=SELF&surveyType=DOMESTIC&page=3&sort=kind&status=DRAFT');
+    await userEvent.click(within(screen.getByRole('columnheader', { name: /Status/ })).getByRole('button'));
+    expect(list).toHaveBeenLastCalledWith(expect.objectContaining({ cycleId: 'cy1', kind: 'SELF', surveyType: 'DOMESTIC', page: 1, sort: 'kind', status: 'SUBMITTED' }));
+    await userEvent.click(within(screen.getByRole('columnheader', { name: /Kind/ })).getByRole('button'));
+    expect(list).toHaveBeenLastCalledWith(expect.objectContaining({ sort: '-kind', status: 'SUBMITTED' }));
+  });
+
+  it('excludes never-saved drafts from History', () => {
     const rows: HistoryRow[] = [{ ...(ROWS[1] as HistoryRow), lastSavedAt: null, progress: { answered: 0, total: 23, pct: 0 } }];
     list.mockReturnValue({ isPending: false, isError: false, data: { data: rows, meta: { page: 1, pageSize: 25, total: 1 } } } as unknown as ReturnType<typeof useAssessments>);
     mount();
-    expect(within(screen.getByRole('row', { name: /Priya Natarajan/ })).getByText('Not saved yet')).toBeInTheDocument();
+    expect(screen.queryByText('Not saved yet')).toBeNull();
+    expect(screen.queryByRole('row', { name: /Priya Natarajan/ })).toBeNull();
+    expect(screen.getByText('No assessments yet')).toBeInTheDocument();
+  });
+
+  it.each(['', '?status=DRAFT'])('hides unsaved drafts while preserving saved drafts and submitted assessments (%s)', (query) => {
+    const unsavedSelf: HistoryRow = { ...(ROWS[1] as HistoryRow), id: 'unsaved-self', assessorName: 'Unsaved self', lastSavedAt: null };
+    const unsavedCustomer: HistoryRow = { ...(ROWS[0] as HistoryRow), id: 'unsaved-customer', status: 'DRAFT', submittedAt: null, lastSavedAt: null, assessorName: 'Unsaved customer' };
+    const submitted: HistoryRow = { ...(ROWS[0] as HistoryRow), lastSavedAt: null };
+    const rows = [unsavedSelf, unsavedCustomer, ...(query ? [] : [submitted]), ROWS[1] as HistoryRow];
+    list.mockReturnValue({ isPending: false, isError: false, data: { data: rows, meta: { page: 1, pageSize: 25, total: rows.length } } } as unknown as ReturnType<typeof useAssessments>);
+    mount(`/history${query}`);
+    expect(screen.queryByText('Unsaved self')).toBeNull();
+    expect(screen.queryByText('Unsaved customer')).toBeNull();
+    expect(screen.queryByText('Not saved yet')).toBeNull();
+    const savedDraft = screen.getByRole('row', { name: /Priya Natarajan/ });
+    expect(savedDraft).toHaveTextContent('Draft');
+    expect(savedDraft).toHaveTextContent('Last saved');
+    expect(savedDraft).toHaveTextContent('4 Oct 2026, 10:30 IST');
+    if (!query) expect(screen.getByRole('row', { name: /Identity hidden/ })).toHaveTextContent('Submitted');
   });
 
   it('names the survey of every row, so the domestic and international returns of one customer or operator tell apart', () => {

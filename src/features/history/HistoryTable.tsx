@@ -1,6 +1,8 @@
 import { type ReactNode } from 'react';
 
-import { type HistoryRow } from '@/api/assessments.types';
+import { type AssessmentStatus, type HistoryRow } from '@/api/assessments.types';
+import { Icon } from '@/design/icons';
+import tableStyles from '@/design/primitives/Table/Table.module.css';
 import { type Column, EmptyState, Pill, type SortState, Table } from '@/design/primitives';
 import { cn } from '@/lib/cn';
 import { DIRECTION_LABELS } from '@/lib/directionLabels';
@@ -16,6 +18,8 @@ export type HistoryTableProps = {
   loading: boolean;
   sort: SortState;
   onSortChange: (sort: SortState) => void;
+  statusFilter?: AssessmentStatus | '';
+  onStatusChange?: (status: AssessmentStatus) => void;
   /** Called for the rows that open (`canOpenAssessment`); the others are not clickable. */
   onOpen: (row: HistoryRow) => void;
   /** The session holds `assessments.scores`: without it a customer row's score shows as hidden. */
@@ -95,7 +99,7 @@ function Empty({ filtered, onClearFilters }: { filtered: boolean; onClearFilters
  * Cycle · survey (Domestic / International) · kind · customer type · assessor (masked e-mail) · status ·
  * submitted (a draft's last save) · score (import and export for an IMPORT_EXPORT assessment). Cards under 760px.
  */
-export function HistoryTable({ rows, loading, sort, onSortChange, onOpen, canViewScores, canViewDetails, tzOf, filtered, onClearFilters }: HistoryTableProps) {
+export function HistoryTable({ rows, loading, sort, onSortChange, statusFilter = '', onStatusChange, onOpen, canViewScores, canViewDetails, tzOf, filtered, onClearFilters }: HistoryTableProps) {
   const phone = useMediaQuery('(max-width: 760px)');
   const canOpen = (row: HistoryRow) => canOpenAssessment(row, canViewDetails);
   const scoreOf = (row: HistoryRow) => <Score row={row} hidden={isScoreHidden(row, canViewScores)} />;
@@ -212,16 +216,25 @@ export function HistoryTable({ rows, loading, sort, onSortChange, onOpen, canVie
     },
     {
       id: 'status',
-      header: 'Status',
+      header: onStatusChange ? (
+        <button
+          type="button"
+          className={cn(tableStyles.sortButton, statusFilter && tableStyles.sortActive)}
+          aria-label={`Status: ${statusFilter ? STATUS_LABELS[statusFilter] : 'All statuses'}. Show ${statusFilter === 'SUBMITTED' ? 'draft' : 'submitted'} assessments`}
+          onClick={() => onStatusChange(statusFilter === 'SUBMITTED' ? 'DRAFT' : 'SUBMITTED')}
+        >
+          <span>Status</span>
+          <Icon name={statusFilter ? (statusFilter === 'SUBMITTED' ? 'sort-desc' : 'sort-asc') : 'sort-none'} size={16} className={tableStyles.sortIcon} />
+        </button>
+      ) : 'Status',
       width: 120,
-      sortable: true,
       cell: (r) => (
         <Pill variant={statusPillVariant(r.status)} size="sm">
           {STATUS_LABELS[r.status]}
         </Pill>
       ),
     },
-    { id: 'submittedAt', header: 'Submitted', width: 172, sortable: true, mono: true, hideBelow: 'md', cell: (r) => <Submitted row={r} tz={tzOf(r.cycle.id)} /> },
+    { id: 'submittedAt', header: 'Submitted', width: 172, mono: true, hideBelow: 'md', cell: (r) => <Submitted row={r} tz={tzOf(r.cycle.id)} /> },
     { id: 'score', header: 'Score', width: 110, align: 'right', mono: true, cell: scoreOf },
   ];
 
@@ -230,7 +243,7 @@ export function HistoryTable({ rows, loading, sort, onSortChange, onOpen, canVie
       columns={columns}
       rows={rows}
       rowKey={(r) => r.id}
-      sort={sort}
+      sort={['submittedAt', 'status'].includes(sort.id) ? undefined : sort}
       onSortChange={onSortChange}
       loading={loading}
       stickyHeader
