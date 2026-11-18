@@ -113,7 +113,7 @@ describe('MarketSharePage', () => {
   it('asks for an airport when none is chosen', async () => {
     mockApi(reads());
     renderPage(<MarketSharePage />, '/market-share');
-    expect(await screen.findByText('Choose an airport')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Choose an airport' })).toBeInTheDocument();
   });
 
   it('shows a skeleton while the set loads', () => {

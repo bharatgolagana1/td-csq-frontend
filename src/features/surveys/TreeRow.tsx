@@ -28,17 +28,12 @@ export type TreeRowProps = {
   className?: string;
 };
 
-/** One node of the tree: select button, drag handle and keyboard move buttons. */
+/** One draggable tree node with a select button and visible keyboard move controls. */
 export function TreeRow({ as: Tag = 'li', variant, code, label, meta, prefix, selected, inactive, index, count, canEdit, onSelect, onMove, drag, className }: TreeRowProps) {
   const what = variant === 'question' ? `question ${code}` : `${variant} ${code}`;
   return (
     <Tag className={cn(styles.row, className)} data-selected={selected || undefined} data-inactive={inactive || undefined} {...(drag ?? {})}>
       {prefix}
-      {canEdit ? (
-        <span className={styles.handle} aria-hidden="true">
-          <Icon name="menu" size={16} />
-        </span>
-      ) : null}
       <button type="button" className={styles.rowBtn} aria-current={selected ? 'true' : undefined} onClick={onSelect} title={label}>
         <span className={styles.rowCode}>{code}</span>
         <span className={variant === 'question' ? styles.rowText : styles.rowTitle}>{label}</span>

@@ -4,6 +4,7 @@ import { formatInt } from '@/lib/format';
 
 import { IconButton } from '../IconButton/IconButton';
 import styles from './Pagination.module.css';
+import { Select } from '../Select/Select';
 
 export type PaginationProps = {
   page: number;
@@ -32,16 +33,10 @@ export function Pagination({ page, pageSize, total, onPageChange, onPageSizeChan
       </span>
       <div className={styles.controls}>
         {onPageSizeChange ? (
-          <label className={styles.size}>
+          <div className={styles.size}>
             <span className={styles.sizeLabel}>Rows</span>
-            <select className={styles.select} value={pageSize} onChange={(e) => onPageSizeChange(Number(e.target.value))}>
-              {pageSizeOptions.map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
-          </label>
+            <Select aria-label="Rows" size="sm" value={pageSize} options={pageSizeOptions.map((n) => ({ value: String(n), label: String(n) }))} onChange={(e) => onPageSizeChange(Number(e.target.value))} />
+          </div>
         ) : null}
         <span className={styles.page}>
           {formatInt(current)} / {formatInt(pages)}

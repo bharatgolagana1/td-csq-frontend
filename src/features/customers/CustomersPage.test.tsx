@@ -135,6 +135,32 @@ describe('CustomersPage', () => {
     expect(api.calls.filter((c) => c.method === 'DELETE').map((c) => c.path)).toEqual(['/customers/c2']);
   });
 
+  it('allows delete-only users to select and delete without exposing status changes', async () => {
+    const api = mockApi([listRoute(), { method: 'DELETE', path: /^\/customers\/[^/]+$/, reply: () => ({ status: 204 }) }]);
+    renderPage(<CustomersPage />, { session: { ...DELETER_SESSION, tasks: new Set(['customers.view', 'customers.delete']) } });
+    await userEvent.click(await screen.findByRole('checkbox', { name: 'Select Harbor Customs Services' }));
+    expect(screen.queryByRole('button', { name: 'Deactivate' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Reactivate' })).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
+    await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Delete' }));
+    expect(await screen.findByText('1 customer deleted')).toBeInTheDocument();
+    expect(api.calls.filter((c) => c.method === 'DELETE').map((c) => c.path)).toEqual(['/customers/c2']);
+  });
+
+  it('reuses delete confirmation from the customer detail drawer', async () => {
+    const api = mockApi([
+      listRoute(),
+      { method: 'GET', path: /^\/customers\/c1\/participation$/, reply: () => ({ body: { data: PARTICIPATION } }) },
+      { method: 'DELETE', path: /^\/customers\/c1$/, reply: () => ({ status: 204 }) },
+    ]);
+    renderPage(<CustomersPage />, { session: DELETER_SESSION });
+    await userEvent.click(await screen.findByRole('button', { name: 'Bluewave Logistics Pvt Ltd' }));
+    await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Delete' }));
+    await userEvent.click(within(await screen.findByRole('dialog', { name: 'Delete Bluewave Logistics Pvt Ltd?' })).getByRole('button', { name: 'Delete' }));
+    expect(await screen.findByText('1 customer deleted')).toBeInTheDocument();
+    expect(api.calls.filter((c) => c.method === 'DELETE')).toHaveLength(1);
+  });
+
   it('deletes the selected customers after confirming, refetching the directory once', async () => {
     const api = mockApi([listRoute(), { method: 'DELETE', path: /^\/customers\/[^/]+$/, reply: () => ({ status: 204 }) }]);
     renderPage(<CustomersPage />, { session: DELETER_SESSION });

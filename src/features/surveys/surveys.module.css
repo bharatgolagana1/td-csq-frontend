@@ -235,7 +235,7 @@
 .groupList {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 3px;
   margin: 0;
   padding: 0 0 0 14px;
   list-style: none;
@@ -266,8 +266,8 @@
   position: relative;
   display: flex;
   align-items: center;
-  gap: 2px;
-  min-height: 36px;
+  gap: 6px;
+  min-height: 38px;
   border-radius: var(--radius);
 }
 .row:hover {
@@ -295,19 +295,8 @@
 .row[data-drop='after']::after {
   bottom: -2px;
 }
-.handle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 36px;
-  color: var(--line-2);
+.row[draggable='true'] {
   cursor: grab;
-  flex-shrink: 0;
-}
-.row:hover .handle,
-.row[data-selected] .handle {
-  color: var(--muted);
 }
 .rowBtn {
   flex: 1;
@@ -316,7 +305,7 @@
   gap: 8px;
   min-width: 0;
   min-height: 36px;
-  padding: 4px 6px;
+  padding: 6px 8px;
   border: 0;
   background: none;
   text-align: left;
@@ -342,6 +331,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  line-height: 1.4;
   font-size: var(--text-sm);
 }
 .rowTitle {

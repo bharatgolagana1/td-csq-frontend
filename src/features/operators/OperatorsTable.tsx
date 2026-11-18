@@ -52,9 +52,9 @@ export function OperatorsTable({ rows, loading, sort, onSortChange, canManage, o
       ),
     },
     { id: 'operations', header: 'Operations', hideBelow: 'sm', cell: (o) => <OperationsTags operations={o.operations} /> },
-    { id: 'status', header: 'Status', width: 110, sortable: true, cell: (o) => <Pill variant={statusVariant(o.status)}>{humanise(o.status)}</Pill> },
-    { id: 'members', header: 'Members', width: 100, align: 'right', mono: true, hideBelow: 'md', cell: (o) => formatInt(o.memberCount) },
-    { id: 'customers', header: 'Customers', width: 110, align: 'right', mono: true, hideBelow: 'md', cell: (o) => formatInt(o.customerCount) },
+    { id: 'status', header: 'Status', width: 110, align: 'center', sortable: true, cell: (o) => <Pill variant={statusVariant(o.status)}>{humanise(o.status)}</Pill> },
+    { id: 'members', header: 'Members', width: 110, align: 'center', mono: true, hideBelow: 'md', cell: (o) => formatInt(o.memberCount) },
+    { id: 'customers', header: 'Customers', width: 110, align: 'center', mono: true, hideBelow: 'md', cell: (o) => formatInt(o.customerCount) },
     { id: 'share', header: 'Share', width: 90, align: 'right', mono: true, cell: (o) => formatShare(o.currentShare) },
   ];
 

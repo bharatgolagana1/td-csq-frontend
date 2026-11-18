@@ -5,7 +5,7 @@ import { useUpdateUser } from '@/api/identity';
 import { type UserRow } from '@/api/types';
 import { Icon } from '@/design/icons';
 import { Avatar, type Column, EmptyState, type MenuItem, Pill, type SortState, statusVariant, Table, useToast } from '@/design/primitives';
-import { formatRelative, humanise } from '@/lib/format';
+import { formatDateTimeZone, humanise } from '@/lib/format';
 
 import styles from './users.module.css';
 
@@ -71,7 +71,7 @@ export function UsersTable({ rows, loading, sort, onSortChange, canManage, empty
       ),
     },
     { id: 'phone', header: 'Phone', width: 150, mono: true, hideBelow: 'sm', cell: (u) => u.phone ?? '—' },
-    { id: 'lastLoginAt', header: 'Last sign-in', width: 150, mono: true, sortable: true, align: 'right', cell: (u) => (u.lastLoginAt ? formatRelative(u.lastLoginAt) : 'Never') },
+    { id: 'lastLoginAt', header: 'Last sign-in', width: 220, mono: true, sortable: true, cell: (u) => (u.lastLoginAt ? formatDateTimeZone(u.lastLoginAt) : 'Never') },
   ];
 
   const rowActions = canManage

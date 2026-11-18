@@ -1,4 +1,5 @@
 import { screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { Route } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -75,8 +76,9 @@ describe('OverviewPage', () => {
     expect(within(shares).getByText('BOM · Mumbai')).toBeInTheDocument();
     expect(within(shares).getByText('80 %')).toBeInTheDocument();
 
-    const pending = await screen.findByRole('list', { name: 'Registrations pending' });
+    const pending = await screen.findByRole('list', { name: 'Onboarding pending' });
     expect(within(pending).getByText('Menzies Bengaluru')).toBeInTheDocument();
+    expect(within(pending).getByRole('link')).toHaveAttribute('href', '/registrations/r1');
     expect(within(pending).getByText('and 2 more')).toBeInTheDocument();
 
     const nav = screen.getByRole('navigation');
@@ -92,5 +94,38 @@ describe('OverviewPage', () => {
     expect(screen.getByText('Needs the operators.view task.')).toBeInTheDocument();
     expect(screen.getByText('Needs the onboarding.review task.')).toBeInTheDocument();
     expect(calls.every((c) => c.path === '/cycles')).toBe(true);
+  });
+
+  it('sends a targeted reminder after confirmation and prevents another send', async () => {
+    const detail = cycleDetail();
+    const participant = detail.participantList.find((p) => p.sampling.status !== 'LOCKED');
+    if (!participant) throw new Error('Expected an unlocked operator fixture');
+    const { calls } = mockApi([
+      { path: '/cycles', reply: () => list([cycleSummary()]) },
+      { path: '/cycles/cy1', reply: () => one(detail) },
+      { path: '/operators', reply: () => list(OPERATORS) },
+      { path: '/registrations', reply: () => list([]) },
+      { method: 'POST', path: '/cycles/cy1/reminders/send', reply: () => one({ kind: 'SAMPLING', sent: 1, recipients: [{ acoId: participant.operator.id, to: ['admin@example.com'] }] }) },
+    ]);
+    renderWithProviders(routes, { path: '/overview' });
+    await userEvent.click(await screen.findByRole('button', { name: `Send reminder to ${participant.operator.name}` }));
+    await userEvent.click(screen.getByRole('button', { name: 'Send reminder' }));
+    expect(await screen.findByRole('button', { name: `Reminder sent to ${participant.operator.name}` })).toBeDisabled();
+    const sent = calls.filter((c) => c.method === 'POST');
+    expect(sent).toHaveLength(1);
+    expect(sent[0]?.body).toEqual({ kind: 'SAMPLING', acoId: participant.operator.id });
+  });
+
+  it.each([
+    ['cycles.view', 'monitoring.view', 'notifications.send'],
+    ['cycles.view', 'monitoring.view', 'cycles.operate'],
+  ])('hides reminders without both required tasks: %j', async (...tasks) => {
+    mockApi([
+      { path: '/cycles', reply: () => list([cycleSummary()]) },
+      { path: '/cycles/cy1', reply: () => one(cycleDetail()) },
+    ]);
+    renderWithProviders(routes, { path: '/overview', session: platformSession(tasks) });
+    await screen.findByRole('list', { name: 'Operators not locked' });
+    expect(screen.queryByRole('button', { name: /^Send reminder to/ })).toBeNull();
   });
 });

@@ -8,11 +8,16 @@
 }
 .start,
 .end {
+  max-width: 100%;
   display: flex;
   align-items: center;
   gap: var(--space-2);
   flex-wrap: wrap;
   min-width: 0;
+}
+.start > *,
+.end > * {
+  max-width: 100%;
 }
 .end {
   margin-left: auto;

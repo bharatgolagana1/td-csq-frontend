@@ -11,13 +11,14 @@
 
 /* PLATFORM: operator + cycle pickers */
 .pickers {
-  display: flex;
-  align-items: flex-end;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  align-items: start;
   gap: var(--space-3);
-  flex-wrap: wrap;
+  margin-bottom: var(--space-5);
 }
 .picker {
-  min-width: 280px;
+  min-width: 0;
   max-width: 100%;
 }
 @media (max-width: 520px) {

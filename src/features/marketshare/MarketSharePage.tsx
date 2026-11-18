@@ -4,11 +4,12 @@ import { useAirport, useAirports } from '@/api/airports';
 import { errorMessage, errorRequestId } from '@/api/client';
 import { useMarketShare, useMarketShareCycles, useSaveMarketShare } from '@/api/marketshare';
 import { useSession } from '@/auth/session';
-import { Banner, EmptyState, PageHeader, Select, Skeleton, useToast } from '@/design/primitives';
+import { Banner, EmptyState, PageHeader, Skeleton, useToast } from '@/design/primitives';
 import { QueryError } from '@/design/primitives/QueryError/QueryError';
 import { humanise } from '@/lib/format';
 
 import styles from './marketshare.module.css';
+import { MarketShareSelect } from './MarketShareSelect';
 import { ShareEditor } from './ShareEditor';
 
 /** Configuration → Market share: per airport, the current default set or a cycle snapshot, with the 100 % guard. */
@@ -57,22 +58,22 @@ export default function MarketSharePage() {
       <PageHeader eyebrow="Configuration" title="Market share" context="Each operator's share of its airport weights the airport score. Shares at an airport must total 100 % before a cycle there is published." />
 
       <div className={styles.selectors}>
-        <Select
+        <MarketShareSelect
           label="Airport"
           options={airportOptions}
           value={airportId}
           placeholder={airports.isPending ? 'Loading airports…' : 'Choose an airport'}
           disabled={airports.isPending || !hasTask('airports.view')}
           hint={airports.isError ? 'Could not load airports.' : undefined}
-          onChange={(e) => setParam('airportId', e.target.value)}
+          onChange={(value) => setParam('airportId', value)}
         />
-        <Select
+        <MarketShareSelect
           label="Cycle"
           options={cycleOptions}
           value={cycleId}
           disabled={cycles.isPending && hasTask('cycles.view')}
           hint={cycleId ? 'A snapshot taken when the cycle was published.' : 'The default set, copied into a cycle when it is published.'}
-          onChange={(e) => setParam('cycleId', e.target.value)}
+          onChange={(value) => setParam('cycleId', value)}
         />
       </div>
 

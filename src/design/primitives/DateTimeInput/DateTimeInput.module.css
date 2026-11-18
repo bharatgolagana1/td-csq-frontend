@@ -105,25 +105,10 @@
   box-shadow: var(--shadow-2);
 }
 .timePickerFields { display: flex; gap: 12px; }
-.timePickerFields label {
-  display: flex;
+.timePickerFields > div {
   flex: 1;
-  flex-direction: column;
-  gap: 4px;
-  color: var(--ink-2);
-  font-size: var(--text-xs);
+  min-width: 0;
 }
-.timePickerFields select {
-  width: 100%;
-  min-height: 40px;
-  padding: 6px;
-  border: 1px solid var(--line-2);
-  border-radius: var(--radius);
-  background: var(--surface);
-  color: var(--ink);
-  font-family: var(--font-mono);
-}
-.timePickerFields option { background: var(--surface); color: var(--ink); }
 .timeApply {
   width: 100%;
   min-height: 36px;

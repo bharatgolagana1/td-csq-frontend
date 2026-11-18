@@ -1,7 +1,12 @@
+import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
+import { errorMessage, errorRequestId } from '@/api/client';
+import { useSendReminders } from '@/api/cycles';
 import { type Registration } from '@/api/onboarding.types';
-import { Card, Skeleton } from '@/design/primitives';
+import { useSession } from '@/auth/session';
+import { Icon } from '@/design/icons';
+import { Card, ConfirmDialog, IconButton, Skeleton, useToast } from '@/design/primitives';
 import { useShell } from '@/shell/ShellContext';
 import { cn } from '@/lib/cn';
 import { formatCountdown, formatInt, formatRelative } from '@/lib/format';
@@ -28,6 +33,35 @@ function Calm({ children }: { children: string }) {
 /** Three short lists: unlocked operators, airports with shares ≠ 100, registrations awaiting review. */
 export function NeedsAttention({ unlocked, unlockedLoading, shares, sharesEnabled, sharesLoading, pending, pendingTotal, pendingEnabled, pendingLoading }: NeedsAttentionProps) {
   const { href } = useShell();
+  const { hasTask, scope } = useSession();
+  const canRemind = scope.kind === 'PLATFORM' && hasTask('cycles.operate') && hasTask('notifications.send');
+  const reminders = useSendReminders();
+  const toast = useToast();
+  const [target, setTarget] = useState<UnlockedOperator | null>(null);
+  const [sent, setSent] = useState<Set<string>>(() => new Set());
+  const sending = useRef(false);
+  const reminderKey = (u: UnlockedOperator) => `${u.cycle.id}:${u.participant.operator.id}`;
+  const sendReminder = () => {
+    if (!target || !canRemind || sending.current || sent.has(reminderKey(target))) return;
+    sending.current = true;
+    const key = reminderKey(target);
+    reminders.mutate({ id: target.cycle.id, kind: 'SAMPLING', acoId: target.participant.operator.id }, {
+      onSuccess: (run) => {
+        if (run.sent > 0) {
+          setSent((previous) => new Set(previous).add(key));
+          toast.success(`Reminder sent to ${target.participant.operator.name}`);
+        } else {
+          toast.info('No reminder sent. The operator may already have locked its sample.');
+        }
+        setTarget(null);
+      },
+      onError: (error) => {
+        toast.error(errorMessage(error), { requestId: errorRequestId(error) });
+        setTarget(null);
+      },
+      onSettled: () => { sending.current = false; },
+    });
+  };
   return (
     <div className={styles.attention}>
       <Card as="section" title="Operators not locked" subtitle="In open sampling windows, soonest closing first" actions={<Link to={href('/cycles')} className={styles.sectionLink}>Cycles</Link>}>
@@ -50,6 +84,16 @@ export function NeedsAttention({ unlocked, unlockedLoading, shares, sharesEnable
                 <Link to={href(`/cycles/${u.cycle.id}`)} className={cn(styles.itemValue, u.soon && styles.itemWarn)}>
                   closes in {formatCountdown(u.closesAt)}
                 </Link>
+                {canRemind ? (
+                  <IconButton
+                    label={sent.has(reminderKey(u)) ? `Reminder sent to ${u.participant.operator.name}` : `Send reminder to ${u.participant.operator.name}`}
+                    icon={<Icon name={sent.has(reminderKey(u)) ? 'check' : 'bell'} size={16} />}
+                    size="sm"
+                    disabled={reminders.isPending || sent.has(reminderKey(u))}
+                    aria-busy={reminders.isPending && target !== null && reminderKey(target) === reminderKey(u)}
+                    onClick={() => setTarget(u)}
+                  />
+                ) : null}
               </li>
             ))}
             {unlocked.length > 8 ? <li className={cn(styles.item, styles.itemSub)}>and {formatInt(unlocked.length - 8)} more</li> : null}
@@ -83,7 +127,7 @@ export function NeedsAttention({ unlocked, unlockedLoading, shares, sharesEnable
         )}
       </Card>
 
-      <Card as="section" title="Registrations pending" subtitle="Submitted and waiting for review" actions={pendingEnabled ? <Link to={href('/onboarding')} className={styles.sectionLink}>Onboarding</Link> : undefined}>
+      <Card as="section" title="Onboarding pending" subtitle="Submitted and waiting for review" actions={pendingEnabled ? <Link to={href('/onboarding?tab=requests')} className={styles.sectionLink}>Onboarding</Link> : undefined}>
         {!pendingEnabled ? (
           <Calm>Needs the onboarding.review task.</Calm>
         ) : pendingLoading ? (
@@ -91,16 +135,16 @@ export function NeedsAttention({ unlocked, unlockedLoading, shares, sharesEnable
         ) : pending.length === 0 ? (
           <Calm>No registrations waiting.</Calm>
         ) : (
-          <ul className={styles.list} aria-label="Registrations pending">
+          <ul className={styles.list} aria-label="Onboarding pending">
             {pending.map((r) => (
               <li key={r.id} className={styles.item}>
-                <span className={styles.itemMain}>
+                <Link to={href(`/registrations/${r.id}`)} className={cn(styles.itemMain, styles.requestLink)}>
                   <b>{r.organisation.name}</b>
                   <span className={styles.itemSub}>
                     {r.orgType === 'ACO' ? 'Operator' : 'Airport'}
                     {r.airport ? ` · ${r.airport.iata}` : ''} · {r.admin.email}
                   </span>
-                </span>
+                </Link>
                 <span className={styles.itemValue}>{formatRelative(r.createdAt)}</span>
               </li>
             ))}
@@ -108,6 +152,7 @@ export function NeedsAttention({ unlocked, unlockedLoading, shares, sharesEnable
           </ul>
         )}
       </Card>
+      <ConfirmDialog open={target !== null} onClose={() => setTarget(null)} onConfirm={sendReminder} title="Send sampling reminder?" description={target ? `Send a reminder to ${target.participant.operator.name} for ${target.cycle.code}.` : undefined} confirmLabel="Send reminder" loading={reminders.isPending} />
     </div>
   );
 }

@@ -45,10 +45,10 @@ export default function SettingsPage() {
       ) : (
         <div className={styles.grid}>
           <ScoringSection settings={query.data} readOnly={!canManage} />
-          <PrivacySection settings={query.data} readOnly={!canManage} />
+          <RbacSection settings={query.data} />
           <CycleDefaultsSection settings={query.data} readOnly={!canManage} />
           <BrandingSection settings={query.data} readOnly={!canManage} />
-          <RbacSection settings={query.data} />
+          <PrivacySection settings={query.data} readOnly={!canManage} />
         </div>
       )}
 

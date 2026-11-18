@@ -117,7 +117,7 @@ export function CustomersTable({ rows, loading, sort, onSortChange, canManage, c
       loading={loading}
       sort={sort}
       onSortChange={onSortChange}
-      selectable={canManage}
+      selectable={canManage || canDelete}
       selected={selected}
       onSelectedChange={onSelectedChange}
       rowActions={rowActions}

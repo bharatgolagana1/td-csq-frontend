@@ -233,17 +233,20 @@ export default function CustomersPage() {
             ) : null}
           </Toolbar>
 
-          {canManage && selectedCount > 0 ? (
+          {(canManage || canDelete) && selectedCount > 0 ? (
             <div className={styles.bulkBar} role="region" aria-label="Bulk actions">
               <span className={styles.bulkCount}>{formatInt(selectedCount)} selected</span>
               <div className={styles.bulkActions}>
-                <Button size="sm" variant="secondary" onClick={() => bulk('ACTIVE')} loading={bulkPending}>
-                  Reactivate
-                </Button>
-                <Button size="sm" variant="danger" onClick={() => bulk('INACTIVE')} loading={bulkPending}>
-                  Deactivate
-                </Button>
-
+                {canManage ? (
+                  <>
+                    <Button size="sm" variant="secondary" onClick={() => bulk('ACTIVE')} loading={bulkPending}>
+                      Reactivate
+                    </Button>
+                    <Button size="sm" variant="danger" onClick={() => bulk('INACTIVE')} loading={bulkPending}>
+                      Deactivate
+                    </Button>
+                  </>
+                ) : null}
                 {canDelete ? (
                   <Button size="sm" variant="danger" icon={<Icon name="trash" size={16} />} onClick={() => setDeleteTargets(selectedRows)} disabled={bulkPending}>
                     Delete
@@ -354,6 +357,11 @@ export default function CustomersPage() {
           customer={rows.find((c) => c.id === detail.id) ?? detail}
           onClose={() => setDetail(null)}
           canManage={canManage}
+          canDelete={canDelete}
+          onDelete={(customer) => {
+            setDetail(null);
+            setDeleteTargets([customer]);
+          }}
           onEdit={(c) => {
             setDetail(null);
             setForm({ mode: 'edit', customer: c });
