@@ -8,7 +8,7 @@ const keycloakMock = vi.hoisted(() => ({
 vi.mock('@/auth/keycloak', () => keycloakMock);
 vi.mock('./selectedOrg', () => ({ readSelectedOrg: () => 'org-csc', writeSelectedOrg: () => undefined }));
 
-import { api, ApiError, buildUrl, NetworkError } from './client';
+import { api, ApiError, buildUrl, errorMessage, NetworkError } from './client';
 
 function jsonResponse(status: number, body: unknown, headers: Record<string, string> = {}) {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json', ...headers } });
@@ -95,5 +95,14 @@ describe('api client', () => {
     expect(page.meta.total).toBe(1);
     expect(page.data).toHaveLength(1);
     expect(String((fetchMock.mock.calls[0] as [string])[0])).toContain('/users?q=a');
+  });
+});
+
+describe('errorMessage', () => {
+  it('names the cycles a schedule overlap runs into; other errors keep their message', () => {
+    const overlap = new ApiError(409, 'CYCLE_SCHEDULE_OVERLAP', 'Another cycle is already scheduled during these dates', { conflicts: [{ id: 'c1', code: 'CSQ2027Q1' }, { id: 'c2', code: 'CSQ-26H3' }] });
+    expect(errorMessage(overlap)).toBe('Another cycle is already scheduled during these dates (CSQ2027Q1, CSQ-26H3)');
+    expect(errorMessage(new ApiError(409, 'CYCLE_SCHEDULE_OVERLAP', 'Another cycle is already scheduled during these dates'))).toBe('Another cycle is already scheduled during these dates');
+    expect(errorMessage(new ApiError(409, 'CONFLICT', 'Code taken', { conflicts: [{ code: 'X' }] }))).toBe('Code taken');
   });
 });

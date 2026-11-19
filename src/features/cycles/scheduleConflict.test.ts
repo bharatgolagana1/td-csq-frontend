@@ -3,7 +3,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 vi.mock('@/auth/keycloak', () => ({ getAccessToken: vi.fn(async () => 'tok'), forceRefreshToken: vi.fn(async () => false) }));
 
 import { cycleSummary } from './fixtures';
-import { fetchCycleSchedule, isCycleDateReserved } from './scheduleConflict';
+import { createInput } from './autosave';
+import { defaultBuilderValues } from './builderSchema';
+import { fetchCycleSchedule, firstFreeInitiationDate, isCycleDateReserved } from './scheduleConflict';
 import { apiError, mockApi } from './testSupport';
 
 const existing = cycleSummary();
@@ -51,5 +53,28 @@ describe('cycle calendar reservations', () => {
   it('rejects a schedule fetch failure', async () => {
     mockApi([{ path: '/cycles', reply: () => apiError(503, 'INTERNAL', 'Unavailable') }]);
     await expect(fetchCycleSchedule()).rejects.toThrow('Unavailable');
+  });
+});
+
+describe('a new draft\u2019s placeholder dates', () => {
+  const defaults = { samplingDays: 10, assessmentDays: 30 };
+
+  it('start on the first day whose derived windows clear every running cycle', () => {
+    // The running cycle holds 1 Oct – 10 Nov; 40 days from 1 Sep would run into it.
+    expect(firstFreeInitiationDate([existing], tz, defaults, '2026-09-01')).toBe('2026-11-10');
+    expect(firstFreeInitiationDate([existing], tz, defaults, '2026-08-01')).toBe('2026-08-01');
+    expect(firstFreeInitiationDate([], tz, defaults, '2026-10-05')).toBe('2026-10-05');
+  });
+
+  it('a draft or a closed cycle reserves nothing', () => {
+    expect(firstFreeInitiationDate([{ ...existing, status: 'DRAFT' }], tz, defaults, '2026-10-05')).toBe('2026-10-05');
+    expect(firstFreeInitiationDate([{ ...existing, status: 'SCORED' }], tz, defaults, '2026-10-05')).toBe('2026-10-05');
+  });
+
+  it('createInput sends the placeholder only when no initiation date was chosen', () => {
+    const values = { ...defaultBuilderValues(), name: 'Next cycle', code: 'CSQ-NEXT', tz };
+    expect(createInput(values, values, new Date('2026-10-05T06:00:00Z'), '2026-11-10')?.input).toMatchObject({ initiationDate: '2026-11-10' });
+    expect(createInput({ ...values, initiationDate: '2026-12-01' }, values, new Date(), '2026-11-10')?.input).toMatchObject({ initiationDate: '2026-12-01' });
+    expect(createInput(values, values, new Date('2026-10-05T06:00:00Z'))?.input).toMatchObject({ initiationDate: '2026-10-05' });
   });
 });

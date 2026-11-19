@@ -1,7 +1,14 @@
 import { api } from '@/api/client';
 import { type CycleSummary } from '@/api/cycles.types';
 
-import { addCalendarDays, isCalendarDate, wallToDate } from './derive';
+import { addCalendarDays, deriveWindows, isCalendarDate, wallToDate } from './derive';
+
+/** The statuses that reserve a cycle's whole schedule (backend RESERVING_CYCLE_STATUSES). */
+const RESERVING = ['PUBLISHED', 'SAMPLING_OPEN', 'SAMPLING_CLOSED', 'ASSESSMENT_OPEN'];
+
+function overlapsReserved(start: number, end: number, cycles: readonly CycleSummary[], ownId?: string): boolean {
+  return cycles.some((cycle) => cycle.id !== ownId && RESERVING.includes(cycle.status) && start < Date.parse(cycle.assessment.end.utc) && Date.parse(cycle.sampling.start.utc) < end);
+}
 
 /** Read every page so a conflict cannot hide beyond the first results. */
 export async function fetchCycleSchedule(signal?: AbortSignal): Promise<CycleSummary[]> {
@@ -20,8 +27,24 @@ export function isCycleDateReserved(date: string, tz: string, cycles: readonly C
   const start = wallToDate(`${date}T00:00`, tz)?.getTime();
   const end = wallToDate(`${addCalendarDays(date, 1)}T00:00`, tz)?.getTime();
   if (start === undefined || end === undefined) return false;
-  return cycles.some((cycle) => cycle.id !== ownId
-    && ['PUBLISHED', 'SAMPLING_OPEN', 'SAMPLING_CLOSED', 'ASSESSMENT_OPEN'].includes(cycle.status)
-    && start < Date.parse(cycle.assessment.end.utc)
-    && Date.parse(cycle.sampling.start.utc) < end);
+  return overlapsReserved(start, end, cycles, ownId);
+}
+
+/**
+ * The first initiation date from `from` whose derived windows (the platform
+ * defaults) overlap no reserved cycle: a new draft's placeholder, so its first
+ * save is not refused while another cycle runs. `from` when none is free in
+ * two years (the server then says why).
+ */
+export function firstFreeInitiationDate(cycles: readonly CycleSummary[], tz: string, defaults: { samplingDays: number; assessmentDays: number }, from: string): string {
+  if (!isCalendarDate(from)) return from;
+  for (let day = 0; day < 730; day += 1) {
+    const date = addCalendarDays(from, day);
+    const windows = deriveWindows(date, defaults);
+    const start = wallToDate(windows.sampling.start, tz)?.getTime();
+    const end = wallToDate(windows.assessment.end, tz)?.getTime();
+    if (start === undefined || end === undefined) return from;
+    if (!overlapsReserved(start, end, cycles)) return date;
+  }
+  return from;
 }

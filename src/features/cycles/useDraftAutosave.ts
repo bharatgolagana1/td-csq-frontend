@@ -42,7 +42,13 @@ export type DraftAutosave = {
  * Server field errors land on their fields (a 409 on the code field);
  * `onReveal` is asked to show the step when the save was explicit.
  */
-export function useDraftAutosave(form: UseFormReturn<BuilderValues>, fallback: BuilderValues, onReveal: (step: BuilderStepId) => void): DraftAutosave {
+export function useDraftAutosave(
+  form: UseFormReturn<BuilderValues>,
+  fallback: BuilderValues,
+  onReveal: (step: BuilderStepId) => void,
+  /** A new draft's initiation date when none is chosen (the first one clear of running cycles), by time zone. */
+  placeholderDate?: (tz: string) => string | undefined,
+): DraftAutosave {
   const create = useCreateCycle();
   const update = useUpdateCycle();
   const [draftId, setDraftId] = useState<string | null>(null);
@@ -51,8 +57,8 @@ export function useDraftAutosave(form: UseFormReturn<BuilderValues>, fallback: B
   const live = useRef({ id: null as string | null, saved: snapshotOf(fallback) as SavedParts, cycle: null as CycleDetail | null, at: null as string | null, unsaved: false });
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const inflight = useRef<Promise<CycleDetail | null> | null>(null);
-  const deps = useRef({ fallback, onReveal, create: create.mutateAsync, update: update.mutateAsync });
-  deps.current = { fallback, onReveal, create: create.mutateAsync, update: update.mutateAsync };
+  const deps = useRef({ fallback, onReveal, placeholderDate, create: create.mutateAsync, update: update.mutateAsync });
+  deps.current = { fallback, onReveal, placeholderDate, create: create.mutateAsync, update: update.mutateAsync };
 
   const measure = useCallback(() => {
     const values = form.getValues();
@@ -92,7 +98,7 @@ export function useDraftAutosave(form: UseFormReturn<BuilderValues>, fallback: B
   };
 
   const createDraft = async (values: BuilderValues): Promise<CycleDetail | null> => {
-    const built = createInput(values, deps.current.fallback);
+    const built = createInput(values, deps.current.fallback, new Date(), deps.current.placeholderDate?.(values.tz.trim()));
     if (!built) return null;
     setState({ kind: 'saving' });
     try {

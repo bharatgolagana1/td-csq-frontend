@@ -108,10 +108,11 @@ export function todayIn(tz: string, now = new Date()): string {
  * The POST that creates the draft once Basics is valid; null before. Other
  * parts go as they are when valid, else as `fallback` has them (the server
  * needs a sample size, reminders and windows). Windows that are not set yet
- * are left to the server, derived from `initiationDate` (else today) with
+ * are left to the server, derived from `initiationDate` (else
+ * `placeholderDate`, the first date clear of running cycles, else today) with
  * the platform defaults. `sent` is what the server will hold, per part.
  */
-export function createInput(values: BuilderValues, fallback: BuilderValues, now = new Date()): { input: CreateCycleInput; sent: SavedParts } | null {
+export function createInput(values: BuilderValues, fallback: BuilderValues, now = new Date(), placeholderDate?: string): { input: CreateCycleInput; sent: SavedParts } | null {
   if (BASICS_PARTS.some((part) => partInput(values, part) === null)) return null;
   const sent: BuilderValues = { ...values };
   const take = (part: AutosavePart): PatchCycleInput => {
@@ -121,7 +122,9 @@ export function createInput(values: BuilderValues, fallback: BuilderValues, now 
     return partInput(fallback, part) ?? {};
   };
   const windows = partInput(values, 'windows');
-  const initiationDate = isCalendarDate(values.initiationDate) ? values.initiationDate : todayIn(values.tz.trim(), now);
+  // Not chosen yet: the first free date (no overlap with a running cycle) when known, else today.
+  const placeholder = placeholderDate && isCalendarDate(placeholderDate) ? placeholderDate : todayIn(values.tz.trim(), now);
+  const initiationDate = isCalendarDate(values.initiationDate) ? values.initiationDate : placeholder;
   const input = {
     ...Object.assign({}, ...BASICS_PARTS.map((part) => partInput(values, part))),
     ...(windows ?? { initiationDate }),
