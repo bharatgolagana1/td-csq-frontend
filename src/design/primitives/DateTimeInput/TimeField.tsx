@@ -1,4 +1,4 @@
-import { type ChangeEvent, type KeyboardEvent, useEffect, useRef, useState } from 'react';
+import { type ChangeEvent, type KeyboardEvent as ReactKeyboardEvent, useEffect, useRef, useState } from 'react';
 
 import { Icon } from '@/design/icons';
 import { cn } from '@/lib/cn';
@@ -55,6 +55,33 @@ function step(time: string, part: 'h' | 'm', delta: number): string {
 export function TimeField({ value, onChange, id, disabled, required, invalid, ariaLabel = 'Time', describedBy, className }: TimeFieldProps) {
   const ref = useRef<HTMLInputElement>(null);
   const [text, setText] = useState(value);
+  const controlRef = useRef<HTMLDivElement>(null);
+  const pickerButton = useRef<HTMLButtonElement>(null);
+  const hourRef = useRef<HTMLSelectElement>(null);
+  const [open, setOpen] = useState(false);
+  const [selection, setSelection] = useState({ hour: '00', minute: '00' });
+
+  useEffect(() => {
+    if (!open) return;
+    hourRef.current?.focus();
+    const outside = (event: PointerEvent) => {
+      if (event.target instanceof Node && !controlRef.current?.contains(event.target)) setOpen(false);
+    };
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && event.target instanceof Node && controlRef.current?.contains(event.target)) {
+        event.preventDefault();
+        event.stopPropagation();
+        setOpen(false);
+        pickerButton.current?.focus();
+      }
+    };
+    document.addEventListener('pointerdown', outside);
+    document.addEventListener('keydown', escape, true);
+    return () => {
+      document.removeEventListener('pointerdown', outside);
+      document.removeEventListener('keydown', escape, true);
+    };
+  }, [open]);
   const caret = useRef<number | null>(null);
 
   useEffect(() => {
@@ -90,7 +117,7 @@ export function TimeField({ value, onChange, id, disabled, required, invalid, ar
     }
   };
 
-  const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+  const onKeyDown = (e: ReactKeyboardEvent<HTMLInputElement>) => {
     if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
     e.preventDefault();
     const base = normaliseTime(text) ?? value ?? '00:00';
@@ -104,8 +131,30 @@ export function TimeField({ value, onChange, id, disabled, required, invalid, ar
   };
 
   return (
-    <div className={cn(styles.timeControl, invalid && styles.invalidControl, disabled && styles.disabledControl, className)}>
-      <Icon name="clock" size={16} className={styles.timeIcon} />
+    <div
+      ref={controlRef}
+      className={cn(styles.timeControl, invalid && styles.invalidControl, disabled && styles.disabledControl, className)}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);
+      }}
+    >
+      <button
+        ref={pickerButton}
+        type="button"
+        className={styles.timePickerButton}
+        aria-label="Choose time"
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        aria-controls={open ? `${id}-picker` : undefined}
+        disabled={disabled}
+        onClick={() => {
+          const [hour = '00', minute = '00'] = (normaliseTime(text) ?? normaliseTime(value) ?? '00:00').split(':');
+          setSelection({ hour, minute });
+          setOpen((previous) => !previous);
+        }}
+      >
+        <Icon name="clock" size={16} className={styles.timeIcon} />
+      </button>
       <input
         ref={ref}
         id={id}
@@ -125,6 +174,31 @@ export function TimeField({ value, onChange, id, disabled, required, invalid, ar
         onBlur={onBlur}
         onKeyDown={onKeyDown}
       />
+      {open && !disabled ? (
+        <div id={`${id}-picker`} className={styles.timePicker} role="dialog" aria-label="Choose a time">
+          <div className={styles.timePickerFields}>
+            <label>
+              Hour
+              <select ref={hourRef} value={selection.hour} onChange={(event) => setSelection((previous) => ({ ...previous, hour: event.target.value }))}>
+                {Array.from({ length: 24 }, (_, index) => String(index).padStart(2, '0')).map((hour) => <option key={hour}>{hour}</option>)}
+              </select>
+            </label>
+            <label>
+              Minute
+              <select value={selection.minute} onChange={(event) => setSelection((previous) => ({ ...previous, minute: event.target.value }))}>
+                {Array.from({ length: 60 }, (_, index) => String(index).padStart(2, '0')).map((minute) => <option key={minute}>{minute}</option>)}
+              </select>
+            </label>
+          </div>
+          <button type="button" className={styles.timeApply} onClick={() => {
+            const next = `${selection.hour}:${selection.minute}`;
+            setText(next);
+            commit(next);
+            setOpen(false);
+            pickerButton.current?.focus();
+          }}>Apply</button>
+        </div>
+      ) : null}
     </div>
   );
 }

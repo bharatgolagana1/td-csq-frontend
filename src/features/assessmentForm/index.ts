@@ -48,8 +48,6 @@ export {
   answerIssues,
   answerKey,
   answersToMap,
-  commentHint,
-  commentRequired,
   DIRECTION_LABELS,
   emptyAnswer,
   formSteps,
@@ -76,7 +74,6 @@ export {
   showsFollowUp,
   stepIndexOf,
   stepQuestions,
-  takesComment,
   toAnswerInput,
 } from './rules';
 export { SaveStatus, type SaveStatusProps } from './SaveStatus';

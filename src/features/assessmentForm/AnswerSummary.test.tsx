@@ -11,10 +11,10 @@ function row(text: string): HTMLElement {
 }
 
 describe('AnswerSummary', () => {
-  it('IMPORT_EXPORT: one row per question with both ratings, follow-ups only where given, and no comment lines', () => {
+  it('IMPORT_EXPORT: one row per question with both ratings, follow-ups only where given, and saved comments', () => {
     const answers = [
       answer('q1', { direction: 'IMPORT', rating: 4 }),
-      // An export answer saved with a comment before the form stopped taking them: not shown.
+      // A saved comment from either direction appears once for the question.
       answer('q1', { direction: 'EXPORT', rating: 2, comment: 'Typed before comments went', followUp: ['Queues', 'Staff'] }),
       answer('q2', { direction: 'IMPORT', rating: null, na: true }),
       answer('q3', { direction: 'IMPORT', rating: 5 }),
@@ -27,8 +27,7 @@ describe('AnswerSummary', () => {
     expect(within(q1).getByRole('group', { name: 'Export answer' })).toHaveTextContent('ExportFair');
     expect(within(q1).getByRole('group', { name: 'Export follow-up' })).toHaveTextContent('ExportQueuesStaff');
     expect(within(q1).queryByRole('group', { name: 'Import follow-up' })).toBeNull();
-    expect(screen.queryByText('Typed before comments went')).toBeNull();
-    expect(document.querySelector('blockquote')).toBeNull();
+    expect(screen.getByText('Typed before comments went').tagName).toBe('BLOCKQUOTE');
 
     const q2 = row('How would you rate documentation handling?');
     expect(within(q2).getByRole('group', { name: 'Import answer' })).toHaveTextContent('NA');
@@ -40,6 +39,16 @@ describe('AnswerSummary', () => {
     expect(within(handling).getByText('3/4')).toBeInTheDocument();
     expect(within(handling).getByText('Acceptance is quick; paperwork could be lighter.')).toBeInTheDocument();
     expect(within(screen.getByRole('region', { name: 'Security' })).getByText('2/4')).toBeInTheDocument();
+  });
+
+  it('shows a shared import/export comment only once in the submitted summary', () => {
+    const answers = [answer('q1', { direction: 'IMPORT', comment: 'Shared note' }), answer('q1', { direction: 'EXPORT', comment: 'Shared note' })];
+    render(<AnswerSummary groups={groupsFromForm(FORM, answers, 'IMPORT_EXPORT')} answerMode="IMPORT_EXPORT" />);
+    const q1 = row('How would you rate shipment acceptance?');
+    expect(within(q1).getAllByText('Shared note')).toHaveLength(1);
+    expect(q1.querySelectorAll('blockquote')).toHaveLength(1);
+    expect(within(q1).getByText('Comment')).toBeInTheDocument();
+    expect(within(q1).queryByRole('group', { name: /follow-up/ })).toBeNull();
   });
 
   it('SINGLE: one rating per question with its follow-ups and comment, unchanged', () => {

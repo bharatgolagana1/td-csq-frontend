@@ -3,15 +3,9 @@ import { DIRECTION_LABELS } from '@/lib/directionLabels';
 
 import { type AnswerGroup, type AnswerGroupAnswer, type AnswerGroupItem, type AnswerIssue, type FormStep, type FormStepQuestion, type LocalAnswer, type RemarkReviewItem, type ReviewItem, type StepReadiness } from './types';
 
-/* Form rules (backend ARCHITECTURE §7 "Form rules"), mirrored client-side so the
-   form validates inline and never sends an answer the server would refuse:
-   every active question needs a rating or NA; a comment when the comment mode
-   says so (REQUIRED_ON_LOW ⇒ Fair/Poor); follow-up options only on Fair/Poor
-   and only from the question's list. An IMPORT_EXPORT form asks every question
-   twice, once per direction, each with the rating and follow-up rules, and
-   takes no comment at all (the server refuses one): its section remarks carry
-   the free text. Every section (category) takes one remark, whatever the
-   answer mode, and submitting waits for all of them. Pure: no React, no IO. */
+/* Every question needs a rating or NA. Comments are optional on all questions,
+   including import/export answers. Follow-ups apply only to low ratings and
+   listed options. Section remarks remain separate from question comments. */
 
 export type RatingValue = Rating | 'NA';
 
@@ -59,42 +53,22 @@ export function answersToMap(answers: readonly Answer[]): Map<string, LocalAnswe
   return new Map(answers.map((a) => [answerKey(a.questionId, a.direction), fromAnswer(a)]));
 }
 
+/** Read one shared comment, preserving distinct legacy direction comments without repeating identical text. */
+export function sharedQuestionComment(...answers: (Pick<Answer, 'comment'> | null | undefined)[]): string {
+  return [...new Set(answers.map((answer) => answer?.comment ?? '').filter(Boolean))].join('\n\n');
+}
+
 export function isAnswered(answer: LocalAnswer | undefined): boolean {
   return Boolean(answer && (answer.rating !== null || answer.na));
-}
-
-/** Whether an answer takes a comment at all: never a directed (IMPORT_EXPORT) one, otherwise unless the comment mode is NONE. */
-export function takesComment(question: FormQuestion, direction?: AnswerDirection): boolean {
-  return !direction && question.commentMode !== 'NONE';
-}
-
-/** The comment mode asks for a comment on this answer (`direction`: the slot's, when the answer may not exist yet). */
-export function commentRequired(question: FormQuestion, answer: LocalAnswer | undefined, direction = answer?.direction): boolean {
-  if (!takesComment(question, direction)) return false;
-  if (question.commentMode === 'REQUIRED') return true;
-  if (question.commentMode === 'REQUIRED_ON_LOW') return isLowRating(answer?.rating);
-  return false;
 }
 
 export function showsFollowUp(question: FormQuestion, answer: LocalAnswer | undefined): boolean {
   return question.followUp !== null && question.followUp.options.length > 0 && isLowRating(answer?.rating);
 }
 
-export function commentHint(question: FormQuestion, answer: LocalAnswer | undefined): string | undefined {
-  if (question.commentMode === 'NONE') return undefined;
-  if (commentRequired(question, answer)) return question.commentMode === 'REQUIRED' ? 'Required' : 'Required for a Fair or Poor rating';
-  if (question.commentMode === 'REQUIRED_ON_LOW') return 'Optional · required for a Fair or Poor rating';
-  return 'Optional';
-}
-
-/** Inline validation for one answer (`direction`: the slot's, when the answer may not exist yet). Empty when it is complete and valid. */
-export function answerIssues(question: FormQuestion, answer: LocalAnswer | undefined, direction = answer?.direction): AnswerIssue[] {
-  const issues: AnswerIssue[] = [];
-  if (!isAnswered(answer)) issues.push({ field: 'rating', message: 'Choose a rating or NA' });
-  if (commentRequired(question, answer, direction) && !(answer?.comment ?? '').trim()) {
-    issues.push({ field: 'comment', message: question.commentMode === 'REQUIRED' ? 'A comment is required for this question' : 'A comment is required for a Fair or Poor rating' });
-  }
-  return issues;
+/** Comments never block an answer; only a missing rating needs attention. */
+export function answerIssues(_question: FormQuestion, answer: LocalAnswer | undefined, _direction?: AnswerDirection): AnswerIssue[] {
+  return isAnswered(answer) ? [] : [{ field: 'rating', message: 'Choose a rating or NA' }];
 }
 
 /** Answered and valid: safe to send to the server. */
@@ -102,14 +76,13 @@ export function isSendable(question: FormQuestion, answer: LocalAnswer | undefin
   return answer !== undefined && answerIssues(question, answer).length === 0;
 }
 
-/** The wire shape of a local answer, applying the rules the server enforces (no comment on NONE and none at all on a directed answer, follow-up only on low and only listed options). */
+/** Save optional comments in either mode; keep follow-ups only on low ratings and listed options. */
 export function toAnswerInput(question: FormQuestion, answer: LocalAnswer): AnswerInput {
   const listed = new Set(question.followUp?.options ?? []);
   const followUp = isLowRating(answer.rating) ? Array.from(new Set(answer.followUp.filter((o) => listed.has(o)))) : [];
   const rated = { rating: answer.na ? null : answer.rating, na: answer.na };
-  if (answer.direction) return { questionId: answer.questionId, direction: answer.direction, ...rated, followUp };
-  const comment = takesComment(question) ? answer.comment.trim() || null : null;
-  return { questionId: answer.questionId, ...rated, comment, followUp };
+  const comment = answer.comment.trim() || null;
+  return { questionId: answer.questionId, ...(answer.direction ? { direction: answer.direction } : {}), ...rated, comment, followUp };
 }
 
 /** One step per category; questions in display order (subcategories first, then direct questions), numbered across the form. */
@@ -151,7 +124,7 @@ export function progressOf(answered: number, total: number): Progress {
   return { answered, total, pct: total === 0 ? 0 : Math.round((answered / total) * 100) };
 }
 
-/** Everything the review step lists: unanswered questions (per direction on an IMPORT_EXPORT form, import before export) and, on a SINGLE one, required comments left empty, in form order. */
+/** Unanswered questions in form order, per direction on an IMPORT_EXPORT form. */
 export function reviewItems(steps: readonly FormStep[], answers: ReadonlyMap<string, LocalAnswer>, mode: AnswerMode = 'SINGLE'): ReviewItem[] {
   const items: ReviewItem[] = [];
   const directions = answerDirections(mode);

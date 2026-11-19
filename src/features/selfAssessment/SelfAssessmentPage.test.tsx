@@ -231,8 +231,8 @@ describe('SelfAssessmentPage', () => {
     // Two questions in the first section, each rated for import and export.
     expect(screen.getAllByRole('radio')).toHaveLength(24);
     expect(screen.getByRole('radiogroup', { name: 'How would you rate shipment acceptance? — Export' })).toBeInTheDocument();
-    // No comment fields: the section's remark is the only text box.
-    expect(screen.queryByLabelText(/Comment/)).toBeNull();
+    // Each question has one optional comment shared by import and export.
+    expect(screen.getAllByPlaceholderText('Add a comment (optional)')).toHaveLength(2);
     unmount();
 
     const submitted = self('SUBMITTED');

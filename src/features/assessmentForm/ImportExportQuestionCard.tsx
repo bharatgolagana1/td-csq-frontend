@@ -7,8 +7,9 @@ import { FollowUpChoices } from './FollowUpChoices';
 import styles from './ImportExportQuestionCard.module.css';
 import cardStyles from './QuestionCard.module.css';
 import { QuestionHead } from './QuestionHead';
+import { QuestionComment } from './QuestionComment';
 import { RatingScale } from './RatingScale';
-import { ANSWER_DIRECTIONS, answerIssues, DIRECTION_LABELS, questionDomId, type RatingValue, showsFollowUp } from './rules';
+import { ANSWER_DIRECTIONS, answerIssues, DIRECTION_LABELS, questionDomId, type RatingValue, sharedQuestionComment, showsFollowUp } from './rules';
 import { type AnswerPatch, type LocalAnswer } from './types';
 
 export type ImportExportQuestionCardProps = {
@@ -78,7 +79,7 @@ function DirectionRow({ question, direction, answer, onChange, showValidation = 
  * enough, stacked on a phone. Each row is a full rating group named
  * "<question> — Import" / "— Export" with its own inline validation, opens the
  * question's follow-up only when that direction is rated Fair or Poor, and is a
- * jump target of its own. No comment: the section's remark carries the free text.
+ * jump target of its own. One optional comment below both rows covers the question.
  */
 export function ImportExportQuestionCard({ question, index, answerFor, onChange, section, showValidation = false, readOnly = false, className }: ImportExportQuestionCardProps) {
   const textId = `${useId()}-text`;
@@ -98,6 +99,14 @@ export function ImportExportQuestionCard({ question, index, answerFor, onChange,
           />
         ))}
       </div>
+      <QuestionComment
+        value={sharedQuestionComment(answerFor('IMPORT'), answerFor('EXPORT'))}
+        onChange={(comment) => {
+          // Keep the existing directional answer payloads in sync with the one question comment.
+          ANSWER_DIRECTIONS.forEach((direction) => onChange(direction, { comment }));
+        }}
+        readOnly={readOnly}
+      />
     </article>
   );
 }

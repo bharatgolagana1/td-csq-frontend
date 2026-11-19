@@ -45,16 +45,33 @@ describe('ImportExportQuestionCard', () => {
     expect(onChange).toHaveBeenCalledTimes(2);
   });
 
-  it('takes no comment, whatever the comment mode and the rating', () => {
-    // Q3 requires a comment and Q1 asks for one on Fair / Poor on a single-answer form.
-    const { unmount } = render(<ImportExportQuestionCard question={Q3} index={3} answerFor={answers({ IMPORT: rated('q3', 'IMPORT', 2), EXPORT: rated('q3', 'EXPORT', 1) })} onChange={vi.fn()} showValidation />);
-    expect(screen.queryByRole('textbox')).toBeNull();
-    expect(screen.queryByText(/comment/i)).toBeNull();
+  it('shows one labeled optional comment below both directions and updates or clears both together', async () => {
+    const onChange = vi.fn();
+    const byDirection = { IMPORT: rated('q3', 'IMPORT', 2), EXPORT: rated('q3', 'EXPORT', 1) };
+    const { rerender } = render(<ImportExportQuestionCard question={Q3} index={3} answerFor={answers(byDirection)} onChange={onChange} showValidation />);
+    const { importRow, exportRow } = rows();
+    const comment = screen.getByPlaceholderText('Add a comment (optional)');
+    expect(screen.getAllByRole('textbox')).toHaveLength(1);
+    expect(screen.getByText('Comment', { selector: 'label' })).toHaveAttribute('for', comment.id);
+    expect(importRow).not.toContainElement(comment);
+    expect(exportRow).not.toContainElement(comment);
+    expect(comment).not.toBeRequired();
+    expect(comment).toHaveAttribute('rows', '1');
     expect(screen.queryByRole('alert')).toBeNull();
-    unmount();
-    render(<ImportExportQuestionCard question={Q1} index={1} answerFor={answers({ IMPORT: rated('q1', 'IMPORT', 1), EXPORT: rated('q1', 'EXPORT', 2) })} onChange={vi.fn()} showValidation />);
-    expect(screen.queryByRole('textbox')).toBeNull();
-    expect(screen.queryByRole('alert')).toBeNull();
+    await userEvent.type(comment, 'A');
+    expect(onChange).toHaveBeenNthCalledWith(1, 'IMPORT', { comment: 'A' });
+    expect(onChange).toHaveBeenNthCalledWith(2, 'EXPORT', { comment: 'A' });
+
+    rerender(<ImportExportQuestionCard question={Q3} index={3} answerFor={answers({ IMPORT: { ...byDirection.IMPORT, comment: 'Shared comment' }, EXPORT: { ...byDirection.EXPORT, comment: 'Shared comment' } })} onChange={onChange} />);
+    expect(comment).toHaveValue('Shared comment');
+    await userEvent.clear(comment);
+    expect(onChange).toHaveBeenNthCalledWith(3, 'IMPORT', { comment: '' });
+    expect(onChange).toHaveBeenNthCalledWith(4, 'EXPORT', { comment: '' });
+  });
+
+  it('preserves distinct legacy comments together in the one question field', () => {
+    render(<ImportExportQuestionCard question={Q1} index={1} answerFor={answers({ IMPORT: { ...rated('q1', 'IMPORT', 4), comment: 'Import note' }, EXPORT: { ...rated('q1', 'EXPORT', 3), comment: 'Export note' } })} onChange={vi.fn()} />);
+    expect(screen.getByRole('textbox')).toHaveValue('Import note\n\nExport note');
   });
 
   it('validates each direction on its own: only the unrated one says so, linked to its group', () => {
@@ -102,6 +119,7 @@ describe('ImportExportQuestionCard', () => {
     const { importRow, exportRow } = rows();
     expect(within(importRow).getByRole('radio', { name: 'Good' })).toBeChecked();
     expect(within(exportRow).getByRole('radio', { name: 'Poor' })).toBeChecked();
+    screen.getAllByRole('textbox').forEach((r) => expect(r).toBeDisabled());
     screen.getAllByRole('radio').forEach((r) => expect(r).toBeDisabled());
     expect(within(exportRow).getByRole('checkbox', { name: 'Queues' })).toBeDisabled();
     await userEvent.click(within(importRow).getByRole('radio', { name: 'Poor' }));

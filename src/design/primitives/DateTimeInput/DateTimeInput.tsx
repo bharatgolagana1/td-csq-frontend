@@ -23,6 +23,8 @@ export type DateTimeInputProps = {
   disabled?: boolean;
   min?: Wall;
   max?: Wall;
+  /** Calendar dates reserved by another cycle or otherwise unavailable. */
+  disabledDates?: (iso: string) => boolean;
   id?: string;
   className?: string;
 };
@@ -43,7 +45,7 @@ export function joinWall(date: string, time: string): Wall | null {
  * (labelled "Time") under one group label, with the zone as a caption. Emits
  * only when both parts are present, `null` when either is cleared.
  */
-export function DateTimeInput({ label, value, onChange, tz = DEFAULT_TZ, hint, error, required, disabled, min, max, id: idProp, className }: DateTimeInputProps) {
+export function DateTimeInput({ label, value, onChange, tz = DEFAULT_TZ, hint, error, required, disabled, min, max, disabledDates, id: idProp, className }: DateTimeInputProps) {
   const autoId = useId();
   const id = idProp ?? autoId;
   // Local parts so a half-filled field (date without time) survives until both exist.
@@ -73,6 +75,7 @@ export function DateTimeInput({ label, value, onChange, tz = DEFAULT_TZ, hint, e
           onChange={(d) => update({ ...parts, date: d ?? '' })}
           min={minParts.date || undefined}
           max={maxParts.date || undefined}
+          disabledDates={disabledDates}
           required={required}
           disabled={disabled}
           invalid={Boolean(error)}

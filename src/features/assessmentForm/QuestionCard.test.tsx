@@ -25,34 +25,34 @@ describe('QuestionCard', () => {
     expect(onChange).toHaveBeenCalledWith({ na: true, rating: null });
   });
 
-  it('shows the follow-up options and the required comment on Fair / Poor', async () => {
+  it('shows the follow-up options and an optional comment on Fair / Poor', async () => {
     const onChange = vi.fn();
     const { rerender } = render(<QuestionCard question={Q1} index={1} answer={{ ...emptyAnswer('q1'), rating: 4 }} onChange={onChange} />);
     expect(screen.queryByText('What went wrong?')).toBeNull();
-    expect(screen.getByText('Optional · required for a Fair or Poor rating')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Add a comment (optional)')).not.toBeRequired();
 
     rerender(<QuestionCard question={Q1} index={1} answer={{ ...emptyAnswer('q1'), rating: 2, followUp: ['Queues'] }} onChange={onChange} />);
     expect(screen.getByRole('group', { name: 'What went wrong?' })).toBeInTheDocument();
     expect(screen.getByRole('checkbox', { name: 'Queues' })).toBeChecked();
     await userEvent.click(screen.getByRole('checkbox', { name: 'Staff' }));
     expect(onChange).toHaveBeenCalledWith({ followUp: ['Queues', 'Staff'] });
-    expect(screen.getByText('Required for a Fair or Poor rating')).toBeInTheDocument();
+    expect(screen.getByRole('textbox')).not.toBeRequired();
     expect(screen.queryByRole('alert')).toBeNull();
 
-    // Leaving the comment empty surfaces the rule inline.
+    // Leaving the comment empty never surfaces a validation error.
     const comment = screen.getByLabelText(/Comment/);
     await userEvent.click(comment);
     await userEvent.tab();
-    expect(screen.getByRole('alert')).toHaveTextContent('A comment is required for a Fair or Poor rating');
+    expect(screen.queryByRole('alert')).toBeNull();
   });
 
-  it('hides the comment on NONE and requires it on REQUIRED', () => {
+  it('shows optional comments even on NONE and REQUIRED', () => {
     const { rerender } = render(<QuestionCard question={Q2} index={2} answer={undefined} onChange={vi.fn()} />);
-    expect(screen.queryByLabelText(/Comment/)).toBeNull();
+    expect(screen.getByLabelText(/Comment/)).not.toBeRequired();
 
     rerender(<QuestionCard question={Q3} index={3} answer={{ ...emptyAnswer('q3'), rating: 5 }} onChange={vi.fn()} showValidation />);
-    expect(screen.getByLabelText(/Comment/)).toBeRequired();
-    expect(screen.getByRole('alert')).toHaveTextContent('A comment is required for this question');
+    expect(screen.getByLabelText(/Comment/)).not.toBeRequired();
+    expect(screen.queryByRole('alert')).toBeNull();
   });
 
   it('flags a missing rating only when validation is requested, and disables everything when read-only', async () => {

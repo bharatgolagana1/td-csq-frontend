@@ -2,7 +2,7 @@ import { type AnswerDirection, type FormCategory, type FormQuestion, type FormSu
 
 /* Local (unsaved) shapes used by the question-form components and the draft hook. */
 
-/** An answer as the form holds it: `comment` is always a string so textareas stay controlled. IMPORT_EXPORT forms hold one per question and direction, and never send its comment (that form takes none). */
+/** An answer as the form holds it: `comment` is always a string so textareas stay controlled. IMPORT_EXPORT forms hold one per question and direction, with the shared question comment mirrored on both directions for the existing API. */
 export type LocalAnswer = {
   questionId: string;
   direction?: AnswerDirection;
@@ -83,7 +83,7 @@ export type RemarkReviewItem = {
 
 export type AnswerGroupAnswer = { rating: Rating | null; na: boolean; comment: string | null; followUp: string[] };
 
-/** Read-only grouping for the answer summary (self-assessment done state, history return). IMPORT_EXPORT returns fill `importAnswer` and `exportAnswer` instead of `answer` (the summary shows no comment for them). */
+/** Read-only grouping for the answer summary (self-assessment done state, history return). IMPORT_EXPORT returns fill `importAnswer` and `exportAnswer` instead of `answer` (the summary shows their shared comment once). */
 export type AnswerGroupItem = {
   question: { id: string; code: string; text: string };
   subcategory: string | null;

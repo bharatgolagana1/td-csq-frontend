@@ -220,3 +220,11 @@
 .comment {
   margin-top: 2px;
 }
+
+.comment .commentInput {
+  min-height: 44px;
+  padding: 10px 12px;
+  background: var(--surface-2);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-sm);
+}

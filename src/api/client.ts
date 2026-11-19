@@ -16,6 +16,7 @@ export type ApiErrorCode =
   | 'RATE_LIMITED'
   | 'LINK_EXPIRED'
   | 'OTP_INVALID'
+  | 'CYCLE_SCHEDULE_OVERLAP'
   | 'INTERNAL'
   | (string & {});
 
@@ -48,8 +49,19 @@ export function isApiError(e: unknown, code?: ApiErrorCode): e is ApiError {
   return e instanceof ApiError && (code === undefined || e.code === code);
 }
 
+/** The cycles a CYCLE_SCHEDULE_OVERLAP refusal names in `details.conflicts`, by code. */
+function overlapCodes(details: unknown): string[] {
+  const conflicts = (details as { conflicts?: unknown } | null)?.conflicts;
+  if (!Array.isArray(conflicts)) return [];
+  return conflicts.map((c) => (c as { code?: unknown }).code).filter((code): code is string => typeof code === 'string');
+}
+
 export function errorMessage(e: unknown): string {
-  if (e instanceof ApiError) return e.message;
+  if (e instanceof ApiError) {
+    // The API keeps the overlap message generic; say which cycle is in the way.
+    const codes = e.code === 'CYCLE_SCHEDULE_OVERLAP' ? overlapCodes(e.details) : [];
+    return codes.length > 0 ? `${e.message} (${codes.join(', ')})` : e.message;
+  }
   if (e instanceof NetworkError) return e.offline ? 'You are offline' : e.message;
   if (e instanceof Error) return e.message;
   return 'Something went wrong';

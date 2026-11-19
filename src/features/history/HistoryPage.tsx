@@ -57,7 +57,12 @@ export default function HistoryPage() {
   const cycles = useCycles({ pageSize: 100, sort: '-createdAt' }, hasTask('cycles.view'));
   const exportCsv = useExportAssessments();
 
-  const rows = useMemo(() => list.data?.data ?? [], [list.data]);
+  // Opening a form creates a draft; only an actual save belongs in History.
+  // The API must apply the same rule before pagination and counting.
+  const rows = useMemo(
+    () => (list.data?.data ?? []).filter((row) => row.status === 'SUBMITTED' || (row.status === 'DRAFT' && Boolean(row.lastSavedAt))),
+    [list.data],
+  );
   const total = list.data?.meta.total ?? 0;
 
   // Cycle filter options: the cycles list when permitted, else the cycles on this page.
@@ -117,7 +122,7 @@ export default function HistoryPage() {
         <QueryError error={list.error} title="Could not load assessments" onRetry={() => void list.refetch()} />
       ) : (
         <>
-          <HistoryTable rows={rows} loading={list.isPending} sort={state.sort} onSortChange={state.setSort} onOpen={(row) => navigate(row.id)} canViewScores={canViewScores} canViewDetails={canViewDetails} tzOf={tzOf} filtered={state.filtered} onClearFilters={state.clearFilters} />
+          <HistoryTable rows={rows} loading={list.isPending} sort={state.sort} onSortChange={state.setSort} statusFilter={state.filters.status as 'DRAFT' | 'SUBMITTED' | ''} onStatusChange={(status) => state.setFilter('status', status)} onOpen={(row) => navigate(row.id)} canViewScores={canViewScores} canViewDetails={canViewDetails} tzOf={tzOf} filtered={state.filtered} onClearFilters={state.clearFilters} />
           <Pagination page={state.page} pageSize={state.pageSize} total={total} onPageChange={state.setPage} onPageSizeChange={state.setPageSize} />
         </>
       )}

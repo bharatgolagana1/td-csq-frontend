@@ -254,10 +254,10 @@ describe('/assess/:token state machine', () => {
     expect(window.sessionStorage.getItem(`csq.assess.${TOKEN}`)).toBeNull();
   });
 
-  it('IMPORT_EXPORT form → done: rates every question for import and export in compact rows, no comments, follow-ups on low only, and submits', async () => {
+  it('IMPORT_EXPORT form → done: rates every question for import and export in compact rows, optional comments, follow-ups on low only, and submits', async () => {
     const user = userEvent.setup();
     window.sessionStorage.setItem(`csq.assess.${TOKEN}`, JSON.stringify(session));
-    // q2 asks for a comment on Fair / Poor and q3 always does on a single-answer form; here neither does.
+    // Legacy comment modes never make a comment mandatory.
     const strict = {
       ...importExportForm,
       categories: importExportForm.categories.map((c) => ({ ...c, questions: c.questions.map((q) => (q.id === 'q3' ? { ...q, commentMode: 'REQUIRED' as const } : q)) })),
@@ -271,18 +271,19 @@ describe('/assess/:token state machine', () => {
     expect(screen.getAllByRole('article')).toHaveLength(2);
     expect(screen.getByRole('radiogroup', { name: 'Speed of cargo acceptance — Import' })).toBeInTheDocument();
     expect(screen.getByRole('radiogroup', { name: 'Speed of cargo acceptance — Export' })).toBeInTheDocument();
-    // One remark per section, whatever the answer mode, and no comment field.
-    expect(screen.getAllByRole('textbox')).toEqual([screen.getByRole('textbox', { name: 'Remarks for Operations' })]);
+    // One shared comment per question and a separate remark per section.
+    expect(screen.getAllByPlaceholderText('Add a comment (optional)')).toHaveLength(2);
     for (const group of screen.getAllByRole('radiogroup', { name: / — Import$/ })) await user.click(within(group).getByRole('radio', { name: 'Excellent' }));
     await user.click(within(screen.getByRole('radiogroup', { name: 'Speed of cargo acceptance — Export' })).getByRole('radio', { name: 'Excellent' }));
-    // Poor on export for q2: its follow-up opens under that row only, and still no comment.
+    // Poor on export for q2: its follow-up opens under that row only.
     const q2Export = screen.getByRole('radiogroup', { name: 'Accuracy of documentation checks — Export' });
     await user.click(within(q2Export).getByRole('radio', { name: 'Poor' }));
     const followUps = screen.getAllByRole('group', { name: 'What went wrong?' });
     expect(followUps).toHaveLength(1);
     expect(q2Export.parentElement).toContainElement(followUps[0] as HTMLElement);
     await user.click(within(followUps[0] as HTMLElement).getByRole('checkbox', { name: 'Long queues' }));
-    expect(screen.getAllByRole('textbox')).toHaveLength(1);
+    expect(screen.getAllByRole('textbox')).toHaveLength(3);
+    await user.type(within(q2Export.closest('article') as HTMLElement).getByRole('textbox'), 'Long wait at export');
     await writeRemark(user, 'Operations', 'Equally quick.');
     await user.click(screen.getByRole('button', { name: 'Next' }));
 
@@ -300,11 +301,13 @@ describe('/assess/:token state machine', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Submit' }));
     expect(await screen.findByRole('heading', { name: 'Thank you' })).toBeInTheDocument();
 
-    type Sent = { questionId: string; direction?: string; rating: number; followUp: string[] };
+    type Sent = { questionId: string; direction?: string; rating: number; comment?: string | null; followUp: string[] };
     const sent = calls.filter((c) => c.method === 'PATCH' && c.path === `${base}/answers`).flatMap((c) => (c.body as { answers: Sent[] }).answers);
-    sent.forEach((a) => expect(a).not.toHaveProperty('comment'));
+    expect(sent.some((a) => a.questionId === 'q2' && a.direction === 'EXPORT' && a.comment === 'Long wait at export')).toBe(true);
     const last = new Map(sent.map((a) => [`${a.questionId}:${a.direction}`, a]));
     expect(Object.fromEntries([...last].map(([key, a]) => [key, a.rating]))).toEqual({ 'q1:IMPORT': 5, 'q1:EXPORT': 5, 'q2:IMPORT': 5, 'q2:EXPORT': 1, 'q3:IMPORT': 4, 'q3:EXPORT': 2, 'q4:IMPORT': 4, 'q4:EXPORT': 2 });
+    expect(last.get('q2:IMPORT')?.comment).toBe('Long wait at export');
+    expect(last.get('q2:EXPORT')?.comment).toBe('Long wait at export');
     expect(Object.fromEntries([...last].filter(([, a]) => a.followUp.length > 0).map(([key, a]) => [key, a.followUp]))).toEqual({ 'q2:EXPORT': ['Long queues'] });
     const remarks = calls.filter((c) => c.method === 'PATCH' && c.path === `${base}/remarks`).flatMap((c) => (c.body as { sectionRemarks: { categoryId: string }[] }).sectionRemarks);
     expect(new Set(remarks.map((r) => r.categoryId))).toEqual(new Set(['cat_ops', 'cat_sec']));

@@ -1,12 +1,12 @@
-import { useId, useState } from 'react';
+import { useId } from 'react';
 
 import { type FormQuestion } from '@/api/assessments.types';
-import { Textarea } from '@/design/primitives';
 
 import { FollowUpChoices } from './FollowUpChoices';
 import styles from './QuestionCard.module.css';
+import { QuestionComment } from './QuestionComment';
 import { RatingScale } from './RatingScale';
-import { answerIssues, commentHint, commentRequired, type RatingValue, showsFollowUp, takesComment } from './rules';
+import { answerIssues, type RatingValue, showsFollowUp } from './rules';
 import { type AnswerPatch, type LocalAnswer } from './types';
 
 export type AnswerControlsProps = {
@@ -22,22 +22,13 @@ export type AnswerControlsProps = {
   readOnly?: boolean;
 };
 
-/**
- * The answer to a question of a SINGLE form: the segmented rating, the
- * follow-up options on Fair/Poor, and the comment with its mode rules (backend
- * §7 "Form rules"). Validation is inline: the rating error appears when asked
- * for; the comment error as soon as the rule applies and the field was left or
- * asked for. (An import / export form rates each direction in the compact rows
- * of ImportExportQuestionCard, without comments.)
- */
+/** A single rating, follow-up options on Fair/Poor, and an optional comment. */
 export function AnswerControls({ question, answer, onChange, name, labelledBy, showValidation = false, readOnly = false }: AnswerControlsProps) {
   const id = useId();
   const ratingErrorId = `${id}-rating-error`;
-  const [commentTouched, setCommentTouched] = useState(false);
 
   const issues = answerIssues(question, answer);
   const ratingIssue = showValidation ? issues.find((i) => i.field === 'rating') : undefined;
-  const commentIssue = showValidation || commentTouched ? issues.find((i) => i.field === 'comment') : undefined;
   const value: RatingValue | null = answer?.na ? 'NA' : (answer?.rating ?? null);
   const followUp = showsFollowUp(question, answer) ? question.followUp : null;
 
@@ -57,22 +48,7 @@ export function AnswerControls({ question, answer, onChange, name, labelledBy, s
 
       {followUp ? <FollowUpChoices followUp={followUp} value={answer?.followUp ?? []} onChange={(next) => onChange({ followUp: next })} disabled={readOnly} /> : null}
 
-      {takesComment(question) ? (
-        <Textarea
-          id={`${id}-comment`}
-          label="Comment"
-          hint={commentHint(question, answer)}
-          error={commentIssue?.message}
-          required={commentRequired(question, answer)}
-          value={answer?.comment ?? ''}
-          rows={3}
-          maxLength={2000}
-          disabled={readOnly}
-          onChange={(e) => onChange({ comment: e.target.value })}
-          onBlur={() => setCommentTouched(true)}
-          wrapperClassName={styles.comment}
-        />
-      ) : null}
+      <QuestionComment value={answer?.comment ?? ''} onChange={(comment) => onChange({ comment })} readOnly={readOnly} />
     </>
   );
 }

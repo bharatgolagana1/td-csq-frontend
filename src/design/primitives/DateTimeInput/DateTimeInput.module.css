@@ -11,6 +11,7 @@
   min-width: 0;
 }
 .timeControl {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -74,4 +75,64 @@
   .row {
     flex-direction: column;
   }
+}
+
+.timePickerButton {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  cursor: pointer;
+}
+.timePickerButton:hover:not(:disabled) { background: var(--surface-2); }
+.timePickerButton:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.timePickerButton:disabled { cursor: not-allowed; }
+.timePicker {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: var(--z-popover);
+  width: 200px;
+  padding: 12px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
+}
+.timePickerFields { display: flex; gap: 12px; }
+.timePickerFields label {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--ink-2);
+  font-size: var(--text-xs);
+}
+.timePickerFields select {
+  width: 100%;
+  min-height: 40px;
+  padding: 6px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-mono);
+}
+.timePickerFields option { background: var(--surface); color: var(--ink); }
+.timeApply {
+  width: 100%;
+  min-height: 36px;
+  margin-top: 12px;
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
 }

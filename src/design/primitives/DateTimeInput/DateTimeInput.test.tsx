@@ -99,4 +99,38 @@ describe('DateTimeInput', () => {
     expect(normaliseTime('abc')).toBeNull();
     expect(normaliseTime('')).toBeNull();
   });
+  it('applies selected hours and minutes while preserving the date', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<Harness initial="2026-11-03T09:30" onChange={onChange} />);
+    const trigger = screen.getByRole('button', { name: 'Choose time' });
+    await user.click(trigger);
+    const picker = screen.getByRole('dialog', { name: 'Choose a time' });
+    expect(within(picker).getByLabelText('Hour')).toHaveFocus();
+    await user.selectOptions(within(picker).getByLabelText('Hour'), '18');
+    await user.selectOptions(within(picker).getByLabelText('Minute'), '47');
+    expect(onChange).not.toHaveBeenCalled();
+    await user.click(within(picker).getByRole('button', { name: 'Apply' }));
+    expect(onChange).toHaveBeenLastCalledWith('2026-11-03T18:47');
+    expect(screen.getByLabelText('Time')).toHaveValue('18:47');
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(trigger).toHaveFocus();
+  });
+
+  it('cancels time selection with Escape and prevents selection when disabled', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    const { rerender } = render(<DateTimeInput label="Closes" value="2026-12-01T18:00" onChange={onChange} />);
+    const trigger = screen.getByRole('button', { name: 'Choose time' });
+    await user.click(trigger);
+    await user.selectOptions(screen.getByLabelText('Hour'), '20');
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(onChange).not.toHaveBeenCalled();
+    expect(trigger).toHaveFocus();
+    rerender(<DateTimeInput label="Closes" value="2026-12-01T18:00" onChange={onChange} disabled />);
+    expect(trigger).toBeDisabled();
+    expect(screen.getByLabelText('Time')).toBeDisabled();
+  });
+
 });

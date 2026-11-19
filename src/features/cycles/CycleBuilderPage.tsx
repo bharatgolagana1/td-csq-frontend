@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { type FieldErrors, useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -15,7 +16,7 @@ import { Banner, Button, Card, PageHeader, Skeleton, Stepper, useToast } from '@
 import { QueryError } from '@/design/primitives/QueryError/QueryError';
 import { useShell } from '@/shell/ShellContext';
 
-import { PART_FORM_FIELDS } from './autosave';
+import { PART_FORM_FIELDS, todayIn } from './autosave';
 import { BasicsStep } from './BasicsStep';
 import { BuilderProvider } from './builderContext';
 import {
@@ -38,6 +39,7 @@ import { PublishDialog } from './PublishDialog';
 import { type PublishProblem, publishProblems } from './publishProblems';
 import { ReviewStep } from './ReviewStep';
 import { SamplingStep } from './SamplingStep';
+import { fetchCycleSchedule, firstFreeInitiationDate } from './scheduleConflict';
 import { useDraftAutosave } from './useDraftAutosave';
 import { WindowsStep } from './WindowsStep';
 
@@ -97,7 +99,14 @@ export default function CycleBuilderPage() {
   const form = useForm<BuilderValues>({ resolver: zodResolver(builderSchema), defaultValues: defaultBuilderValues(), mode: 'onTouched' });
   const { formState, trigger, handleSubmit, getValues } = form;
   const fallback = useMemo(() => defaultBuilderValues(settings.data), [settings.data]);
-  const autosave = useDraftAutosave(form, fallback, setStep);
+  // A new draft's placeholder dates start on the first day clear of running cycles (the server refuses an overlap).
+  const schedule = useQuery({ queryKey: ['cycles', 'schedule'], queryFn: ({ signal }) => fetchCycleSchedule(signal), enabled: !editing });
+  const defaults = settings.data?.defaults;
+  const placeholderDate = useCallback(
+    (tz: string) => (defaults && schedule.data ? firstFreeInitiationDate(schedule.data, tz, defaults, todayIn(tz)) : undefined),
+    [defaults, schedule.data],
+  );
+  const autosave = useDraftAutosave(form, fallback, setStep, placeholderDate);
   const { begin, flush } = autosave;
 
   // Seed once: the draft being edited, or the platform defaults for a new cycle (unless the user already typed).
