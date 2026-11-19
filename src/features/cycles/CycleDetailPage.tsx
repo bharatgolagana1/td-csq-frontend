@@ -56,7 +56,7 @@ export default function CycleDetailPage() {
   const navigate = useNavigate();
   const { href } = useShell();
   const toast = useToast();
-  const { hasTask } = useSession();
+  const { hasTask, scope } = useSession();
   const [params, setParams] = useSearchParams();
   const query = useCycle(id);
   const publish = usePublishCycle();
@@ -101,7 +101,8 @@ export default function CycleDetailPage() {
   const canPublish = cycle.status === 'DRAFT' && hasTask('cycles.publish');
   const canOperate = hasTask('cycles.operate');
   const transitions = allowedTransitions(cycle.status);
-  const canRemind = canOperate && canSendSamplingReminders(cycle.status);
+  // The API sends reminders for platform staff holding both tasks.
+  const canRemind = scope.kind === 'PLATFORM' && canOperate && hasTask('notifications.send') && canSendSamplingReminders(cycle.status);
 
   const confirmPublish = () => {
     publish.mutate(cycle.id, {
@@ -125,7 +126,13 @@ export default function CycleDetailPage() {
       { id: cycle.id, kind: 'SAMPLING' },
       {
         onSuccess: (run) => {
-          toast.success(run.sent === 0 ? 'Nobody to remind: every operator has locked' : `Sent ${formatInt(run.sent)} reminders to ${formatInt(run.recipients.length)} operators`);
+          if (run.sent > 0) {
+            toast.success(`Sent ${formatInt(run.sent)} reminders to ${formatInt(run.recipients.filter((r) => r.to.length > 0).length)} operators`);
+          } else if (run.recipients.length === 0) {
+            toast.info('Nobody to remind: every operator has locked');
+          } else {
+            toast.info('No reminders sent: these operators were already reminded in the last few hours, or have no active admin');
+          }
           setRemindOpen(false);
         },
         onError: (e) => {
@@ -218,7 +225,7 @@ export default function CycleDetailPage() {
         onConfirm={sendReminders}
         loading={reminders.isPending}
         title="Send sampling reminders now?"
-        description="Every operator that has not locked its sample gets the reminder e-mail (“Sampling closes in N days. Required: X. Selected: Y.”). Scheduled reminders continue as configured."
+        description="Every operator that has not locked its sample gets the reminder e-mail (“Sampling closes in N days. Required: X. Selected: Y.”), unless it was already reminded in the last few hours. Scheduled reminders continue as configured."
         confirmLabel="Send reminders"
       />
     </>

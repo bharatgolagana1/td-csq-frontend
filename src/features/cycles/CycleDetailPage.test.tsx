@@ -130,6 +130,26 @@ describe('CycleDetailPage', () => {
     expect(screen.getByText('Market shares').nextElementSibling).toHaveTextContent('Snapshot taken at publish');
   });
 
+  it('offers sampling reminders only with notifications.send as well as cycles.operate', async () => {
+    mockApi(cycleRoutes());
+    renderWithProviders(routes, { path: '/cycles/cy1', session: platformSession(['cycles.view', 'cycles.operate']) });
+    await screen.findByRole('heading', { name: 'CSQ 2026 H2' });
+    expect(screen.getByRole('button', { name: 'Transition…' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Send sampling reminders' })).toBeNull();
+  });
+
+  it('says so when the unlocked operators were already reminded and nothing was sent', async () => {
+    mockApi([
+      ...cycleRoutes(),
+      { method: 'POST', path: '/cycles/cy1/reminders/send', reply: () => one({ kind: 'SAMPLING', sent: 0, recipients: [{ acoId: 'aco1', to: [] }] }) },
+    ]);
+    renderWithProviders(routes, { path: '/cycles/cy1' });
+    await userEvent.click(await screen.findByRole('button', { name: 'Send sampling reminders' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Send reminders' }));
+    expect(await screen.findByText(/already reminded in the last few hours/)).toBeInTheDocument();
+    expect(screen.queryByText(/every operator has locked/)).toBeNull();
+  });
+
   it('says the market-share snapshot is frozen once the assessment is open', async () => {
     mockApi(cycleRoutes(cycleDetail({}, 'ASSESSMENT_OPEN')));
     renderWithProviders(routes, { path: '/cycles/cy1' });

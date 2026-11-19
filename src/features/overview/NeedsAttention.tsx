@@ -51,7 +51,7 @@ export function NeedsAttention({ unlocked, unlockedLoading, shares, sharesEnable
           setSent((previous) => new Set(previous).add(key));
           toast.success(`Reminder sent to ${target.participant.operator.name}`);
         } else {
-          toast.info('No reminder sent. The operator may already have locked its sample.');
+          toast.info(`No reminder sent: ${target.participant.operator.name} was already reminded in the last few hours, or has no active admin`);
         }
         setTarget(null);
       },

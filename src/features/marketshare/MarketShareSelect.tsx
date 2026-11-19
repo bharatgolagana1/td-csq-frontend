@@ -1,4 +1,4 @@
-﻿import { type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 
 import { Select, type SelectOption } from '@/design/primitives/Select/Select';
 
