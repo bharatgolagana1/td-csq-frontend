@@ -84,12 +84,15 @@
   flex-wrap: wrap;
   margin-left: auto;
   min-width: 0;
+  max-width: 100%;
 }
 .pillSelect {
-  min-width: 176px;
+  min-width: 0;
+  max-width: 100%;
+  flex: 1 1 176px;
 }
 .pillOperator {
-  min-width: 240px;
+  flex-basis: 240px;
 }
 .pillSelect > div {
   border-radius: var(--radius-pill);

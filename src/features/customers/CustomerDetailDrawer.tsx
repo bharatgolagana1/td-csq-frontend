@@ -14,6 +14,8 @@ export type CustomerDetailDrawerProps = {
   customer: Customer;
   onClose: () => void;
   canManage: boolean;
+  canDelete?: boolean;
+  onDelete?: (customer: Customer) => void;
   onEdit: (customer: Customer) => void;
 };
 
@@ -23,7 +25,7 @@ function submittedPill(submitted: boolean | null) {
 }
 
 /** Read-only detail with the participation history (§6 GET /customers/:id/participation). */
-export function CustomerDetailDrawer({ customer, onClose, canManage, onEdit }: CustomerDetailDrawerProps) {
+export function CustomerDetailDrawer({ customer, onClose, canManage, onEdit, canDelete, onDelete }: CustomerDetailDrawerProps) {
   const participation = useCustomerParticipation(customer.id, customer.acoId);
   const rows = participation.data?.cycles ?? [];
 
@@ -39,6 +41,9 @@ export function CustomerDetailDrawer({ customer, onClose, canManage, onEdit }: C
           <Button variant="ghost" onClick={onClose}>
             Close
           </Button>
+          {canDelete && onDelete ? (
+            <Button variant="danger" icon={<Icon name="trash" size={18} />} onClick={() => onDelete(customer)}>Delete</Button>
+          ) : null}
           {canManage ? (
             <Button variant="primary" icon={<Icon name="edit" size={18} />} onClick={() => onEdit(customer)}>
               Edit

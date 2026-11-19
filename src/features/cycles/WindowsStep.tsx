@@ -62,7 +62,7 @@ export function WindowsStep() {
             />
           )}
         />
-        <Button variant="secondary" icon={<Icon name="calendar" size={18} />} disabled={!canDerive || scheduleUnavailable || disabledDates(initiationDate)} onClick={derive}>
+        <Button className={styles.deriveButton} variant="secondary" icon={<Icon name="calendar" size={18} />} disabled={!canDerive || scheduleUnavailable || disabledDates(initiationDate)} onClick={derive}>
           Derive windows
         </Button>
       </div>

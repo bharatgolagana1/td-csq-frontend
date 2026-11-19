@@ -4,6 +4,7 @@ import { Icon } from '@/design/icons';
 import { cn } from '@/lib/cn';
 
 import styles from './DateTimeInput.module.css';
+import { Select } from '../Select/Select';
 
 export type TimeFieldProps = {
   /** `HH:mm` (24 h) or empty. */
@@ -69,6 +70,7 @@ export function TimeField({ value, onChange, id, disabled, required, invalid, ar
     };
     const escape = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && event.target instanceof Node && controlRef.current?.contains(event.target)) {
+        if (event.target instanceof HTMLSelectElement && event.target.getAttribute('aria-expanded') === 'true') return;
         event.preventDefault();
         event.stopPropagation();
         setOpen(false);
@@ -177,18 +179,14 @@ export function TimeField({ value, onChange, id, disabled, required, invalid, ar
       {open && !disabled ? (
         <div id={`${id}-picker`} className={styles.timePicker} role="dialog" aria-label="Choose a time">
           <div className={styles.timePickerFields}>
-            <label>
-              Hour
-              <select ref={hourRef} value={selection.hour} onChange={(event) => setSelection((previous) => ({ ...previous, hour: event.target.value }))}>
-                {Array.from({ length: 24 }, (_, index) => String(index).padStart(2, '0')).map((hour) => <option key={hour}>{hour}</option>)}
-              </select>
-            </label>
-            <label>
-              Minute
-              <select value={selection.minute} onChange={(event) => setSelection((previous) => ({ ...previous, minute: event.target.value }))}>
-                {Array.from({ length: 60 }, (_, index) => String(index).padStart(2, '0')).map((minute) => <option key={minute}>{minute}</option>)}
-              </select>
-            </label>
+            <Select label="Hour" ref={hourRef} value={selection.hour} options={Array.from({ length: 24 }, (_, index) => {
+              const hour = String(index).padStart(2, '0');
+              return { value: hour, label: hour };
+            })} onChange={(event) => setSelection((previous) => ({ ...previous, hour: event.target.value }))} />
+            <Select label="Minute" value={selection.minute} options={Array.from({ length: 60 }, (_, index) => {
+              const minute = String(index).padStart(2, '0');
+              return { value: minute, label: minute };
+            })} onChange={(event) => setSelection((previous) => ({ ...previous, minute: event.target.value }))} />
           </div>
           <button type="button" className={styles.timeApply} onClick={() => {
             const next = `${selection.hour}:${selection.minute}`;

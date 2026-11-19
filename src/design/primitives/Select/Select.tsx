@@ -5,6 +5,7 @@ import { cn } from '@/lib/cn';
 
 import { describedBy, Field } from '../Field/Field';
 import styles from './Select.module.css';
+import { SelectControl } from './SelectControl';
 
 export type SelectOption = { value: string; label: string; disabled?: boolean };
 
@@ -27,26 +28,16 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
   return (
     <Field id={id} label={label} hint={hint} error={error} required={required} className={wrapperClassName}>
       <div className={cn(styles.control, styles[size], error && styles.invalid, rest.disabled && styles.disabled)}>
-        <select
+        <SelectControl
           ref={ref}
           id={id}
           className={cn(styles.select, className)}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy(id, hint, error)}
           required={required}
+          options={placeholder === undefined ? options : [{ value: '', label: placeholder, disabled: required }, ...options]}
           {...rest}
-        >
-          {placeholder !== undefined ? (
-            <option value="" disabled={required}>
-              {placeholder}
-            </option>
-          ) : null}
-          {options.map((o) => (
-            <option key={o.value} value={o.value} disabled={o.disabled}>
-              {o.label}
-            </option>
-          ))}
-        </select>
+        />
         <Icon name="chevron-down" size={16} className={styles.chevron} />
       </div>
     </Field>

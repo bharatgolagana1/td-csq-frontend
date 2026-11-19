@@ -30,16 +30,4 @@
 .sizeLabel {
   white-space: nowrap;
 }
-.select {
-  height: var(--control-h-sm);
-  padding: 0 8px;
-  border: 1px solid var(--line-2);
-  border-radius: var(--radius);
-  background: var(--surface);
-  color: var(--ink);
-  font-family: var(--font-mono);
-  font-size: var(--text-sm);
-}
-.select:focus-visible {
-  box-shadow: var(--focus-ring);
-}
+.size > div { min-width: 76px; }

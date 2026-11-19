@@ -107,8 +107,10 @@ describe('DateTimeInput', () => {
     await user.click(trigger);
     const picker = screen.getByRole('dialog', { name: 'Choose a time' });
     expect(within(picker).getByLabelText('Hour')).toHaveFocus();
-    await user.selectOptions(within(picker).getByLabelText('Hour'), '18');
-    await user.selectOptions(within(picker).getByLabelText('Minute'), '47');
+    await user.click(within(picker).getByRole('combobox', { name: 'Hour' }));
+    await user.click(within(screen.getByRole('listbox', { name: 'Hour' })).getByRole('option', { name: '18' }));
+    await user.click(within(picker).getByRole('combobox', { name: 'Minute' }));
+    await user.click(within(screen.getByRole('listbox', { name: 'Minute' })).getByRole('option', { name: '47' }));
     expect(onChange).not.toHaveBeenCalled();
     await user.click(within(picker).getByRole('button', { name: 'Apply' }));
     expect(onChange).toHaveBeenLastCalledWith('2026-11-03T18:47');
@@ -123,7 +125,8 @@ describe('DateTimeInput', () => {
     const { rerender } = render(<DateTimeInput label="Closes" value="2026-12-01T18:00" onChange={onChange} />);
     const trigger = screen.getByRole('button', { name: 'Choose time' });
     await user.click(trigger);
-    await user.selectOptions(screen.getByLabelText('Hour'), '20');
+    await user.click(screen.getByRole('combobox', { name: 'Hour' }));
+    await user.click(within(screen.getByRole('listbox', { name: 'Hour' })).getByRole('option', { name: '20' }));
     await user.keyboard('{Escape}');
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(onChange).not.toHaveBeenCalled();
@@ -131,6 +134,22 @@ describe('DateTimeInput', () => {
     rerender(<DateTimeInput label="Closes" value="2026-12-01T18:00" onChange={onChange} disabled />);
     expect(trigger).toBeDisabled();
     expect(screen.getByLabelText('Time')).toBeDisabled();
+  });
+
+  it('uses the shared hour menu and closes that menu before the time picker on Escape', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<DateTimeInput label="Closes" value="2026-12-01T18:00" onChange={onChange} />);
+    await user.click(screen.getByRole('button', { name: 'Choose time' }));
+    await user.click(screen.getByRole('combobox', { name: 'Hour' }));
+    expect(screen.getByRole('listbox', { name: 'Hour' })).toBeInTheDocument();
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('listbox')).toBeNull();
+    expect(screen.getByRole('dialog', { name: 'Choose a time' })).toBeInTheDocument();
+    await user.click(screen.getByRole('combobox', { name: 'Hour' }));
+    await user.click(within(screen.getByRole('listbox')).getByRole('option', { name: '20' }));
+    await user.click(screen.getByRole('button', { name: 'Apply' }));
+    expect(onChange).toHaveBeenLastCalledWith('2026-12-01T20:00');
   });
 
 });

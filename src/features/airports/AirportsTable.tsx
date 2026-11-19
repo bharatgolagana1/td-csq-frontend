@@ -46,7 +46,7 @@ export function AirportsTable({ rows, loading, sort, onSortChange, canManage, on
       id: 'operators',
       header: 'Operators',
       width: 110,
-      align: 'right',
+      align: 'center',
       mono: true,
       cell: (a) => formatInt(a.operatorCount),
     },

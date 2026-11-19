@@ -54,12 +54,12 @@ export function CyclesTable({ rows, loading, sort, onSortChange, canManage, empt
     { id: 'name', header: 'Cycle', sortable: true, cell: (c) => <Title cycle={c} /> },
     { id: 'type', header: 'Type', width: 120, sortable: true, cell: (c) => <Pill variant={TYPE_PILL[c.type]}>{CYCLE_TYPE_LABELS[c.type]}</Pill> },
     { id: 'status', header: 'Status', width: 150, sortable: true, cell: (c) => <Pill variant={statusVariant(c.status)}>{CYCLE_STATUS_LABELS[c.status]}</Pill> },
-    { id: 'sampling.start.utc', header: 'Windows', sortable: true, hideBelow: 'md', cell: (c) => <Windows cycle={c} /> },
+    { id: 'sampling.start.utc', header: 'Windows', width: 260, align: 'left', sortable: true, hideBelow: 'md', cell: (c) => <Windows cycle={c} /> },
     {
       id: 'participants',
       header: 'Airports · operators',
       width: 150,
-      align: 'right',
+      align: 'center',
       mono: true,
       hideBelow: 'sm',
       cell: (c) => (
@@ -68,7 +68,7 @@ export function CyclesTable({ rows, loading, sort, onSortChange, canManage, empt
         </span>
       ),
     },
-    { id: 'progress', header: 'Progress', width: 220, cell: (c) => <CycleMeters cycle={c} /> },
+    { id: 'progress', header: 'Progress', width: 220, align: 'center', cell: (c) => <CycleMeters cycle={c} /> },
   ];
 
   const rowActions = (c: CycleSummary): MenuItem[] => {
