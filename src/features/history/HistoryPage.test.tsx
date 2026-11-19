@@ -176,20 +176,24 @@ describe('HistoryPage', () => {
     expect(await screen.findByText('detail a1')).toBeInTheDocument();
   });
 
-  it('shows both statuses initially, toggles the Status header, and keeps Submitted as plain text', async () => {
+  it('shows both statuses initially, newest first by the date shown, and toggles the Status header', async () => {
     list.mockImplementation((query) => {
       const data = ROWS.filter((row) => !query.status || row.status === query.status);
       return { isPending: false, isError: false, data: { data, meta: { page: query.page, pageSize: 25, total: data.length } } } as unknown as ReturnType<typeof useAssessments>;
     });
     mount();
     const user = userEvent.setup();
-    expect(list).toHaveBeenLastCalledWith(expect.objectContaining({ sort: '-startedAt' }));
+    expect(list).toHaveBeenLastCalledWith(expect.objectContaining({ sort: '-activityAt' }));
     expect(list).toHaveBeenLastCalledWith(expect.not.objectContaining({ status: expect.anything() }));
     expect(screen.getByRole('row', { name: /Identity hidden/ })).toHaveTextContent('Submitted');
     expect(screen.getByRole('row', { name: /Priya Natarajan/ })).toHaveTextContent('Draft');
-    const submitted = screen.getByRole('columnheader', { name: 'Submitted' });
-    expect(within(submitted).queryByRole('button')).toBeNull();
-    expect(submitted).not.toHaveAttribute('aria-sort');
+    // The order follows the date the Submitted column shows (a draft's last save), and its header says so.
+    const submitted = screen.getByRole('columnheader', { name: /Submitted/ });
+    expect(submitted).toHaveAttribute('aria-sort', 'descending');
+    await user.click(within(submitted).getByRole('button'));
+    expect(list).toHaveBeenLastCalledWith(expect.objectContaining({ sort: 'activityAt' }));
+    expect(screen.getByRole('columnheader', { name: /Submitted/ })).toHaveAttribute('aria-sort', 'ascending');
+    await user.click(within(screen.getByRole('columnheader', { name: /Submitted/ })).getByRole('button'));
 
     const statusHeading = screen.getByRole('columnheader', { name: /Status/ });
     await user.click(within(statusHeading).getByRole('button'));

@@ -234,7 +234,8 @@ export function HistoryTable({ rows, loading, sort, onSortChange, statusFilter =
         </Pill>
       ),
     },
-    { id: 'submittedAt', header: 'Submitted', width: 172, mono: true, hideBelow: 'md', cell: (r) => <Submitted row={r} tz={tzOf(r.cycle.id)} /> },
+    // Sorted by the date it shows: the submission, or a draft's last save (`activityAt`).
+    { id: 'activityAt', header: 'Submitted', width: 172, sortable: true, mono: true, hideBelow: 'md', cell: (r) => <Submitted row={r} tz={tzOf(r.cycle.id)} /> },
     { id: 'score', header: 'Score', width: 110, align: 'right', mono: true, cell: scoreOf },
   ];
 
