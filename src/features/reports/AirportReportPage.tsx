@@ -61,7 +61,7 @@ function AirportBody({ report }: { report: AirportReport }) {
         <HorizontalBar rows={airportCategoryBars(report.categories)} provisional={report.provisional} summary="Weighted airport score per category" />
       </Card>
       <Card className={styles.span6} title="Category coverage" subtitle="Share of the airport behind each figure" padding="none">
-        <Table caption="Category coverage" columns={CATEGORY_COLUMNS} rows={report.categories} rowKey={(c) => c.id} dense stickyHeader={false} empty={<EmptyState icon="chart" size="sm" title="No categories" />} />
+        <Table caption="Category coverage" columns={CATEGORY_COLUMNS} rows={report.categories} rowKey={(c) => c.id} dense empty={<EmptyState icon="chart" size="sm" title="No categories" />} />
       </Card>
     </>
   );

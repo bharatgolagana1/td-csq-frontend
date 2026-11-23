@@ -65,10 +65,10 @@ export default function AuditPage() {
 
       <Toolbar end={<ToolbarCount>{query.isPending ? '…' : `${formatInt(total)} ${total === 1 ? 'entry' : 'entries'}`}</ToolbarCount>}>
         <SearchInput value={list.filters.q} onChange={(v) => list.set('q', v)} debounce={300} placeholder="Search action, entity, id or actor" label="Search audit log" />
-        <Select aria-label="Entity" size="sm" options={ENTITY_OPTIONS} value={list.filters.entity} onChange={(e) => list.set('entity', e.target.value)} />
-        <Select aria-label="Action" size="sm" options={ACTION_OPTIONS} value={list.filters.action} onChange={(e) => list.set('action', e.target.value)} />
-        {orgs.canFilter ? <Select aria-label="Organisation" size="sm" options={[{ value: '', label: 'All organisations' }, ...orgs.options]} value={list.filters.orgId} onChange={(e) => list.set('orgId', e.target.value)} /> : null}
-        <SearchInput value={list.filters.actor} onChange={(v) => list.set('actor', v)} debounce={300} size="sm" placeholder="Actor e-mail or id" label="Actor" className={styles.actorFilter} />
+        <Select aria-label="Entity" options={ENTITY_OPTIONS} value={list.filters.entity} onChange={(e) => list.set('entity', e.target.value)} />
+        <Select aria-label="Action" options={ACTION_OPTIONS} value={list.filters.action} onChange={(e) => list.set('action', e.target.value)} />
+        {orgs.canFilter ? <Select aria-label="Organisation" options={[{ value: '', label: 'All organisations' }, ...orgs.options]} value={list.filters.orgId} onChange={(e) => list.set('orgId', e.target.value)} /> : null}
+        <SearchInput value={list.filters.actor} onChange={(v) => list.set('actor', v)} debounce={300} placeholder="Actor e-mail or id" label="Actor" className={styles.actorFilter} />
         <span className={styles.range} role="group" aria-label="Date range">
           <Input type="date" size="sm" aria-label="From date" value={list.filters.from} max={list.filters.to || undefined} onChange={(e) => list.set('from', e.target.value)} wrapperClassName={styles.dateField} />
           <span className={styles.rangeSep} aria-hidden="true">

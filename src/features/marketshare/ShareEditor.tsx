@@ -63,7 +63,6 @@ export function ShareEditor({ share, operators, canEdit, saving, onSave }: Share
         columns={columns}
         rows={editor.rows}
         rowKey={(r) => r.acoId}
-        stickyHeader={false}
         empty={<EmptyState icon="building" title="No operators at this airport" description="Add operators to the airport first; each active operator gets a row here." />}
       />
       <Card className={styles.summary} title="Total">

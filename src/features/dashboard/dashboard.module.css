@@ -86,31 +86,17 @@
   min-width: 0;
   max-width: 100%;
 }
-.pillSelect {
+.stripSelect {
   min-width: 0;
   max-width: 100%;
   flex: 1 1 176px;
 }
-.pillOperator {
+.stripOperator {
   flex-basis: 240px;
 }
-.pillSelect > div {
-  border-radius: var(--radius-pill);
-  border-color: var(--line-inverse);
-  background: var(--surface-inverse-2);
-}
-.pillSelect select {
-  padding-left: 14px;
-  font-size: var(--text-sm);
-  font-weight: 700;
-}
-/* Native option menus need an explicit background to match the light text. */
-.pillSelect select option {
-  background-color: var(--surface-inverse-2);
-  color: var(--ink-inverse);
-}
-.pillSelect select option:disabled {
-  color: var(--muted-inverse);
+.stripToggle {
+  min-height: var(--control-h);
+  align-items: center;
 }
 @media (max-width: 760px) {
   .strip {
@@ -120,8 +106,8 @@
     width: 100%;
     margin-left: 0;
   }
-  .pillSelect,
-  .pillOperator {
+  .stripSelect,
+  .stripOperator {
     flex: 1 1 150px;
     min-width: 0;
   }

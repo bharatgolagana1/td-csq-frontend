@@ -115,7 +115,6 @@
   color: var(--muted);
 }
 .diffWrap {
-  overflow: auto;
   border: 1px solid var(--line);
   border-radius: var(--radius);
 }
@@ -134,9 +133,6 @@
   overflow-wrap: anywhere;
 }
 .diffTable thead th {
-  position: sticky;
-  top: 0;
-  background: var(--surface-2);
   color: var(--muted);
   font-size: var(--text-xs);
   font-weight: 700;

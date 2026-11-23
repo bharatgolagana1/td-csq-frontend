@@ -111,11 +111,11 @@ export default function HistoryPage() {
       />
 
       <Toolbar end={<ToolbarCount>{list.isPending ? '…' : `${formatInt(total)} ${total === 1 ? 'assessment' : 'assessments'}`}</ToolbarCount>}>
-        <Select aria-label="Cycle" options={cycleOptions} value={state.filters.cycleId} size="sm" onChange={(e) => state.setFilter('cycleId', e.target.value)} wrapperClassName={styles.cycleSelect} />
-        <Select aria-label="Kind" options={KIND_OPTIONS} value={state.filters.kind} size="sm" onChange={(e) => state.setFilter('kind', e.target.value)} />
-        <Select aria-label="Customer type" options={TYPE_OPTIONS} value={state.filters.customerType} size="sm" onChange={(e) => state.setFilter('customerType', e.target.value)} />
-        <Select aria-label="Status" options={STATUS_OPTIONS} value={state.filters.status} size="sm" onChange={(e) => state.setFilter('status', e.target.value)} />
-        <Select aria-label="Survey" options={SURVEY_OPTIONS} value={state.filters.surveyType} size="sm" onChange={(e) => state.setFilter('surveyType', e.target.value)} />
+        <Select aria-label="Cycle" options={cycleOptions} value={state.filters.cycleId} onChange={(e) => state.setFilter('cycleId', e.target.value)} wrapperClassName={styles.cycleSelect} />
+        <Select aria-label="Kind" options={KIND_OPTIONS} value={state.filters.kind} onChange={(e) => state.setFilter('kind', e.target.value)} />
+        <Select aria-label="Customer type" options={TYPE_OPTIONS} value={state.filters.customerType} onChange={(e) => state.setFilter('customerType', e.target.value)} />
+        <Select aria-label="Status" options={STATUS_OPTIONS} value={state.filters.status} onChange={(e) => state.setFilter('status', e.target.value)} />
+        <Select aria-label="Survey" options={SURVEY_OPTIONS} value={state.filters.surveyType} onChange={(e) => state.setFilter('surveyType', e.target.value)} />
       </Toolbar>
 
       {list.isError ? (

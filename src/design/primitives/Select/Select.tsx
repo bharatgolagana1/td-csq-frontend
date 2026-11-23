@@ -26,12 +26,12 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
   const autoId = useId();
   const id = idProp ?? autoId;
   return (
-    <Field id={id} label={label} hint={hint} error={error} required={required} className={wrapperClassName}>
+    <Field id={id} label={label} hint={hint} error={error} required={required} className={cn(styles.field, wrapperClassName)}>
       <div className={cn(styles.control, styles[size], error && styles.invalid, rest.disabled && styles.disabled)}>
         <SelectControl
           ref={ref}
           id={id}
-          className={cn(styles.select, className)}
+          className={className}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy(id, hint, error)}
           required={required}

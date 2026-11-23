@@ -50,7 +50,7 @@ function ErrorsTable({ errors }: { errors: AirportImportError[] }) {
   return (
     <section>
       <h3 className={styles.sectionTitle}>Problems ({formatInt(errors.length)})</h3>
-      <Table caption="Import problems" columns={ERROR_COLUMNS} rows={errors.slice(0, PREVIEW_LIMIT)} rowKey={(e) => `${e.row}-${e.field}-${e.message}`} dense stickyHeader={false} />
+      <Table caption="Import problems" columns={ERROR_COLUMNS} rows={errors.slice(0, PREVIEW_LIMIT)} rowKey={(e) => `${e.row}-${e.field}-${e.message}`} dense />
       {errors.length > PREVIEW_LIMIT ? <p className={styles.more}>Showing the first {PREVIEW_LIMIT} of {formatInt(errors.length)} problems.</p> : null}
     </section>
   );
@@ -165,7 +165,7 @@ export function AirportImportDrawer({ open, onClose }: AirportImportDrawerProps)
             <Summary items={[{ label: 'Rows in file', value: parsed.total }, { label: 'Ready to import', value: parsed.rows.length }, { label: 'Rejected', value: parsed.errors.length, bad: true }]} />
             <section>
               <h3 className={styles.sectionTitle}>Rows ({formatInt(parsed.rows.length)})</h3>
-              <Table caption="Rows to import" columns={ROW_COLUMNS} rows={parsed.rows.slice(0, PREVIEW_LIMIT)} rowKey={(r) => r.iata} dense stickyHeader={false} empty={<p className={styles.more}>No valid rows. Fix the problems below and choose the file again.</p>} />
+              <Table caption="Rows to import" columns={ROW_COLUMNS} rows={parsed.rows.slice(0, PREVIEW_LIMIT)} rowKey={(r) => r.iata} dense empty={<p className={styles.more}>No valid rows. Fix the problems below and choose the file again.</p>} />
               {parsed.rows.length > PREVIEW_LIMIT ? <p className={styles.more}>Showing the first {PREVIEW_LIMIT} of {formatInt(parsed.rows.length)} rows.</p> : null}
             </section>
             <ErrorsTable errors={parsed.errors} />

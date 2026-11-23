@@ -3,6 +3,7 @@ import { Fragment, useMemo } from 'react';
 import { type RoleMatrix, type TaskDefinition } from '@/api/types';
 import { Icon } from '@/design/icons';
 import { Checkbox, EmptyState, Tag } from '@/design/primitives';
+import tableStyles from '@/design/primitives/Table/Table.module.css';
 import { cn } from '@/lib/cn';
 import { humanise } from '@/lib/format';
 
@@ -41,8 +42,8 @@ export function MatrixGrid({ tasks, roles, isChecked, onToggle, readOnly, search
   }
 
   return (
-    <div className={styles.wrap}>
-      <table className={styles.table}>
+    <div className={cn(tableStyles.scrollArea, styles.wrap)}>
+      <table className={cn(styles.table, tableStyles.sticky)}>
         <caption className="visually-hidden">Role to task matrix</caption>
         <thead>
           <tr>
