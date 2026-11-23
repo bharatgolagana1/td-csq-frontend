@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
 
 import { useReducedMotion } from '@/design/hooks/useReducedMotion';
+import tableStyles from '@/design/primitives/Table/Table.module.css';
+import { cn } from '@/lib/cn';
 import { formatInt } from '@/lib/format';
 
 import { ChartFrame, LegendDot } from './ChartFrame';
@@ -93,38 +95,40 @@ export function Donut({ slices, centreValue, centreLabel, height = 260, legend: 
           <div className={styles.plot} style={{ height }}>
             {plot}
           </div>
-          <table className={styles.table}>
-            <caption className="visually-hidden">Feedback distribution by band</caption>
-            <thead>
-              <tr>
-                <th scope="col">Band</th>
-                <th scope="col" className={styles.num}>
-                  Count
-                </th>
-                <th scope="col" className={styles.num}>
-                  %
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {slices.map((s) => (
-                <tr key={s.label}>
-                  <th scope="row">
-                    <LegendDot color={ratingColor(t, s.rating)} label={s.label} />
+          <div className={tableStyles.scrollArea}>
+            <table className={cn(styles.table, tableStyles.sticky)}>
+              <caption className="visually-hidden">Feedback distribution by band</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Band</th>
+                  <th scope="col" className={styles.num}>
+                    Count
                   </th>
-                  <td className={styles.num}>{formatInt(s.count)}</td>
-                  <td className={styles.num}>{pctOf(s, total).toFixed(0)}&nbsp;%</td>
+                  <th scope="col" className={styles.num}>
+                    %
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr>
-                <th scope="row">Total</th>
-                <td className={styles.num}>{formatInt(total)}</td>
-                <td className={styles.num}>100 %</td>
-              </tr>
-            </tfoot>
-          </table>
+              </thead>
+              <tbody>
+                {slices.map((s) => (
+                  <tr key={s.label}>
+                    <th scope="row">
+                      <LegendDot color={ratingColor(t, s.rating)} label={s.label} />
+                    </th>
+                    <td className={styles.num}>{formatInt(s.count)}</td>
+                    <td className={styles.num}>{pctOf(s, total).toFixed(0)}&nbsp;%</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th scope="row">Total</th>
+                  <td className={styles.num}>{formatInt(total)}</td>
+                  <td className={styles.num}>100 %</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
         </div>
       </ChartFrame>
     );

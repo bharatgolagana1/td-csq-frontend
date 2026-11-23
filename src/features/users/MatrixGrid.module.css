@@ -1,10 +1,5 @@
 /* The table scrolls inside this box, never the page: the task column and the header stay put. */
 .wrap {
-  position: relative;
-  max-width: 100%;
-  max-height: calc(100dvh - 420px);
-  min-height: 320px;
-  overflow: auto;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
@@ -17,9 +12,6 @@
   font-size: 14px;
 }
 .th {
-  position: sticky;
-  top: 0;
-  z-index: 2;
   padding: 10px 12px;
   background: var(--surface-2);
   border-bottom: 1px solid var(--line);

@@ -85,7 +85,6 @@ export function CategoriesCard({ report, questionsTo }: { report: OperatorReport
           rows={rows}
           rowKey={(r) => r.id}
           dense
-          stickyHeader={false}
           empty={<EmptyState icon="chart" size="sm" title="No categories" description="The survey pinned to this cycle has no categories." />}
         />
       )}

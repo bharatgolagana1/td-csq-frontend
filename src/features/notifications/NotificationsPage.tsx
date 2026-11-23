@@ -91,13 +91,13 @@ export default function NotificationsPage() {
 
       <Toolbar end={<ToolbarCount>{query.isPending ? '…' : `${formatInt(total)} ${total === 1 ? 'notification' : 'notifications'}`}</ToolbarCount>}>
         <SearchInput value={list.filters.q} onChange={(v) => list.set('q', v)} debounce={300} placeholder="Search recipient or subject" label="Search notifications" />
-        <Select aria-label="Template" size="sm" options={TEMPLATE_OPTIONS} value={list.filters.template} onChange={(e) => list.set('template', e.target.value)} />
-        <Select aria-label="Status" size="sm" options={STATUS_OPTIONS} value={list.filters.status} onChange={(e) => list.set('status', e.target.value as NotificationStatus | '')} />
+        <Select aria-label="Template" options={TEMPLATE_OPTIONS} value={list.filters.template} onChange={(e) => list.set('template', e.target.value)} />
+        <Select aria-label="Status" options={STATUS_OPTIONS} value={list.filters.status} onChange={(e) => list.set('status', e.target.value as NotificationStatus | '')} />
         {refs.cycleOptions.length > 0 ? (
-          <Select aria-label="Cycle" size="sm" options={[{ value: '', label: 'All cycles' }, ...refs.cycleOptions]} value={list.filters.cycleId} onChange={(e) => list.set('cycleId', e.target.value)} />
+          <Select aria-label="Cycle" options={[{ value: '', label: 'All cycles' }, ...refs.cycleOptions]} value={list.filters.cycleId} onChange={(e) => list.set('cycleId', e.target.value)} />
         ) : null}
         {refs.canFilterOperators ? (
-          <Select aria-label="Operator" size="sm" options={[{ value: '', label: 'All operators' }, ...refs.operatorOptions]} value={list.filters.acoId} onChange={(e) => list.set('acoId', e.target.value)} />
+          <Select aria-label="Operator" options={[{ value: '', label: 'All operators' }, ...refs.operatorOptions]} value={list.filters.acoId} onChange={(e) => list.set('acoId', e.target.value)} />
         ) : null}
         {list.hasFilters ? (
           <Button variant="ghost" size="sm" onClick={list.reset}>

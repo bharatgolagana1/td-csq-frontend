@@ -101,7 +101,7 @@ export function Table<T>({
   };
 
   return (
-    <div className={cn(styles.wrap, className)}>
+    <div className={cn(styles.scrollArea, styles.wrap, className)}>
       <table className={cn(styles.table, dense && styles.dense, stickyHeader && styles.sticky)}>
         {caption ? <caption className={styles.caption}>{caption}</caption> : null}
         <thead>

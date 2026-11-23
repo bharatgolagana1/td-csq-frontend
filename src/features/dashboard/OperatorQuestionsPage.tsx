@@ -53,7 +53,7 @@ export default function OperatorQuestionsPage() {
       <>
         <Toolbar end={<ToolbarCount>{data ? `${formatInt(rows.length)} of ${formatInt(data.questions.length)} questions` : '…'}</ToolbarCount>}>
           <SearchInput value={q} onChange={setQ} debounce={200} placeholder="Search code or question" label="Search questions" />
-          <Select aria-label="Category" size="sm" options={categoryOptions} value={category} onChange={(e) => setCategory(e.target.value)} disabled={!data} />
+          <Select aria-label="Category" options={categoryOptions} value={category} onChange={(e) => setCategory(e.target.value)} disabled={!data} />
         </Toolbar>
         <QuestionsTable rows={rows} loading={!data} sort={sort} onSortChange={setSort} filtered={Boolean(q || category)} />
       </>

@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useSurveyTree } from '@/api/surveys';
 import { type SurveyListEntry, type SurveyTree, type SurveyVersion } from '@/api/surveys.types';
 import { Icon } from '@/design/icons';
+import tableStyles from '@/design/primitives/Table/Table.module.css';
+import { cn } from '@/lib/cn';
 import { Button, Card, Skeleton } from '@/design/primitives';
 
 import { formatZoned, pluralQuestions, TYPE_LABEL, versionLabel } from './surveyFormat';
@@ -40,33 +42,35 @@ function HeadsTable({ published, draft }: { published: SurveyTree | undefined; d
   if (codes.length === 0) return null;
   const cell = (map: ReturnType<typeof countByHead>, code: string, present: boolean) => (present ? (map.get(code)?.count ?? 0) : '—');
   return (
-    <table className={styles.heads}>
-      <caption className="visually-hidden">Questions per head</caption>
-      <thead>
-        <tr>
-          <th scope="col" className={styles.headCode}>
-            Head
-          </th>
-          <th scope="col">Name</th>
-          <th scope="col" className={styles.count}>
-            Published
-          </th>
-          <th scope="col" className={styles.count}>
-            Draft
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        {codes.map((code) => (
-          <tr key={code}>
-            <td className={styles.headCode}>{code}</td>
-            <td>{(drf.get(code) ?? pub.get(code))?.name}</td>
-            <td className={styles.count}>{cell(pub, code, Boolean(published))}</td>
-            <td className={styles.count}>{cell(drf, code, Boolean(draft))}</td>
+    <div className={tableStyles.scrollArea}>
+      <table className={cn(styles.heads, tableStyles.sticky)}>
+        <caption className="visually-hidden">Questions per head</caption>
+        <thead>
+          <tr>
+            <th scope="col" className={styles.headCode}>
+              Head
+            </th>
+            <th scope="col">Name</th>
+            <th scope="col" className={styles.count}>
+              Published
+            </th>
+            <th scope="col" className={styles.count}>
+              Draft
+            </th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {codes.map((code) => (
+            <tr key={code}>
+              <td className={styles.headCode}>{code}</td>
+              <td>{(drf.get(code) ?? pub.get(code))?.name}</td>
+              <td className={styles.count}>{cell(pub, code, Boolean(published))}</td>
+              <td className={styles.count}>{cell(drf, code, Boolean(draft))}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 

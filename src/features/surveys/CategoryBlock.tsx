@@ -30,8 +30,8 @@ function countActive(category: Category): number {
 /** One category of the tree: its row, its direct questions, and each subcategory with its questions. Collapsible. */
 export function CategoryBlock({ category, index, count, ids, rowProps, announce }: CategoryBlockProps) {
   const { readOnly, selected, select, reorder } = useEditor();
-  const [collapsed, setCollapsed] = useState(false);
   const inside = selectionInCategory(selected, category);
+  const [collapsed, setCollapsed] = useState(!inside);
 
   // A selection inside (a click in the tree, a deep link) always reveals itself.
   useEffect(() => {

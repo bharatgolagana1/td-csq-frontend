@@ -56,11 +56,10 @@ export function selectionExists(categories: readonly Category[], selected: Selec
   }
 }
 
-/** True when the selection sits inside this category (the tree expands it). */
+/** True when the selection needs this category expanded to reveal its contents. */
 export function selectionInCategory(selected: Selection | null, category: Category): boolean {
   if (!selected) return false;
   if ('categoryId' in selected) return selected.categoryId === category.id;
-  if (selected.kind === 'category') return selected.id === category.id;
   if (selected.kind === 'subcategory') return category.subcategories.some((s) => s.id === selected.id);
   if (selected.kind === 'question') return category.questions.some((q) => q.id === selected.id) || category.subcategories.some((s) => s.questions.some((q) => q.id === selected.id));
   return false;

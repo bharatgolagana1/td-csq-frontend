@@ -67,5 +67,5 @@ export function ComparisonTable({ rows, cycles, parentNames, caption }: Comparis
     return cols;
   }, [cycles, parentNames]);
 
-  return <Table caption={caption} columns={columns} rows={rows} rowKey={(r) => r.code} dense stickyHeader={false} empty={<EmptyState icon="chart" size="sm" title="Nothing at this level" description="The compared surveys have no items here." />} />;
+  return <Table caption={caption} columns={columns} rows={rows} rowKey={(r) => r.code} dense empty={<EmptyState icon="chart" size="sm" title="Nothing at this level" description="The compared surveys have no items here." />} />;
 }

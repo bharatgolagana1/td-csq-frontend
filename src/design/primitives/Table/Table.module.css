@@ -1,7 +1,14 @@
-.wrap {
+.scrollArea {
   position: relative;
-  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  max-height: 65vh;
+  max-height: min(65dvh, 44rem);
   overflow: auto;
+}
+.wrap {
+  width: 100%;
+  scroll-padding-block-start: 40px;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
@@ -33,10 +40,11 @@
   text-align: left;
   white-space: nowrap;
 }
-.sticky .th {
+.sticky :where(thead > tr > th) {
   position: sticky;
   top: 0;
   z-index: 2;
+  background: var(--surface-2);
 }
 .th:first-child {
   padding-left: 16px;

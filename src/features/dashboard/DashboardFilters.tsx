@@ -16,7 +16,7 @@ export type DashboardFiltersProps = {
 /**
  * The dark context strip above the cards: programme and scope on the left, the
  * operator (platform / airport users), cycle, survey type and — for an
- * IMPORT_EXPORT cycle — the direction as pills on the right. One filter row
+ * IMPORT_EXPORT cycle — the direction on the right. One filter row
  * above everything it scopes.
  */
 export function DashboardFilters({ selection, direction = null }: DashboardFiltersProps) {
@@ -35,8 +35,7 @@ export function DashboardFilters({ selection, direction = null }: DashboardFilte
         {scope.canChoose ? (
           <Select
             aria-label="Operator"
-            size="sm"
-            wrapperClassName={cn(styles.pillSelect, styles.pillOperator)}
+            wrapperClassName={cn(styles.stripSelect, styles.stripOperator)}
             options={scope.options}
             value={scope.acoId}
             placeholder={scope.loading ? 'Loading operators…' : scope.options.length === 0 ? 'No active operators' : undefined}
@@ -46,8 +45,7 @@ export function DashboardFilters({ selection, direction = null }: DashboardFilte
         ) : null}
         <Select
           aria-label="Cycle"
-          size="sm"
-          wrapperClassName={styles.pillSelect}
+          wrapperClassName={styles.stripSelect}
           options={cycleOptions}
           value={sel.cycle?.id ?? ''}
           placeholder={cyclesLoading ? 'Loading cycles…' : cycleOptions.length === 0 ? 'No cycle yet' : undefined}
@@ -55,9 +53,9 @@ export function DashboardFilters({ selection, direction = null }: DashboardFilte
           onChange={(e) => setCycle(e.target.value)}
         />
         {sel.surveyTypes.length > 1 && sel.surveyType ? (
-          <Segmented aria-label="Survey type" tone="inverse" value={sel.surveyType} onChange={setSurveyType} options={sel.surveyTypes.map((t) => ({ value: t, label: SURVEY_TYPE_LABELS[t] }))} />
+          <Segmented aria-label="Survey type" tone="inverse" className={styles.stripToggle} value={sel.surveyType} onChange={setSurveyType} options={sel.surveyTypes.map((t) => ({ value: t, label: SURVEY_TYPE_LABELS[t] }))} />
         ) : null}
-        {direction ? <Segmented aria-label="Direction" tone="inverse" value={direction} onChange={(d) => (d === direction ? undefined : setDirection(d))} options={DIRECTION_OPTIONS} /> : null}
+        {direction ? <Segmented aria-label="Direction" tone="inverse" className={styles.stripToggle} value={direction} onChange={(d) => (d === direction ? undefined : setDirection(d))} options={DIRECTION_OPTIONS} /> : null}
       </div>
     </div>
   );

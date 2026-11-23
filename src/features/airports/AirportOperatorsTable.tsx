@@ -41,7 +41,6 @@ export function AirportOperatorsTable({ operators }: { operators: Operator[] }) 
       columns={columns}
       rows={operators}
       rowKey={(o) => o.id}
-      stickyHeader={false}
       empty={<EmptyState icon="building" size="sm" title="No operators yet" description="Operators are tagged to this airport when they are created or approved." />}
     />
   );

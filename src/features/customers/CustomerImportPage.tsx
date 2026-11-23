@@ -151,7 +151,6 @@ export default function CustomerImportPage() {
                 <Table
                   caption="Template columns"
                   dense
-                  stickyHeader={false}
                   columns={[
                     { id: 'header', header: 'Column', cell: (c) => <strong>{c.header}</strong>, width: 160 },
                     { id: 'required', header: 'Required', width: 110, cell: (c) => (c.required ? <Pill variant="info" dot={false} size="sm">Required</Pill> : <span className={styles.muted}>Optional</span>) },
@@ -359,7 +358,6 @@ export function ValidationStep({ validation, file, onBack, onCommit }: Validatio
             <Table
               caption="Validation errors"
               dense
-              stickyHeader={false}
               columns={errorColumns}
               rows={validation.errors.slice(0, ERROR_ROWS_SHOWN).map((e, i) => ({ ...e, i }))}
               rowKey={(e) => `${e.row}-${e.field}-${e.i}`}
@@ -378,7 +376,7 @@ export function ValidationStep({ validation, file, onBack, onCommit }: Validatio
               Preview
               {previewPartial ? <span className={styles.muted}>first {formatInt(validation.preview.length)} of {formatInt(validation.rows)} rows</span> : null}
             </h3>
-            <Table caption="Preview rows" dense stickyHeader={false} columns={previewColumns} rows={validation.preview} rowKey={(r) => String(r.row)} />
+            <Table caption="Preview rows" dense columns={previewColumns} rows={validation.preview} rowKey={(r) => String(r.row)} />
           </section>
         ) : null}
 

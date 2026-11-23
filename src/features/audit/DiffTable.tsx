@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 
 import { Button } from '@/design/primitives';
+import tableStyles from '@/design/primitives/Table/Table.module.css';
+import { cn } from '@/lib/cn';
 
 import styles from './audit.module.css';
 import { changedCount, type DiffRow, diffRows } from './diff';
@@ -33,8 +35,8 @@ export function DiffTable({ before, after }: DiffTableProps) {
           </Button>
         ) : null}
       </div>
-      <div className={styles.diffWrap}>
-        <table className={styles.diffTable}>
+      <div className={cn(tableStyles.scrollArea, styles.diffWrap)}>
+        <table className={cn(styles.diffTable, tableStyles.sticky)}>
           <caption className="visually-hidden">Before and after</caption>
           <thead>
             <tr>
