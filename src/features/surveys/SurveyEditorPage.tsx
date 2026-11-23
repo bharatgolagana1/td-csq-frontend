@@ -67,10 +67,13 @@ export default function SurveyEditorPage() {
     if (categories && selected && !selectionExists(categories, selected)) clearSelection();
   }, [categories, selected, clearSelection]);
 
-  // On one-column layouts the form sits below the tree: bring it into view when a node is picked.
+  // Start each selection at the top of its pane and reveal the pane on stacked layouts.
   useEffect(() => {
-    if (selected && window.matchMedia('(max-width: 1000px)').matches) editorCol.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, [selected]);
+    const panel = editorCol.current;
+    if (!selected || !panel) return;
+    panel.scrollTop = 0;
+    if (window.matchMedia('(max-width: 1000px)').matches) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [selected, tree.isSuccess]);
 
   if (tree.isPending) {
     return (
@@ -167,12 +170,14 @@ export default function SurveyEditorPage() {
                 {displayed.length} {displayed.length === 1 ? 'category' : 'categories'} · {total} q
               </span>
             </div>
-            <div className={styles.colBody}>
+            {/* eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- Keyboard users can scroll this region directly. */}
+            <div className={styles.colBody} role="region" aria-label="Survey categories" tabIndex={0}>
               <SurveyTree />
             </div>
             {pendingGroups > 0 ? <OrderSaveBar groups={pendingGroups} saving={saveOrder.isPending} onSave={onSaveOrder} onDiscard={editor.resetOrder} /> : null}
           </section>
-          <section className={styles.col} aria-label="Selected node" ref={editorCol}>
+          {/* eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- Keyboard users can scroll read-only details directly. */}
+          <section className={`${styles.col} ${styles.detailsPane}`} aria-label="Selected node" ref={editorCol} tabIndex={selected ? 0 : undefined}>
             <NodeEditor />
           </section>
         </div>

@@ -165,12 +165,28 @@
 .colBody {
   padding: 12px;
 }
+.colBody,
+.detailsPane {
+  max-height: 68vh;
+  max-height: 68dvh;
+  overflow: auto;
+}
+.detailsPane {
+  scroll-padding-block: 60px 72px;
+}
+.detailsPane .colHead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--surface);
+}
 .editorBody {
   padding: 16px 20px 20px;
 }
 .editorFoot {
   position: sticky;
   bottom: 0;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;

@@ -34,7 +34,7 @@ describe('SurveyEditorPage', () => {
     expect(screen.getByText('req_7')).toBeInTheDocument();
   });
 
-  it('renders a draft: header, tree and the empty editor', async () => {
+  it('opens a draft with categories collapsed and toggles the questions with the arrow', async () => {
     mockGets({ '/surveys/s3': draftTree() });
     renderSurveys('/surveys/s3');
     expect(await screen.findByRole('heading', { name: 'Domestic survey' })).toBeInTheDocument();
@@ -42,9 +42,17 @@ describe('SurveyEditorPage', () => {
     expect(screen.getByText('v3')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Publish' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /INFRA Infrastructure and facilities/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /SCREEN Screening/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', Q1_ROW)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /SCREEN Screening/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', Q1_ROW)).not.toBeInTheDocument();
     expect(screen.getByText('Nothing selected')).toBeInTheDocument();
+    const expand = screen.getByRole('button', { name: 'Expand INFRA' });
+    expect(expand).toHaveAttribute('aria-expanded', 'false');
+    await userEvent.click(expand);
+    expect(screen.getByRole('button', Q1_ROW)).toBeInTheDocument();
+    const collapse = screen.getByRole('button', { name: 'Collapse INFRA' });
+    expect(collapse).toHaveAttribute('aria-expanded', 'true');
+    await userEvent.click(collapse);
+    expect(screen.queryByRole('button', Q1_ROW)).not.toBeInTheDocument();
   });
 
   it('opens a question from a deep link, saves an edit and maps server validation onto the field', async () => {
@@ -53,6 +61,7 @@ describe('SurveyEditorPage', () => {
     mocked().patch.mockResolvedValueOnce(question({ ...q1, id: 'q1', categoryId: 'c1', code: 'ACFI.INFRA.CARGO_STORAGE_CAPACITY', text: 'Adequate cargo infrastructure', order: 1 }));
     renderSurveys('/surveys/s3?node=question:q1');
 
+    expect(await screen.findByRole('button', Q1_ROW)).toBeInTheDocument();
     const form = within(await screen.findByRole('form', { name: 'Question ACFI.INFRA.CARGO_STORAGE_CAPACITY' }));
     expect(form.getByRole('button', { name: 'Save' })).toBeDisabled();
     const text = form.getByLabelText(/^Question/);
@@ -78,7 +87,8 @@ describe('SurveyEditorPage', () => {
   it('asks before discarding a dirty form', async () => {
     mockGets({ '/surveys/s3': draftTree() });
     renderSurveys('/surveys/s3');
-    await userEvent.click(await screen.findByRole('button', Q1_ROW));
+    await userEvent.click(await screen.findByRole('button', { name: 'Expand INFRA' }));
+    await userEvent.click(screen.getByRole('button', Q1_ROW));
     const form = within(await screen.findByRole('form', { name: 'Question ACFI.INFRA.CARGO_STORAGE_CAPACITY' }));
     await userEvent.type(form.getByLabelText(/^Question/), ' and more');
     await userEvent.click(screen.getByRole('button', { name: /User amenities/ }));
@@ -91,7 +101,8 @@ describe('SurveyEditorPage', () => {
     mockGets({ '/surveys/s3': draftTree() });
     mocked().put.mockResolvedValue(draftTree());
     renderSurveys('/surveys/s3');
-    await userEvent.click(await screen.findByRole('button', { name: 'Move question USER_AMENITIES up' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Expand INFRA' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Move question USER_AMENITIES up' }));
     expect(screen.getByText('Order changed in 1 group · not saved')).toBeInTheDocument();
     const rows = within(screen.getAllByRole('list', { name: 'Questions' })[0] as HTMLElement).getAllByRole('button', { name: /Availability|User amenities/ });
     expect(rows[0]).toHaveAccessibleName(/User amenities/);
@@ -140,6 +151,7 @@ describe('SurveyEditorPage', () => {
     expect(screen.queryByRole('button', { name: 'Publish' })).toBeNull();
     expect(screen.queryByRole('button', { name: /^Move / })).toBeNull();
 
+    await userEvent.click(screen.getByRole('button', { name: 'Expand INFRA' }));
     await userEvent.click(screen.getByRole('button', Q1_ROW));
     const form = within(await screen.findByRole('form', { name: 'Question ACFI.INFRA.CARGO_STORAGE_CAPACITY' }));
     expect(form.getByLabelText(/^Question/)).toBeDisabled();
